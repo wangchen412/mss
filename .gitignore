@@ -250,3 +250,14 @@ paket-files/
 # JetBrains Rider
 .idea/
 *.sln.iml
+
+# GTAGS
+GTAGS
+GPATH
+GRTAGS
+
+# Doxygen
+/doc/html
+/doc/latex
+
+
