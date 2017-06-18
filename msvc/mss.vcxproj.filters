@@ -19,39 +19,39 @@
     <Filter Include="Header Files\Core">
       <UniqueIdentifier>{e13065a3-e7be-4f35-8580-f3eb817efe7b}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\Core\Incident">
-      <UniqueIdentifier>{c708e73c-a14f-461d-8ad3-55bb3b0491dc}</UniqueIdentifier>
+    <Filter Include="Tests\Core">
+      <UniqueIdentifier>{3fa80025-4e9f-469f-82a7-9ff51311e5dc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Core">
+      <UniqueIdentifier>{aa4c9b28-2006-4860-9bcb-ddee9dd00ec5}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\core\Math.h">
       <Filter>Header Files\Core</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\core\Point.h">
-      <Filter>Header Files\Core</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\core\State.h">
-      <Filter>Header Files\Core</Filter>
-    </ClInclude>
-    <ClInclude Include="..\tests\Test_1.h">
-      <Filter>Tests</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\core\Matrix.h">
-      <Filter>Header Files\Core</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\core\Incident.h">
-      <Filter>Header Files\Core\Incident</Filter>
-    </ClInclude>
     <ClInclude Include="..\src\core\Tensor.h">
       <Filter>Header Files\Core</Filter>
     </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="..\src\Main.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
+    <ClInclude Include="..\src\core\CS.h">
+      <Filter>Header Files\Core</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="..\..\eigen\debug\msvc\eigen.natvis" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\src\core\CS.cc">
+      <Filter>Source Files\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\tests\core\test_cs.cc">
+      <Filter>Tests\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\tests\core\test_math.cc">
+      <Filter>Tests\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="main.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>
