@@ -28,3 +28,7 @@ add_test(NAME test_cs COMMAND test_cs)
 add_executable(test_state test_state.cc)
 target_link_libraries(test_state mss_core gtest gtest_main)
 add_test(NAME test_state COMMAND test_cs)
+
+add_executable(test_matrix test_matrix.cc)
+target_link_libraries(test_matrix mss_core gtest gtest_main)
+add_test(NAME test_matrix COMMAND test_matrix)
