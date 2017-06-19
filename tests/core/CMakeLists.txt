@@ -18,9 +18,13 @@
 # ----------------------------------------------------------------------
 
 add_executable(test_math test_math.cc)
-target_link_libraries(test_math mss_core gtest)
+target_link_libraries(test_math mss_core gtest gtest_main)
 add_test(NAME test_math COMMAND test_math)
 
 add_executable(test_cs test_cs.cc)
-target_link_libraries(test_cs mss_core gtest)
+target_link_libraries(test_cs mss_core gtest gtest_main)
 add_test(NAME test_cs COMMAND test_cs)
+
+add_executable(test_state test_state.cc)
+target_link_libraries(test_state mss_core gtest gtest_main)
+add_test(NAME test_state COMMAND test_cs)

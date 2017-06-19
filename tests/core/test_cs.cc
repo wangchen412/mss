@@ -20,8 +20,6 @@
 // Test Coordinate System Class
 
 #include <gtest/gtest.h>
-#include <limits.h>
-#include <iostream>
 #include "../../src/core/CS.h"
 
 namespace mss {
@@ -50,10 +48,7 @@ TEST_F(CSTest, Constructors) {
   EXPECT_EQ(d.Position(), PosiVect(4, -5));
   EXPECT_EQ(d.Angle(), -pi / 2);
   EXPECT_EQ(d.Basis(), &a);
-
-  // Copy Constructor and equality:
-  CS m(c);
-  EXPECT_EQ(m, c);
+  EXPECT_EQ(CS(c), c);
 }
 TEST_F(CSTest, in) {
   // a in b:

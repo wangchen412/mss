@@ -19,10 +19,10 @@
 
 // Test basic math functions and classes.
 
+// #include <limits.h>
+// #include <iomanip>
+// #include <iostream>
 #include <gtest/gtest.h>
-#include <limits.h>
-#include <iomanip>
-#include <iostream>
 #include "../../src/core/Tensor.h"
 
 namespace mss {
