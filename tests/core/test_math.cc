@@ -64,12 +64,12 @@ TEST(MathTest, ConstantsTest) {
   EXPECT_EQ(1.0 / ii, -ii);
 }
 TEST(MathTest, angEquTest) {
-  EXPECT_TRUE(angEqu(0, 0));
-  EXPECT_TRUE(angEqu(pi, pi));
-  EXPECT_TRUE(angEqu(2 * pi, 2 * pi));
-  EXPECT_TRUE(angEqu(0, 2 * pi));
-  EXPECT_TRUE(angEqu(pi, -pi));
-  EXPECT_TRUE(angEqu(ee * pi, (ee + 12) * pi));
+  EXPECT_PRED2(angEqu, 0, 0);
+  EXPECT_PRED2(angEqu, pi, pi);
+  EXPECT_PRED2(angEqu, 2 * pi, 2 * pi);
+  EXPECT_PRED2(angEqu, 0, 2 * pi);
+  EXPECT_PRED2(angEqu, pi, -pi);
+  EXPECT_PRED2(angEqu, ee * pi, (ee + 12) * pi);
   EXPECT_FALSE(angEqu(ee * pi, (ee - 9) * pi));
 }
 TEST(MathTest, LpTest) {
@@ -142,15 +142,15 @@ TEST_F(VectorTest, AngleTest) {
 
   Vector<double> nb(-b.x, -b.y);
   Vector<double> nc(-c.x, -c.y);
-  EXPECT_TRUE(angEqu(nb.Angle(), pi));
-  EXPECT_TRUE(angEqu(nc.Angle(), -pi / 2));
+  EXPECT_PRED2(angEqu, nb.Angle(), pi);
+  EXPECT_PRED2(angEqu, nc.Angle(), -pi / 2);
 
   Vector<double> d2(-d.x, d.y);
   Vector<double> d3(-d.x, -d.y);
   Vector<double> d4(d.x, -d.y);
-  EXPECT_TRUE(angEqu(d2.Angle(), pi - d.Angle()));
-  EXPECT_TRUE(angEqu(d3.Angle(), pi + d.Angle()));
-  EXPECT_TRUE(angEqu(d4.Angle(), -d.Angle()));
+  EXPECT_PRED2(angEqu, d2.Angle(), pi - d.Angle());
+  EXPECT_PRED2(angEqu, d3.Angle(), pi + d.Angle());
+  EXPECT_PRED2(angEqu, d4.Angle(), -d.Angle());
 }
 TEST_F(VectorTest, RotateTest) {
   EXPECT_EQ(a.Rotate(0), a);

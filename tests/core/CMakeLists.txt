@@ -17,22 +17,14 @@
 #
 # ----------------------------------------------------------------------
 
-add_executable(test_math test_math.cc)
-target_link_libraries(test_math mss_core gtest gtest_main)
-add_test(NAME test_math COMMAND test_math)
+function(add_test_core test_name)
+  add_executable(${test_name} ${test_name}.cc)
+  target_link_libraries(${test_name} mss_core gtest gtest_main)
+  add_test(NAME ${test_name} COMMAND ${test_name})
+endfunction()
 
-add_executable(test_cs test_cs.cc)
-target_link_libraries(test_cs mss_core gtest gtest_main)
-add_test(NAME test_cs COMMAND test_cs)
-
-add_executable(test_state test_state.cc)
-target_link_libraries(test_state mss_core gtest gtest_main)
-add_test(NAME test_state COMMAND test_cs)
-
-add_executable(test_matrix test_matrix.cc)
-target_link_libraries(test_matrix mss_core gtest gtest_main)
-add_test(NAME test_matrix COMMAND test_matrix)
-
-add_executable(test_incident test_incident.cc)
-target_link_libraries(test_incident mss_core gtest gtest_main)
-add_test(NAME test_incident COMMAND test_incident)
+add_test_core(test_math)
+add_test_core(test_cs)
+add_test_core(test_state)
+add_test_core(test_matrix)
+add_test_core(test_incident)

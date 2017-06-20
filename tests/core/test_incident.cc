@@ -27,7 +27,7 @@ namespace mss {
 class IncidentTest : public testing::Test {
  protected:
   IncidentTest()
-      : m(Material(1300, 1.41908e9, 0.832e9), 42),
+      : m(Material(1300, 1.41908e9, 0.832e9), 1.25664e6),
         p1(m),
         p2(m, 0, 1, 2),
         p3(m, pi / 3),

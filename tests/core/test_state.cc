@@ -19,6 +19,7 @@
 
 #include <gtest/gtest.h>
 #include "../../src/core/State.h"
+#include <iostream>
 
 namespace mss {
 
@@ -30,15 +31,16 @@ class StateTest : public testing::Test {
         cs3(-1, -10, -pi / 2, &cs2),
         a(),
         b(DispAP(1.9), StressAP(2.0 + 8.0 * ii, 3.7), &cs1),
-        c(4.0 + 6.0 * ii, 5.5, 6.0 + 4.0 * ii, &cs3),
-        d(DispAP(1.9), StressAP(2.0 + 8.0 * ii, 3.7).Rotate(pi / 2), &cs2),
+        c(4.0 + 6.0 * ii, 5.5, 6.0 + 4.0 * ii, &cs2),
+        d(DispAP(1.9), StressAP(2.0 + 8.0 * ii, 3.7).Rotate(-t - pi / 2),
+          &cs3),
         aa(),
         bb(DispIP(1.0 + 9.0 * ii, 2.8),
            StressIP(3.0 + 7.0 * ii, 4.6, 5.0 + 5.0 * ii), &cs1),
-        cc(6.4, 7.0 + 3.0 * ii, 8.2, 9.0 + 1.0 * ii, 1.9, &cs3),
-        dd(DispIP(1.0 + 9.0 * ii, 2.8).Rotate(pi / 2),
-           StressIP(3.0 + 7.0 * ii, 4.6, 5.0 + 5.0 * ii).Rotate(pi / 2),
-           &cs2) {}
+        cc(6.4, 7.0 + 3.0 * ii, 8.2, 9.0 + 1.0 * ii, 1.9, &cs2),
+        dd(DispIP(1.0 + 9.0 * ii, 2.8).Rotate(-t - pi / 2),
+           StressIP(3.0 + 7.0 * ii, 4.6, 5.0 + 5.0 * ii).Rotate(-t - pi / 2),
+           &cs3) {}
 
   const double at34 = atan(0.75);
   const double at54 = atan(1.25);
@@ -58,7 +60,7 @@ TEST_F(StateTest, Constructors) {
   EXPECT_EQ(b.Basis(), &cs1);
   EXPECT_EQ(c.Displacement(), 4.0 + 6.0 * ii);
   EXPECT_EQ(c.Stress(), StressAP(5.5, 6.0 + 4.0 * ii));
-  EXPECT_EQ(c.Basis(), &cs3);
+  EXPECT_EQ(c.Basis(), &cs2);
   EXPECT_EQ(aa.Displacement(), DispIP(0.0, 0.0));
   EXPECT_EQ(aa.Stress(), StressIP(0.0, 0.0, 0.0));
   EXPECT_EQ(aa.Basis(), nullptr);
@@ -67,7 +69,7 @@ TEST_F(StateTest, Constructors) {
   EXPECT_EQ(bb.Basis(), &cs1);
   EXPECT_EQ(cc.Displacement(), DispIP(6.4, 7.0 + 3.0 * ii));
   EXPECT_EQ(cc.Stress(), StressIP(8.2, 9.0 + 1.0 * ii, 1.9));
-  EXPECT_EQ(cc.Basis(), &cs3);
+  EXPECT_EQ(cc.Basis(), &cs2);
   EXPECT_EQ(StateAP(d), d);
   EXPECT_EQ(StateIP(dd), dd);
 }

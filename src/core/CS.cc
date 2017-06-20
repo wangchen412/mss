@@ -22,8 +22,8 @@
 namespace mss {
 
 CS CS::in(const CS* other) const {
-  assert(other != this);
   if (other == basis_) return *this;
+  if (other == this) return CS(0, 0, 0, this);
   Vector<double> r;
   double a;
   if (other) {
