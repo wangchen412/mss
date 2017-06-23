@@ -27,6 +27,13 @@
 
 namespace mss {
 
+// template <typename T1, typename T2>
+// class State;
+// template <typename T1, typename T2>
+// std::ostream& operator<<(std::ostream& os, const State<T1, T2>& st);
+// template <typename T1, typename T2>
+// std::istream& operator>>(std::istream& os, State<T1, T2>& st);
+
 template <typename T1, typename T2>
 class State {
  public:
@@ -46,18 +53,41 @@ class State {
         basis_(other.basis_) {}
   virtual ~State() {}
 
-  bool operator==(const State& other) const;
+  bool operator==(const State& other) const {
+    State tmp(in(other.basis_));
+    return (tmp.displacement_ == other.displacement_) &&
+           (tmp.stress_ == other.stress_);
+  }
+  friend std::ostream& operator<<(std::ostream& os, const State& st) {
+    return os << st.AngleGLB() << "\t" << st.displacement_ << "\t"
+              << st.stress_;
+  }
+  friend std::istream& operator>>(std::istream& is, State& st) {
+    // Since the object is read from file, the only CS it can be based on is
+    // the global CS. So after the displacement and stress are read, the state
+    // is rotated reversely to fit it into the global CS.
+
+    assert(st == State());  // Write in empty state only.
+    double angle;
+    is >> angle >> st.displacement_ >> st.stress_;
+    st._rotate(-angle);
+    return is;
+  }
+  // friend std::ostream& operator<<<>(std::ostream&, const State<T1, T2>&);
+  // friend std::istream& operator>><>(std::istream&, State&);
 
   const T1& Displacement() const { return displacement_; }
   const T2& Stress() const { return stress_; }
   const CS* Basis() const { return basis_; }
 
+  double AngleGLB() const;
   State in(const CS* otherBasis) const;
 
  private:
   T1 displacement_;
   T2 stress_;
   const CS* basis_;
+  State& _rotate(const double& angle);
 };
 
 typedef State<DispAP, StressAP> StateAP;
@@ -67,22 +97,40 @@ typedef State<DispIP, StressIP> StateIP;
 // Inline functions:
 
 template <>
-inline StateAP StateAP::in(const CS* otherBasis) const {
-  double d = otherBasis->in(basis_).Angle();
-  return StateAP(displacement_, stress_.Rotate(d), otherBasis);
+inline StateAP& StateAP::_rotate(const double& angle) {
+  stress_.RotateInPlace(angle);
+  return *this;
 }
-
 template <>
-inline StateIP StateIP::in(const CS* otherBasis) const {
-  double d = otherBasis->in(basis_).Angle();
-  return StateIP(displacement_.Rotate(d), stress_.Rotate(d), otherBasis);
+inline StateIP& StateIP::_rotate(const double& angle) {
+  displacement_.RotateInPlace(angle);
+  stress_.RotateInPlace(angle);
+  return *this;
+}
+template <typename T1, typename T2>
+inline double State<T1, T2>::AngleGLB() const {
+  if (basis_)
+    return basis_->AngleGLB();
+  else
+    return 0;
+}
+template <typename T1, typename T2>
+inline State<T1, T2> State<T1, T2>::in(const mss::CS* otherBasis) const {
+  if (otherBasis == basis_) return *this;
+  double d = 0;
+  if (otherBasis) d = otherBasis->AngleGLB();
+  return State<T1, T2>(displacement_, stress_, otherBasis)
+      ._rotate(d - AngleGLB());
 }
 
-template <typename T1, typename T2>
-inline bool State<T1, T2>::operator==(const State<T1, T2>& other) const {
-  return (displacement_ == other.displacement_) &&
-         (stress_ == other.stress_) && (basis_ == other.basis_);
-}
+// template <typename T1, typename T2>
+// std::ostream& operator<<(std::ostream& os, const State<T1, T2>& st) {
+//   return os << st.displacement_ << "\t" << st.stress_;
+// }
+// template <typename T1, typename T2>
+// std::istream& operator>>(std::istream& is, State<T1, T2>& st) {
+//   return is >> st.displacement_ >> st.stress_;
+// }
 
 }  // namespace mss
 

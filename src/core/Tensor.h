@@ -22,6 +22,8 @@
 #ifndef MSS_TENSOR_H
 #define MSS_TENSOR_H
 
+#include <fstream>
+#include <iostream>
 #include "Math.h"
 
 namespace mss {
@@ -103,6 +105,16 @@ inline bool Vector<T>::operator==(const Vector<T>& other) const {
   return Lp<2>({x - other.x, y - other.y}) < epsilon;
 }
 template <typename T>
+inline std::ostream& operator<<(std::ostream& os, const Vector<T>& v) {
+  return os << v.x << "\t" << v.y;
+}
+
+template <typename T>
+inline std::istream& operator>>(std::istream& is, Vector<T>& v) {
+  return is >> v.x >> v.y;
+}
+
+template <typename T>
 inline Vector<T>& Vector<T>::RotateInPlace(const double& a) {
   // Change its components into the ones in a rotated CS.
 
@@ -179,6 +191,14 @@ inline Tensor<T> Tensor<T>::operator-(const Tensor<T>& other) const {
 template <typename T>
 bool Tensor<T>::operator==(const Tensor<T>& other) const {
   return Lp<2>({xx - other.xx, yy - other.yy, xy - other.xy}) < epsilon;
+}
+template <typename T>
+inline std::ostream& operator<<(std::ostream& os, const Tensor<T>& t) {
+  return os << t.xx << "\t" << t.yy << "\t" << t.xy;
+}
+template <typename T>
+inline std::istream& operator>>(std::istream& is, Tensor<T>& t) {
+  return is >> t.xx >> t.yy >> t.xy;
 }
 template <typename T>
 inline Tensor<T>& Tensor<T>::RotateInPlace(const double& a) {

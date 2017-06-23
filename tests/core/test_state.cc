@@ -18,8 +18,12 @@
 // ----------------------------------------------------------------------
 
 #include <gtest/gtest.h>
-#include "../../src/core/State.h"
+#include <fstream>
 #include <iostream>
+#include <string>
+#include "../../src/core/State.h"
+
+using namespace std;
 
 namespace mss {
 
@@ -110,6 +114,29 @@ TEST_F(StateTest, in) {
   EXPECT_EQ(dd.in(&cs1), bb.in(&cs1));
   EXPECT_EQ(dd.in(&cs2), bb.in(&cs2));
   EXPECT_EQ(dd.in(&cs3), bb.in(&cs3));
+}
+TEST_F(StateTest, IO) {
+  string src(__FILE__);
+  string fn = src.replace(src.end() - 13, src.end(), "data/state/TestIO.txt");
+  ofstream outFile(fn);
+  outFile.precision(16);
+  outFile << a << b << c << d << aa << bb << cc << dd << endl;
+  outFile.close();
+
+  StateAP ra, rb, rc, rd;
+  StateIP raa, rbb, rcc, rdd;
+  ifstream inFile(fn);
+  inFile >> ra >> rb >> rc >> rd >> raa >> rbb >> rcc >> rdd;
+  inFile.close();
+
+  EXPECT_EQ(a, ra);
+  EXPECT_EQ(b, rb);
+  EXPECT_EQ(c, rc);
+  EXPECT_EQ(d, rd);
+  EXPECT_EQ(aa, raa);
+  EXPECT_EQ(bb, rbb);
+  EXPECT_EQ(cc, rcc);
+  EXPECT_EQ(dd, rdd);
 }
 
 }  // namespace mss

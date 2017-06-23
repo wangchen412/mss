@@ -60,7 +60,7 @@ inline bool angEqu(const double& a, const double& b) {
 }
 template <int p, typename T>
 inline double Lp(std::initializer_list<T> l) {
-  assert(p != 0);
+  assert(p > 0);
   double sum = 0;
   for (T i : l) sum += pow(std::abs(i), p);
   return pow(sum, 1.0 / p);
