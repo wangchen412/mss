@@ -32,31 +32,62 @@ class Incident {
  public:
   Incident(const Matrix& matrix, const double& amplitude = 1,
            const double& phase = 0)
-      : matrix_(matrix), amp_(amplitude), phase_(phase) {}
+      : amp_(amplitude), phase_(phase), l_(matrix.Lambda()), m_(matrix.Mu()) {}
 
   virtual ~Incident() {}
 
-  virtual StateType Effect(const CS* position) const = 0;
+  virtual StateType Effect(const PosiVect& position) const = 0;
+  virtual StateType Effect(const CS* localCS) const = 0;
 
-  double Amplitude() const { return amp_; }
-  double Phase() const { return phase_; }
+  const double& Amplitude() const { return amp_; }
+  const double& Phase() const { return phase_; }
 
-  // protected:
-  const Matrix& matrix_;
-  double amp_;
-  double phase_;
+ protected:
+  double amp_, phase_;
+  const double &l_, &m_;
+};
+
+class IncidentP : virtual public Incident<StateIP>
+{
+ public:
+   IncidentP(const Matrix& matrix, const double& amplitude = 1,
+             const double& phase = 0)
+     : Incident<StateIP>(matrix, amplitude, phase), k_(matrix.KL()) {}
+
+   virtual StateIP Effect(const PosiVect& position) const = 0;
+   virtual StateIP Effect(const CS* localCS) const = 0;
+
+ protected:
+   const double &k_;
 };
 
 template <typename StateType>
-class IncidentPlane : public Incident<StateType> {
+class IncidentS : virtual public Incident<StateType>
+{
+public:
+  IncidentS(const Matrix& matrix, const double& amplitude = 1,
+            const double& phase = 0)
+    : Incident<StateType>(matrix, amplitude, phase), k_(matrix.KT()) {}
+
+  virtual StateType Effect(const PosiVect& position) const = 0;
+  virtual StateType Effect(const CS* localCS) const = 0;
+
+protected:
+  const double &k_;
+};
+
+template <typename StateType>
+class IncidentPlane : virtual public Incident<StateType> {
  public:
-  IncidentPlane(const Matrix& matrix, const double& angle = 0,
-                const double& amplitude = 1, const double& phase = 0)
-      : Incident<StateType>(matrix, amplitude, phase), angle_(angle) {
+   IncidentPlane(const Matrix& matrix, const double& angle = 0, 
+                 const double& amplitude = 1, const double& phase = 0)
+    : Incident<StateType>(matrix, amplitude, phase), angle_(angle)
+  {
     c_ = cos(angle_);
     s_ = sin(angle_);
   }
 
+  virtual StateType Effect(const PosiVect& position) const = 0;
   virtual StateType Effect(const CS* localCS) const = 0;
 
   const double& Angle() const { return angle_; }
@@ -65,72 +96,102 @@ class IncidentPlane : public Incident<StateType> {
   double angle_;
   double c_, s_;
 
-  using Incident<StateType>::matrix_;
   using Incident<StateType>::phase_;
+  using Incident<StateType>::l_;
+  using Incident<StateType>::m_;
 
-  dcomp _PhaseGLB(const CS* localCS, const double& k) const {
-    PosiVect positionGLB = localCS->inGLB().Position();
-    double x = positionGLB.x, y = positionGLB.y;
-    return exp(ii * (k * (c_ * x + s_ * y) + phase_));
+  dcomp _phaseGLB(const PosiVect& position, const double& k) const
+  {
+    // Return the phase of the incident wave at the position in global CS.
+
+    return exp(ii * (k * (c_ * position.x + s_ * position.y) + phase_));
   }
-  StateIP _StateGLB(const dcomp& u, const dcomp& v, const double& k) const {
+  StateIP _stateGLB(const dcomp& u, const dcomp& v, const double& k) const {
     // Return the State from known displacement u and v. (The wave number is
     // needed since P-wave and SV-wave have different wave numbers.)
 
-    const double &l = matrix_.Lambda(), &m = matrix_.Mu();
     dcomp gxx = ii * k * c_ * u;
     dcomp gyy = ii * k * s_ * v;
     dcomp gxy = ii * k * (s_ * u + c_ * v);
-    return StateIP(u, v, (l + 2 * m) * gxx + l * gyy,
-                   (l + 2 * m) * gyy + l * gxx, m * gxy);
+    return StateIP(u, v, (l_ + 2 * m_) * gxx + l_ * gyy,
+      (l_ + 2 * m_) * gyy + l_ * gxx, m_ * gxy);
   }
-  StateAP _StateGLB(const dcomp& w) const {
+  StateAP _stateGLB(const dcomp& w, const double& k) const {
     // Return the State from known displacement w.
 
-    double km = matrix_.KT() * matrix_.Mu();
-    return StateAP(w, ii * km * c_ * w, ii * km * s_ * w);
+    return StateAP(w, ii * k * m_ * c_ * w, ii * k * m_ * s_ * w);
   }
 };
 
-class IncidentPlaneP : public IncidentPlane<StateIP> {
+class IncidentPlaneP : public IncidentPlane<StateIP>, public IncidentP {
  public:
   IncidentPlaneP(const Matrix& matrix, const double& angle = 0,
                  const double& amplitude = 1, const double& phase = 0)
-      : IncidentPlane<StateIP>(matrix, angle, amplitude, phase) {}
+    : IncidentPlane<StateIP>(matrix, angle, amplitude, phase),
+    IncidentP(matrix, amplitude, phase),
+    Incident<StateIP>(matrix, amplitude, phase)
+  {}
 
-  StateIP Effect(const CS* localCS) const override {
-    // The effect of the incident plane P-wave at the point with localCS.
+  StateIP Effect(const PosiVect& position) const override
+  {
+    // The effect of the incident plane P-wave at the point with the poisition 
+    // in the global CS.
 
-    dcomp e = _PhaseGLB(localCS, matrix_.KL());
-    return _StateGLB(amp_ * c_ * e, amp_ * s_ * e, matrix_.KL()).in(localCS);
+    dcomp e = _phaseGLB(position, k_);
+    return _stateGLB(amp_*c_*e, amp_*s_*e, k_);
+  }
+  StateIP Effect(const CS* localCS) const override
+  {
+    // The effect of the incident plane P-wave at the point with the localCS.
+
+    return Effect(localCS->PositionGLB()).in(localCS);
   }
 };
 
-class IncidentPlaneSV : public IncidentPlane<StateIP> {
+class IncidentPlaneSV : public IncidentPlane<StateIP>, public IncidentS<StateIP> {
  public:
   IncidentPlaneSV(const Matrix& matrix, const double& angle = 0,
                   const double& amplitude = 1, const double& phase = 0)
-      : IncidentPlane<StateIP>(matrix, angle, amplitude, phase) {}
+    : IncidentPlane<StateIP>(matrix, angle, amplitude, phase),
+    IncidentS(matrix, amplitude, phase),
+    Incident<StateIP>(matrix, amplitude, phase)
+  {}
 
+  StateIP Effect(const PosiVect& position) const override
+  {
+    // The effect of the incident plane S-wave at the point with the position
+    // in the global CS.
+    
+    dcomp e = _phaseGLB(position, k_);
+    return _stateGLB(-amp_*s_*e, amp_*c_*e, k_);
+  }
   StateIP Effect(const CS* localCS) const override {
-    // The effect of the incident plane SV-wave at the point with localCS.
+    // The effect of the incident plane SV-wave at the point with the localCS.
 
-    dcomp e = _PhaseGLB(localCS, matrix_.KT());
-    return _StateGLB(-amp_ * s_ * e, amp_ * c_ * e, matrix_.KT()).in(localCS);
+    return Effect(localCS->PositionGLB()).in(localCS);
   }
 };
 
-class IncidentPlaneSH : public IncidentPlane<StateAP> {
+class IncidentPlaneSH : public IncidentPlane<StateAP>, public IncidentS<StateAP> {
  public:
   IncidentPlaneSH(const Matrix& matrix, const double& angle = 0,
                   const double& amplitude = 1, const double& phase = 0)
-      : IncidentPlane<StateAP>(matrix, angle, amplitude, phase) {}
+    : IncidentPlane<StateAP>(matrix, angle, amplitude, phase),
+    IncidentS(matrix, amplitude, phase),
+    Incident<StateAP>(matrix, amplitude, phase) {}
+  
+  StateAP Effect(const PosiVect& position) const override
+  {
+    // The effect of the incident plane S-wave at the point with the position
+    // in the global CS.
 
+    dcomp e = _phaseGLB(position, k_);
+    return _stateGLB(amp_*e, k_);
+  }
   StateAP Effect(const CS* localCS) const override {
     // The effect of the incident plane SH-wave at the point with localCS.
 
-    dcomp e = _PhaseGLB(localCS, matrix_.KT());
-    return _StateGLB(amp_ * e).in(localCS);
+    return Effect(localCS->PositionGLB()).in(localCS);
   }
 };
 

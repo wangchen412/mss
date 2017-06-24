@@ -36,6 +36,18 @@
     <ClInclude Include="..\src\core\CS.h">
       <Filter>Header Files\Core</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\core\State.h">
+      <Filter>Header Files\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\core\Incident.h">
+      <Filter>Header Files\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\core\Material.h">
+      <Filter>Header Files\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\core\Matrix.h">
+      <Filter>Header Files\Core</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="..\..\eigen\debug\msvc\eigen.natvis" />
@@ -52,6 +64,15 @@
     </ClCompile>
     <ClCompile Include="main.cc">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\tests\core\test_incident.cc">
+      <Filter>Tests\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\tests\core\test_matrix.cc">
+      <Filter>Tests\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\tests\core\test_state.cc">
+      <Filter>Tests\Core</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

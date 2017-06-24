@@ -49,6 +49,7 @@ class CS {
 
   const CS* Basis() const { return basis_; }
   const PosiVect& Position() const { return position_; }
+  PosiVect PositionGLB() const { return inGLB().Position(); }
   const double& Angle() const { return angle_; }
   double AngleGLB() const { return inGLB().Angle(); }
 

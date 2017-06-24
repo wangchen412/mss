@@ -19,24 +19,36 @@
 
 // Test plane incident wave classes.
 
+#include <iostream>
+#include <iomanip>
+#include <sstream>
+#include <fstream>
+#include <string>
 #include <gtest/gtest.h>
+#include <gmock/gmock.h>
 #include "../../src/core/Incident.h"
+
 
 namespace mss {
 
-class IncidentTest : public testing::Test {
- protected:
+namespace test
+{
+
+class IncidentTest : public testing::Test
+{
+protected:
   IncidentTest()
-      : m(Material(1300, 1.41908e9, 0.832e9), 1.25664e6),
-        p1(m),
-        p2(m, 0, 1, 2),
-        p3(m, pi / 3),
-        v1(m),
-        v2(m, 0, 1, 2),
-        v3(m, pi / 3),
-        h1(m),
-        h2(m, 0, 1, 2),
-        h3(m, pi / 3) {}
+    : m(Material(1300, 1.41908e9, 0.832e9), 1.25664e6),
+    p1(m),
+    p2(m, 0, 1, 2),
+    p3(m, pi / 3),
+    v1(m),
+    v2(m, 0, 1, 2),
+    v3(m, pi / 3),
+    h1(m),
+    h2(m, 0, 1, 2),
+    h3(m, pi / 3)
+  {}
 
   Matrix m;
   IncidentPlaneP p1, p2, p3;
@@ -44,7 +56,29 @@ class IncidentTest : public testing::Test {
   IncidentPlaneSH h1, h2, h3;
 };
 
-TEST_F(IncidentTest, Constructors) {
+template <typename StateType>
+void IncidentTest_ReadFile(const Incident<StateType>* inc,
+                           const std::string& fileName,
+                           std::vector<StateType>& ref,
+                           std::vector<StateType>& com)
+{
+  std::string src(__FILE__);
+  std::ifstream file(src.replace(src.end() - 16,
+                                 src.end(), "data/incident/") + fileName);
+  std::string ts;
+  while(std::getline(file, ts))
+  {
+    std::stringstream tss(ts);
+    PosiVect r;
+    StateType s;
+    tss >> r >> s;
+    ref.emplace_back(s);
+    com.emplace_back(inc->Effect(r));
+  }
+}
+
+TEST_F(IncidentTest, Constructors)
+{
   EXPECT_EQ(p1.Angle(), 0);
   EXPECT_EQ(p1.Amplitude(), 1);
   EXPECT_EQ(p1.Phase(), 0);
@@ -73,7 +107,47 @@ TEST_F(IncidentTest, Constructors) {
   EXPECT_EQ(h3.Amplitude(), 1);
   EXPECT_EQ(h3.Phase(), 0);
 }
-TEST_F(IncidentTest, Effect) {
-  // TODO: Compose tests for Effect method.
+TEST_F(IncidentTest, EffectSH)
+{
+  std::vector<StateAP> ref1, ref2, ref3;
+  std::vector<StateAP> com1, com2, com3;
+
+  IncidentTest_ReadFile(&h1, "SH1.dat", ref1, com1);
+  IncidentTest_ReadFile(&h2, "SH2.dat", ref2, com2);
+  IncidentTest_ReadFile(&h3, "SH3.dat", ref3, com3);
+
+  EXPECT_THAT(com1, testing::ContainerEq(ref1));
+  EXPECT_THAT(com2, testing::ContainerEq(ref2));
+  EXPECT_THAT(com3, testing::ContainerEq(ref3));
 }
+TEST_F(IncidentTest, EffectP)
+{
+  std::vector<StateIP> ref1, ref2, ref3;
+  std::vector<StateIP> com1, com2, com3;
+
+  IncidentTest_ReadFile(&p1, "P1.dat", ref1, com1);
+  IncidentTest_ReadFile(&p2, "P2.dat", ref2, com2);
+  IncidentTest_ReadFile(&p3, "P3.dat", ref3, com3);
+
+  EXPECT_THAT(com1, testing::ContainerEq(ref1));
+  EXPECT_THAT(com2, testing::ContainerEq(ref2));
+  EXPECT_THAT(com3, testing::ContainerEq(ref3));
+}
+
+TEST_F(IncidentTest, EffectSV)
+{
+  std::vector<StateIP> ref1, ref2, ref3;
+  std::vector<StateIP> com1, com2, com3;
+
+  IncidentTest_ReadFile(&v1, "SV1.dat", ref1, com1);
+  IncidentTest_ReadFile(&v2, "SV2.dat", ref2, com2);
+  IncidentTest_ReadFile(&v3, "SV3.dat", ref3, com3);
+
+  EXPECT_THAT(com1, testing::ContainerEq(ref1));
+  EXPECT_THAT(com2, testing::ContainerEq(ref2));
+  EXPECT_THAT(com3, testing::ContainerEq(ref3));
+}
+
+}  // namespace mss::test
+
 }  // namespace mss

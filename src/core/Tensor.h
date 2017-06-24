@@ -102,7 +102,9 @@ inline Vector<T> Vector<T>::operator-(const Vector<T>& other) const {
 }
 template <typename T>
 inline bool Vector<T>::operator==(const Vector<T>& other) const {
-  return Lp<2>({x - other.x, y - other.y}) < epsilon;
+  if(x == other.x && y == other.y) return true;
+  return Lp<2>({ x - other.x, y - other.y }) /
+    std::max(Lp<2>({ x, y }), Lp<2>({ other.x, other.y })) < epsilon;
 }
 template <typename T>
 inline std::ostream& operator<<(std::ostream& os, const Vector<T>& v) {
@@ -190,7 +192,9 @@ inline Tensor<T> Tensor<T>::operator-(const Tensor<T>& other) const {
 }
 template <typename T>
 bool Tensor<T>::operator==(const Tensor<T>& other) const {
-  return Lp<2>({xx - other.xx, yy - other.yy, xy - other.xy}) < epsilon;
+  if(xx == other.xx && yy == other.yy && xy == other.xy) return true;
+  return Lp<2>({xx - other.xx, yy - other.yy, xy - other.xy}) /
+    std::max(Lp<2>({ xx, yy, xy }), Lp<2>({ other.xx, other.yy, other.xy })) < epsilon;
 }
 template <typename T>
 inline std::ostream& operator<<(std::ostream& os, const Tensor<T>& t) {

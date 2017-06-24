@@ -27,13 +27,6 @@
 
 namespace mss {
 
-// template <typename T1, typename T2>
-// class State;
-// template <typename T1, typename T2>
-// std::ostream& operator<<(std::ostream& os, const State<T1, T2>& st);
-// template <typename T1, typename T2>
-// std::istream& operator>>(std::istream& os, State<T1, T2>& st);
-
 template <typename T1, typename T2>
 class State {
  public:

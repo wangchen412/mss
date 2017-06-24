@@ -34,7 +34,7 @@ typedef std::complex<double> dcomp;
 const dcomp ii(0.0, 1.0);
 const double ee(2.71828182845904523536);
 const double pi(3.14159265358979323846);
-const double epsilon(1e-13);
+const double epsilon(1e-14);
 
 inline double Bessel(int n, const double& x) {
   return jn(n, x);

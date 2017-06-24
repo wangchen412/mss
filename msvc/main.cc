@@ -21,5 +21,6 @@
 
 int main(int ac, char* av[]) {
   testing::InitGoogleTest(&ac, av);
-  return RUN_ALL_TESTS();
+  int rst = RUN_ALL_TESTS();
+  return rst;
 }
