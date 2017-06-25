@@ -24,25 +24,21 @@
 
 namespace mss {
 
-namespace test
-{
+namespace test {
 
-class MatrixTest : public testing::Test
-{
-protected:
+class MatrixTest : public testing::Test {
+ protected:
   MatrixTest()
-    : rubber(1300, 1.41908e9, 0.832e9),
-    lead(11400, 36.32496e9, 8.43e9),
-    a(rubber, pi / 2),
-    b(lead, pi)
-  {}
+      : rubber(1300, 1.41908e9, 0.832e9),
+        lead(11400, 36.32496e9, 8.43e9),
+        a(rubber, pi / 2),
+        b(lead, pi) {}
 
   const Material rubber, lead;
   Matrix a, b;
 };
 
-TEST_F(MatrixTest, Constructors)
-{
+TEST_F(MatrixTest, Constructors) {
   EXPECT_DOUBLE_EQ(a.MassDensity(), 1300);
   EXPECT_DOUBLE_EQ(a.Lambda(), 1.41908e9);
   EXPECT_DOUBLE_EQ(a.Mu(), 0.832e9);
@@ -61,8 +57,7 @@ TEST_F(MatrixTest, Constructors)
   EXPECT_DOUBLE_EQ(b.KL(), 0.001454480422257349);
   EXPECT_DOUBLE_EQ(b.KT(), 0.0036533267014104112);
 }
-TEST_F(MatrixTest, UpdateFreq)
-{
+TEST_F(MatrixTest, UpdateFreq) {
   a.UpdateFreq(2);
   EXPECT_DOUBLE_EQ(a.Frequency(), 2);
   EXPECT_DOUBLE_EQ(a.KL(), 0.001298701298701299);
@@ -74,6 +69,6 @@ TEST_F(MatrixTest, UpdateFreq)
   EXPECT_DOUBLE_EQ(b.KT(), 0.013954680078217818);
 }
 
-} // namespace mss::test
+}  // namespace test
 
 }  // namespace mss

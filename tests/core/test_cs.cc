@@ -24,12 +24,10 @@
 
 namespace mss {
 
-namespace test
-{
+namespace test {
 
-class CSTest : public testing::Test
-{
-protected:
+class CSTest : public testing::Test {
+ protected:
   CSTest() : a(), b(3, 4, t), c(-1, -2, -t, &b), d(4, -5, -pi / 2, &a) {}
 
   const double at34 = atan(0.75);
@@ -39,8 +37,7 @@ protected:
   CS a, b, c, d;
 };
 
-TEST_F(CSTest, Constructors)
-{
+TEST_F(CSTest, Constructors) {
   EXPECT_EQ(a.Position(), PosiVect(0, 0));
   EXPECT_EQ(a.Angle(), 0);
   EXPECT_EQ(a.Basis(), nullptr);
@@ -55,8 +52,7 @@ TEST_F(CSTest, Constructors)
   EXPECT_EQ(d.Basis(), &a);
   EXPECT_EQ(CS(c), c);
 }
-TEST_F(CSTest, in)
-{
+TEST_F(CSTest, in) {
   // a in b:
   EXPECT_EQ(a.in(&b).Position(), PosiVect(0, 5));
   EXPECT_PRED2(angEqu, a.in(&b).Angle(), -t);
@@ -111,6 +107,6 @@ TEST_F(CSTest, in)
   EXPECT_PRED2(angEqu, d.inGLB().Angle(), -pi / 2);
 }
 
-}  // namespace mss::test
+}  // namespace test
 
 }  // namespace mss

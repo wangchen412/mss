@@ -20,3 +20,4 @@
 file(GLOB _src *.cc)
 
 add_library(mss_core ${_src})
+target_link_libraries(mss_core m dl pthread)

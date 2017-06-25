@@ -18,22 +18,15 @@
 # ----------------------------------------------------------------------
 
 cmake_minimum_required(VERSION 3.7)
+set(CMAKE_CXX_COMPILER icpc)
+#set(CMAKE_VERBOSE_MAKEFILE ON)
+set(CMAKE_CXX_STANDARD 14)
+
 
 project(mss)
-set(CMAKE_CXX_STANDARD 14)
 
 enable_testing()
 
 include_directories("~/Programming/eigen/")
 add_subdirectory(src)
 add_subdirectory(tests)
-
-
-# add_custom_target(test)
-# macro(run_test test_target)
-#   add_custom_target(${test_target}_runtest
-#       COMMAND ${test_target}
-#       DEPENDS ${test_target}
-#       WORKING_DIRECTORY "${CMAKE_BINARY_DIR}")
-#   add_dependencies(test ${test_target}_runtest)
-# endmacro()

@@ -66,8 +66,6 @@ class State {
     st._rotate(-angle);
     return is;
   }
-  // friend std::ostream& operator<<<>(std::ostream&, const State<T1, T2>&);
-  // friend std::istream& operator>><>(std::istream&, State&);
 
   const T1& Displacement() const { return displacement_; }
   const T2& Stress() const { return stress_; }
@@ -89,13 +87,8 @@ typedef State<DispIP, StressIP> StateIP;
 // ---------------------------------------------------------------------------
 // Inline functions:
 
-template <>
-inline StateAP& StateAP::_rotate(const double& angle) {
-  stress_.RotateInPlace(angle);
-  return *this;
-}
-template <>
-inline StateIP& StateIP::_rotate(const double& angle) {
+template <typename T1, typename T2>
+inline State<T1, T2>& State<T1, T2>::_rotate(const double& angle) {
   displacement_.RotateInPlace(angle);
   stress_.RotateInPlace(angle);
   return *this;
@@ -115,15 +108,6 @@ inline State<T1, T2> State<T1, T2>::in(const mss::CS* otherBasis) const {
   return State<T1, T2>(displacement_, stress_, otherBasis)
       ._rotate(d - AngleGLB());
 }
-
-// template <typename T1, typename T2>
-// std::ostream& operator<<(std::ostream& os, const State<T1, T2>& st) {
-//   return os << st.displacement_ << "\t" << st.stress_;
-// }
-// template <typename T1, typename T2>
-// std::istream& operator>>(std::istream& is, State<T1, T2>& st) {
-//   return is >> st.displacement_ >> st.stress_;
-// }
 
 }  // namespace mss
 

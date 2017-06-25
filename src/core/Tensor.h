@@ -29,6 +29,23 @@
 namespace mss {
 
 template <typename T>
+struct Scalar {
+  explicit Scalar(const T& x = 0) : x(x) {}
+  Scalar(const Scalar& other) : x(other.x) {}
+  virtual ~Scalar() {}
+
+  Scalar& operator+=(const Scalar& other);
+  Scalar& operator-=(const Scalar& other);
+  Scalar operator+(const Scalar& other) const;
+  Scalar operator-(const Scalar& other) const;
+  bool operator==(const Scalar& other) const;
+
+  Scalar& RotateInPlace(const double& angle);
+  Scalar Rotate(const double& angle) const;
+
+  T x;
+};
+template <typename T>
 struct Vector {
   explicit Vector(const T& x = 0, const T& y = 0) : x(x), y(y) {}
   Vector(const Vector& other) : x(other.x), y(other.y) {}
@@ -50,7 +67,6 @@ struct Vector {
 
   T x, y;
 };
-
 template <typename T>
 struct Tensor {
   explicit Tensor(const T& xx = 0, const T& yy = 0, const T& xy = 0)
@@ -71,7 +87,7 @@ struct Tensor {
 };
 
 // Typedefs for antiplane (AP) and in-plane (IP) problems.
-typedef dcomp DispAP;
+typedef Scalar<dcomp> DispAP;
 typedef Vector<dcomp> StressAP;
 typedef Vector<dcomp> DispIP;
 typedef Tensor<dcomp> StressIP;
@@ -79,6 +95,49 @@ typedef Vector<double> PosiVect;
 
 // ---------------------------------------------------------------------------
 // Inline functions:
+
+template <typename T>
+inline Scalar<T>& Scalar<T>::operator+=(const Scalar<T>& other) {
+  x += other.x;
+  return *this;
+}
+template <typename T>
+inline Scalar<T> Scalar<T>::operator+(const Scalar<T>& other) const {
+  return Scalar<T>(x + other.x);
+}
+template <typename T>
+inline Scalar<T>& Scalar<T>::operator-=(const Scalar<T>& other) {
+  x -= other.x;
+  return *this;
+}
+template <typename T>
+inline Scalar<T> Scalar<T>::operator-(const Scalar<T>& other) const {
+  return Scalar<T>(x - other.x);
+}
+template <typename T>
+inline bool Scalar<T>::operator==(const Scalar<T>& other) const {
+  if (x == other.x) return true;
+  return std::abs(x - other.x) / std::max(std::abs(x), std::abs(other.x)) <
+         epsilon;
+}
+template <typename T>
+inline std::ostream& operator<<(std::ostream& os, const Scalar<T>& s) {
+  return os << s.x;
+}
+template <typename T>
+inline std::istream& operator>>(std::istream& is, Scalar<T>& s) {
+  return is >> s.x;
+}
+template <typename T>
+inline Scalar<T>& Scalar<T>::RotateInPlace(const double&) {
+  return *this;
+}
+template <typename T>
+inline Scalar<T> Scalar<T>::Rotate(const double&) const {
+  return *this;
+}
+
+// ----------------------------------------------------------------------
 
 template <typename T>
 inline Vector<T>& Vector<T>::operator+=(const Vector<T>& other) {
@@ -102,20 +161,19 @@ inline Vector<T> Vector<T>::operator-(const Vector<T>& other) const {
 }
 template <typename T>
 inline bool Vector<T>::operator==(const Vector<T>& other) const {
-  if(x == other.x && y == other.y) return true;
-  return Lp<2>({ x - other.x, y - other.y }) /
-    std::max(Lp<2>({ x, y }), Lp<2>({ other.x, other.y })) < epsilon;
+  if (x == other.x && y == other.y) return true;
+  return Lp<2>({x - other.x, y - other.y}) /
+             std::max(Lp<2>({x, y}), Lp<2>({other.x, other.y})) <
+         epsilon;
 }
 template <typename T>
 inline std::ostream& operator<<(std::ostream& os, const Vector<T>& v) {
   return os << v.x << "\t" << v.y;
 }
-
 template <typename T>
 inline std::istream& operator>>(std::istream& is, Vector<T>& v) {
   return is >> v.x >> v.y;
 }
-
 template <typename T>
 inline Vector<T>& Vector<T>::RotateInPlace(const double& a) {
   // Change its components into the ones in a rotated CS.
@@ -192,9 +250,11 @@ inline Tensor<T> Tensor<T>::operator-(const Tensor<T>& other) const {
 }
 template <typename T>
 bool Tensor<T>::operator==(const Tensor<T>& other) const {
-  if(xx == other.xx && yy == other.yy && xy == other.xy) return true;
+  if (xx == other.xx && yy == other.yy && xy == other.xy) return true;
   return Lp<2>({xx - other.xx, yy - other.yy, xy - other.xy}) /
-    std::max(Lp<2>({ xx, yy, xy }), Lp<2>({ other.xx, other.yy, other.xy })) < epsilon;
+             std::max(Lp<2>({xx, yy, xy}),
+                      Lp<2>({other.xx, other.yy, other.xy})) <
+         epsilon;
 }
 template <typename T>
 inline std::ostream& operator<<(std::ostream& os, const Tensor<T>& t) {

@@ -26,8 +26,8 @@
 #ifndef MSS_MATRIX_H
 #define MSS_MATRIX_H
 
-#include "Math.h"
 #include "Material.h"
+#include "Math.h"
 
 namespace mss {
 
