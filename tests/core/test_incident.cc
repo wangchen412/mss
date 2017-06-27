@@ -56,11 +56,11 @@ protected:
   IncidentPlaneSH h1, h2, h3;
 };
 
-template <typename StateType>
-void IncidentTest_ReadFile(const Incident<StateType>* inc,
+template <typename T>
+void IncidentTest_ReadFile(const Incident<T>* inc,
                            const std::string& fileName,
-                           std::vector<StateType>& ref,
-                           std::vector<StateType>& com)
+                           std::vector<T>& ref,
+                           std::vector<T>& com)
 {
   std::string src(__FILE__);
   std::ifstream file(src.replace(src.end() - 16,
@@ -70,7 +70,7 @@ void IncidentTest_ReadFile(const Incident<StateType>* inc,
   {
     std::stringstream tss(ts);
     PosiVect r;
-    StateType s;
+    T s;
     tss >> r >> s;
     ref.emplace_back(s);
     com.emplace_back(inc->Effect(r));

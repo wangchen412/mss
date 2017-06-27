@@ -24,8 +24,10 @@
 
 #include <Eigen/Dense>
 #include <cassert>
+#include <cstdlib>
 #include <complex>
 #include <limits>
+#include <string>
 
 namespace mss {
 
@@ -65,10 +67,7 @@ inline double Lp(std::initializer_list<T> l) {
   for (T i : l) sum += pow(std::abs(i), p);
   return pow(sum, 1.0 / p);
 }
-inline bool compEqu(const dcomp& a, const dcomp& b) {
-  if (a == b) return true;
-  return Lp<2>({a.real() - b.real(), a.imag() - b.imag()}) < epsilon;
-}
+
 }  // namespace mss
 
 #endif

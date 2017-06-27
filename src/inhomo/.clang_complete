@@ -1,0 +1,3 @@
+-I/Users/chen/Programming/eigen/
+-std=c++11
+-Wno-unused-variable

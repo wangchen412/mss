@@ -30,14 +30,20 @@ namespace mss {
 
 template <typename T>
 struct Scalar {
-  explicit Scalar(const T& x = 0) : x(x) {}
+  Scalar(const T& x = 0) : x(x) {}
   Scalar(const Scalar& other) : x(other.x) {}
   virtual ~Scalar() {}
 
   Scalar& operator+=(const Scalar& other);
   Scalar& operator-=(const Scalar& other);
+  Scalar& operator*=(const T& n);
+  Scalar& operator/=(const T& n);
+
   Scalar operator+(const Scalar& other) const;
   Scalar operator-(const Scalar& other) const;
+  Scalar operator*(const T& n) const;
+  Scalar operator/(const T& n) const;
+
   bool operator==(const Scalar& other) const;
 
   Scalar& RotateInPlace(const double& angle);
@@ -47,14 +53,20 @@ struct Scalar {
 };
 template <typename T>
 struct Vector {
-  explicit Vector(const T& x = 0, const T& y = 0) : x(x), y(y) {}
+  Vector(const T& x = 0, const T& y = 0) : x(x), y(y) {}
   Vector(const Vector& other) : x(other.x), y(other.y) {}
   ~Vector() {}
 
   Vector& operator+=(const Vector& other);
   Vector& operator-=(const Vector& other);
+  Vector& operator*=(const T& n);
+  Vector& operator/=(const T& n);
+
   Vector operator+(const Vector& other) const;
   Vector operator-(const Vector& other) const;
+  Vector operator*(const T& n) const;
+  Vector operator/(const T& n) const;
+
   bool operator==(const Vector& other) const;
 
   Vector& RotateInPlace(const double& angle);
@@ -69,15 +81,21 @@ struct Vector {
 };
 template <typename T>
 struct Tensor {
-  explicit Tensor(const T& xx = 0, const T& yy = 0, const T& xy = 0)
+  Tensor(const T& xx = 0, const T& yy = 0, const T& xy = 0)
       : xx(xx), yy(yy), xy(xy) {}
   Tensor(const Tensor& other) : xx(other.xx), yy(other.yy), xy(other.xy) {}
   ~Tensor() {}
 
   Tensor& operator+=(const Tensor& other);
   Tensor& operator-=(const Tensor& other);
+  Tensor& operator*=(const T& n);
+  Tensor& operator/=(const T& n);
+
   Tensor operator+(const Tensor& other) const;
   Tensor operator-(const Tensor& other) const;
+  Tensor operator*(const T& n) const;
+  Tensor operator/(const T& n) const;
+
   bool operator==(const Tensor& other) const;
 
   Tensor& RotateInPlace(const double& angle);
