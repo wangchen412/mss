@@ -29,10 +29,10 @@ class ConfigFiber : public Configuration<T> {
  public:
   const Eigen::MatrixXcd& TransMatrix() const override;
 
-  virtual const double& CharLength() const override { return a; }
+  virtual const double& CharLength() const override { return R; }
 
  protected:
-  double a; //TODO
+  const double R;
 };
 
 }  // namespace mss

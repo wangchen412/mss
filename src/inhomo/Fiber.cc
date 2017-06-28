@@ -26,6 +26,7 @@ StateAP Fiber<StateAP>::ScatterModeS(const mss::CS* objCS, int n) const {
   CS cs(objCS->in(LocalCS()));
   const double& r = cs.Position().Polar().x;
   const double& t = cs.Position().Polar().y;
+
   dcomp exp_int = exp(n * t * ii);
   dcomp Hn_kr = Hankel(n, r * kt_m);
   dcomp Hnd_kr = Hankel_dv(n, r * kt_m);
@@ -36,6 +37,19 @@ StateAP Fiber<StateAP>::ScatterModeS(const mss::CS* objCS, int n) const {
 
   dcomp norm = Hankel(n, kt_m * config_->CharLength());
   return StateAP(w, tzr, tzt, &cs).in(objCS) / norm;
+}
+template <>
+StateAP Fiber<StateAP>::InnerModeS(const mss::CS* objCS, int n) const {
+  CS cs(objCS->in(LocalCS()));
+  const double& r = cs.Position().Polar().x;
+  const double& t = cs.Position().Polar().y;
+
+  dcomp exp_int = exp(n * t * ii);
+  dcomp Jn_kr = Bessel(n, r * kt_m);
+  dcomp Jnd_kr = Bessel_dv(n, r * kt_m);
+
+  dcomp w = Jn_kr * exp_int;
+
 }
 
 }  // namespace mss

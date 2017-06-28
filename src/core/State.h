@@ -46,6 +46,18 @@ class State {
         basis_(other.basis_) {}
   virtual ~State() {}
 
+  State& operator*=(const dcomp& n) {
+    displacement_ *= n;
+    stress_ *= n;
+    return *this;
+  }
+  State& operator/=(const dcomp& n) {
+    displacement_ /= n;
+    stress_ /= n;
+    return *this;
+  }
+  State operator*(const dcomp& n) { return State(*this) *= n; }
+  State operator/(const dcomp& n) { return State(*this) /= n; }
   bool operator==(const State& other) const {
     State tmp(in(other.basis_));
     return (tmp.displacement_ == other.displacement_) &&

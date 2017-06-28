@@ -120,17 +120,35 @@ inline Scalar<T>& Scalar<T>::operator+=(const Scalar<T>& other) {
   return *this;
 }
 template <typename T>
-inline Scalar<T> Scalar<T>::operator+(const Scalar<T>& other) const {
-  return Scalar<T>(x + other.x);
-}
-template <typename T>
 inline Scalar<T>& Scalar<T>::operator-=(const Scalar<T>& other) {
   x -= other.x;
   return *this;
 }
 template <typename T>
+inline Scalar<T>& Scalar<T>::operator*=(const T& n) {
+  x *= n;
+  return *this;
+}
+template <typename T>
+inline Scalar<T>& Scalar<T>::operator/=(const T& n) {
+  x /= n;
+  return *this;
+}
+template <typename T>
+inline Scalar<T> Scalar<T>::operator+(const Scalar<T>& other) const {
+  return Scalar<T>(*this) += other;
+}
+template <typename T>
 inline Scalar<T> Scalar<T>::operator-(const Scalar<T>& other) const {
-  return Scalar<T>(x - other.x);
+  return Scalar<T>(*this) -= other;
+}
+template <typename T>
+inline Scalar<T> Scalar<T>::operator*(const T& n) const {
+  return Scalar<T>(*this) *= n;
+}
+template <typename T>
+inline Scalar<T> Scalar<T>::operator/(const T& n) const {
+  return Scalar<T>(*this) /= n;
 }
 template <typename T>
 inline bool Scalar<T>::operator==(const Scalar<T>& other) const {
@@ -164,18 +182,38 @@ inline Vector<T>& Vector<T>::operator+=(const Vector<T>& other) {
   return *this;
 }
 template <typename T>
-inline Vector<T> Vector<T>::operator+(const Vector<T>& other) const {
-  return Vector<T>(x + other.x, y + other.y);
-}
-template <typename T>
 inline Vector<T>& Vector<T>::operator-=(const Vector<T>& other) {
   x -= other.x;
   y -= other.y;
   return *this;
 }
 template <typename T>
+inline Vector<T>& Vector<T>::operator*=(const T& n) {
+  x *= n;
+  y *= n;
+  return *this;
+}
+template <typename T>
+inline Vector<T>& Vector<T>::operator/=(const T& n) {
+  x /= n;
+  y /= n;
+  return *this;
+}
+template <typename T>
+inline Vector<T> Vector<T>::operator+(const Vector<T>& other) const {
+  return Vector<T>(*this) += other;
+}
+template <typename T>
 inline Vector<T> Vector<T>::operator-(const Vector<T>& other) const {
-  return Vector<T>(x - other.x, y - other.y);
+  return Vector<T>(*this) -= other;
+}
+template <typename T>
+inline Vector<T> Vector<T>::operator*(const T& n) const {
+  return Vector<T>(*this) *= n;
+}
+template <typename T>
+inline Vector<T> Vector<T>::operator/(const T& n) const {
+  return Vector<T>(*this) /= n;
 }
 template <typename T>
 inline bool Vector<T>::operator==(const Vector<T>& other) const {
@@ -252,10 +290,6 @@ inline Tensor<T>& Tensor<T>::operator+=(const Tensor<T>& other) {
   return *this;
 }
 template <typename T>
-inline Tensor<T> Tensor<T>::operator+(const Tensor<T>& other) const {
-  return Tensor<T>(xx + other.xx, yy + other.yy, xy + other.xy);
-}
-template <typename T>
 inline Tensor<T>& Tensor<T>::operator-=(const Tensor<T>& other) {
   xx -= other.xx;
   yy -= other.yy;
@@ -263,8 +297,34 @@ inline Tensor<T>& Tensor<T>::operator-=(const Tensor<T>& other) {
   return *this;
 }
 template <typename T>
+inline Tensor<T>& Tensor<T>::operator*=(const T& n) {
+  xx *= n;
+  yy *= n;
+  xy *= n;
+  return *this;
+}
+template <typename T>
+inline Tensor<T>& Tensor<T>::operator/=(const T& n) {
+  xx /= n;
+  yy /= n;
+  xy /= n;
+  return *this;
+}
+template <typename T>
+inline Tensor<T> Tensor<T>::operator+(const Tensor<T>& other) const {
+  return Tensor<T>(*this) += other;
+}
+template <typename T>
 inline Tensor<T> Tensor<T>::operator-(const Tensor<T>& other) const {
-  return Tensor<T>(xx - other.xx, yy - other.yy, xy - other.xy);
+  return Tensor<T>(*this) -= other;
+}
+template <typename T>
+inline Tensor<T> Tensor<T>::operator*(const T& n) const {
+  return Tensor<T>(*this) *= n;
+}
+template <typename T>
+inline Tensor<T> Tensor<T>::operator/(const T& n) const {
+  return Tensor<T>(*this) /= n;
 }
 template <typename T>
 bool Tensor<T>::operator==(const Tensor<T>& other) const {
