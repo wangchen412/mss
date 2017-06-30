@@ -33,9 +33,12 @@ namespace mss {
 
 class Matrix {
  public:
-  Matrix(const Material& material, const double& omega)
-      : material_(material), omega_(omega) {
-    UpdateFreq(omega);
+  Matrix(const Material& material, const double& frequency)
+      : material_(material),
+        omega_(frequency),
+        kl_(frequency / material_.cl),
+        kt_(frequency / material_.ct) {
+    assert(frequency > 0);
   }
 
   virtual ~Matrix() {}
@@ -50,20 +53,10 @@ class Matrix {
   const double& KL() const { return kl_; }
   const double& KT() const { return kt_; }
 
-  Matrix& UpdateFreq(const double& newFreq);
-
  private:
   const struct Material material_;
-  double omega_, kl_, kt_;
+  const double omega_, kl_, kt_;
 };
-
-inline Matrix& Matrix::UpdateFreq(const double& newFreq) {
-  assert(newFreq > 0);
-  omega_ = newFreq;
-  kl_ = omega_ / material_.cl;
-  kt_ = omega_ / material_.ct;
-  return *this;
-}
 
 }  // namespace mss
 

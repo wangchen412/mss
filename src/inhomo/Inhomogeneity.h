@@ -17,6 +17,9 @@
 //
 // ----------------------------------------------------------------------
 
+// Virtual base class of inhomogeneity classes.
+// Contains local CS and informations about the matrix.
+
 #ifndef MSS_INHOMOGENEITY_H
 #define MSS_INHOMOGENEITY_H
 
@@ -28,35 +31,25 @@ namespace mss {
 template <typename T>
 class Inhomogeneity {
  public:
-  explicit Inhomogeneity(const CS& localCS, const Matrix& matrix)
-      : localCS_(localCS),
-        matrix_(matrix),
-        kl_m(matrix.KL()),
-        kt_m(matrix.KT()),
-        l_m(matrix.Lambda()),
-        mu_m(matrix.Mu()) {}
+  explicit Inhomogeneity(const CS& localCS, const Configuration<T>* config)
+      : localCS_(localCS), kl_m(config->KL_m()), kt_m(config->KT_m()) {}
 
-  virtual T Scatter(const CS* objCS) const = 0;
-  virtual T Inner(const CS* objCS) const = 0;
-
-  virtual T ScatterModeP(const CS* objCS, int n) const = 0;
-  virtual T ScatterModeS(const CS* objCS, int n) const = 0;
-  virtual T InnerModeP(const CS* objCS, int n) const = 0;
-  virtual T InnerModeS(const CS* objCS, int n) const = 0;
+  virtual T Scatter(const CS* objCS) const;
+  virtual T Inner(const CS* objCS) const;
+  virtual T ScatterModeL(const CS* objCS, int n) const = 0;
+  virtual T ScatterModeT(const CS* objCS, int n) const = 0;
+  virtual T InnerModeL(const CS* objCS, int n) const = 0;
+  virtual T InnerModeT(const CS* objCS, int n) const = 0;
 
   virtual Eigen::VectorXcd InVector(
       const std::vector<Incident<T>*>& incident) const = 0;
   virtual Eigen::MatrixXcd ModeMatrix(const Inhomogeneity* other) const = 0;
 
   const CS* LocalCS() const { return &localCS_; }
-  const Matrix& Matrix() const { return matrix_; }
-  //virtual const Configuration<T>& Config() const = 0;
 
  protected:
   const CS localCS_;
-  const class Matrix& matrix_;
-  const double &kl_m, &kt_m, &l_m, &mu_m;
-
+  const double &kl_m, &kt_m;
 };
 
 }  // namespace mss

@@ -17,36 +17,56 @@
 //
 // ----------------------------------------------------------------------
 
-#ifndef MSS_CONFIGURATION_H
-#define MSS_CONFIGURATION_H
+#ifndef MSS_INPUT_H
+#define MSS_INPUT_H
 
-#include "../core/Input.h"
-#include "../core/Matrix.h"
-#include "../core/State.h"
+#include <string>
+#include <vector>
 
 namespace mss {
 
-template <typename T>
-class Configuration {
- public:
-  explicit Configuration(size_t N, const Matrix* matrix)
-      : N_(N), matrix_(matrix) {}
+namespace input {
 
-  virtual const Eigen::MatrixXcd& TransMatrix() const = 0;
-
-  virtual const double& CharLength() const = 0;
-
-  const Matrix* Matrix() const { return matrix_; }
-  const double& KL_m() const { return matrix_->KL(); }
-  const double& KT_m() const { return matrix_->KT(); }
-  const double& Lambda_m() const { return matrix_->Lambda(); }
-  const double& Mu_m() const { return matrix_->Mu(); }
-
- protected:
-  const size_t N_;              // Number of the unknown coefficients.
-  const class Matrix* matrix_;  // The matrix.
+struct Material {
+  std::string ID;
+  double rho, lambda, mu;
+};
+struct Matrix {
+  std::string materialID;
+  double frequency;
+};
+struct IncidentPlane {
+  std::string ID;
+  std::string type;
+  double amplitude, phase, angle;
+};
+struct ConfigFiber {
+  std::string ID;
+  Material material;
+  double radius;
+  int N_max;
+};
+struct Fiber {
+  std::string configID;
+  double x, y;
+};
+struct Assembly {
+  std::string configID;
+  double x, y, angle;
+};
+struct ConfigAssembly {
+  std::string ID;
+  std::vector<Fiber> fiber;
+  std::vector<Assembly> assembly;
+};
+struct Solution {
+  Matrix matrix;
+  std::vector<IncidentPlane> incidentPlane;
+  Assembly assembly;
 };
 
-}  // namespace mss
+} // namespace input
+
+} // namespace mss
 
 #endif

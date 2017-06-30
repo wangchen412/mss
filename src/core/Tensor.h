@@ -106,8 +106,10 @@ struct Tensor {
 
 // Typedefs for antiplane (AP) and in-plane (IP) problems.
 typedef Scalar<dcomp> DispAP;
+typedef Vector<dcomp> StrainAP;
 typedef Vector<dcomp> StressAP;
 typedef Vector<dcomp> DispIP;
+typedef Tensor<dcomp> StrainIP;
 typedef Tensor<dcomp> StressIP;
 typedef Vector<double> PosiVect;
 

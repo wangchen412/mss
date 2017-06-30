@@ -28,24 +28,29 @@ namespace mss {
 template <typename T>
 class Fiber : public Inhomogeneity<T> {
  public:
-  explicit Fiber(const CS& localCS, const Matrix& matrix,
-                 const ConfigFiber<T>* config)
-      : Inhomogeneity<T>(localCS, matrix), config_(config) {}
+  explicit Fiber(const CS& localCS, const ConfigFiber<T>* config)
+      : Inhomogeneity<T>(localCS, config),
+        config_(config),
+        kl_f(config->KL()),
+        kt_f(config->KT()) {}
 
-  T Scatter(const CS* objCS) const override;
-  T Inner(const CS* objCS) const override;
-
-  T ScatterModeP(const CS* objCS, int n) const override;
-  T ScatterModeS(const CS* objCS, int n) const override;
-  T InnerModeP(const CS* local, int n) const override;
-  T InnerModeS(const CS* local, int n) const override;
+  T ScatterModeL(const CS* objCS, int n) const override;
+  T ScatterModeT(const CS* objCS, int n) const override;
+  T InnerModeL(const CS* objCS, int n) const override;
+  T InnerModeT(const CS* objCS, int n) const override;
 
   Eigen::VectorXcd InVector(
       const std::vector<Incident<T>*>& incident) const override;
   Eigen::MatrixXcd ModeMatrix(const Inhomogeneity<T>* other) const override;
 
+  const ConfigFiber<T>* Config() const { return config_; }
+
  protected:
   const ConfigFiber<T>* config_;
+  const double &kl_f, &kt_f;
+
+  T _modeT(const CS* objCS, EigenFunctor& f, const Material& mat) const;
+  T _modeL(const CS* objCS, EigenFunctor& f, const Material& mat) const;
 };
 
 }  // namespace mss

@@ -24,6 +24,7 @@
 #define MSS_STATE_H
 
 #include "CS.h"
+#include "Functors.h"
 
 namespace mss {
 
@@ -119,6 +120,17 @@ inline State<T1, T2> State<T1, T2>::in(const mss::CS* otherBasis) const {
   if (otherBasis) d = otherBasis->AngleGLB();
   return State<T1, T2>(displacement_, stress_, otherBasis)
       ._rotate(d - AngleGLB());
+}
+
+StrainAP Geo(const EigenFunctor& w, const PosiVect& p) {
+  return StrainAP(w.dr()(p), w.dt()(p));
+}
+StrainIP Geo(const EigenFunctor& u, const EigenFunctor& v,
+                const PosiVect& p) {
+  dcomp grr = u.dr()(p);
+  dcomp gtt = u(p) / p.x + v.dt()(p);
+  dcomp grt = u.dt()(p) / p.x + v.dr()(p) - v(p) / p.x;
+  return StrainIP(grr, gtt, grt);
 }
 
 }  // namespace mss

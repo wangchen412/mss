@@ -17,34 +17,43 @@
 //
 // ----------------------------------------------------------------------
 
-#ifndef MSS_CONFIGURATION_H
-#define MSS_CONFIGURATION_H
+#ifndef MSS_FUNCTORS_H
+#define MSS_FUNCTORS_H
 
-#include "../core/Input.h"
-#include "../core/Matrix.h"
-#include "../core/State.h"
+#include "Tensor.h"
 
 namespace mss {
 
-template <typename T>
-class Configuration {
+typedef decltype((Hn)) BesselFunc;
+
+class EigenFunctor {
  public:
-  explicit Configuration(size_t N, const Matrix* matrix)
-      : N_(N), matrix_(matrix) {}
+  EigenFunctor(BesselFunc f, int n, const double& k)
+      : f(f), n(n), ndr(0), ndt(0), k(k) {}
 
-  virtual const Eigen::MatrixXcd& TransMatrix() const = 0;
+  dcomp operator()(const PosiVect& p) const {
+    return pow(k, ndr) * pow(dcomp(0, n), ndt) * d(n, k * p.x, ndr) *
+           exp(n * p.y * ii);
+  }
 
-  virtual const double& CharLength() const = 0;
+  dcomp d(int j, const double& x, int i) const {
+    return i > 0 ? (d(j - 1, x, i - 1) - d(j + 1, x, i - 1)) / 2.0 : f(j, x);
+  }
+  EigenFunctor dr() const {
+    EigenFunctor rst(*this);
+    rst.ndr++;
+    return rst;
+  }
+  EigenFunctor dt() const {
+    EigenFunctor rst(*this);
+    rst.ndt++;
+    return rst;
+  }
 
-  const Matrix* Matrix() const { return matrix_; }
-  const double& KL_m() const { return matrix_->KL(); }
-  const double& KT_m() const { return matrix_->KT(); }
-  const double& Lambda_m() const { return matrix_->Lambda(); }
-  const double& Mu_m() const { return matrix_->Mu(); }
-
- protected:
-  const size_t N_;              // Number of the unknown coefficients.
-  const class Matrix* matrix_;  // The matrix.
+ private:
+  BesselFunc f;
+  int n, ndr, ndt;
+  double k;
 };
 
 }  // namespace mss

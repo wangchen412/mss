@@ -22,34 +22,60 @@
 namespace mss {
 
 template <>
-StateAP Fiber<StateAP>::ScatterModeS(const mss::CS* objCS, int n) const {
+StateAP Fiber<StateAP>::_modeT(const CS* objCS, EigenFunctor& f,
+                               const Material& m) const {
   CS cs(objCS->in(LocalCS()));
-  const double& r = cs.Position().Polar().x;
-  const double& t = cs.Position().Polar().y;
+  DispAP w = f(cs.Position());
+  StressAP t = m.C(Geo(f, cs.Position()));
+  dcomp norm = f(Config()->CharLength());
 
-  dcomp exp_int = exp(n * t * ii);
-  dcomp Hn_kr = Hankel(n, r * kt_m);
-  dcomp Hnd_kr = Hankel_dv(n, r * kt_m);
-
-  dcomp w = Hn_kr * exp_int;
-  dcomp tzr = mu_m * kt_m * Hnd_kr * exp_int;
-  dcomp tzt = n * mu_m / r * ii * Hn_kr * exp_int;
-
-  dcomp norm = Hankel(n, kt_m * config_->CharLength());
-  return StateAP(w, tzr, tzt, &cs).in(objCS) / norm;
+  return StateAP(w, t, &cs).in(objCS) / norm;
 }
 template <>
-StateAP Fiber<StateAP>::InnerModeS(const mss::CS* objCS, int n) const {
+StateIP Fiber<StateIP>::_modeL(const CS* objCS, EigenFunctor& f,
+                               const Material& m) const {
+  CS cs(objCS->in(LocalCS()));
+
+  auto uf = f.dr();
+  auto vf = f.dt();
+
+  dcomp ur = f.dr(r);
+  dcomp ut = f.dt(r) / r;
+  dcomp grr = f.ddr(r);
+  dcomp gtt = ur / r + f.ddt(r) / r / r;
+  dcomp grt = f.drdt(r) / r - ut / r;
+  dcomp norm = exp(ii * f.N() * t) / f(Config()->CharLength());
+
+  return StateIP({ur, ut}, m.C({grr, gtt, grt}), &cs).in(objCS)*norm;
+}
+template <>
+StateIP Fiber<StateIP>::_modeT(const CS* objCS, const Bessel& f,
+                               const Material& m) const {
   CS cs(objCS->in(LocalCS()));
   const double& r = cs.Position().Polar().x;
   const double& t = cs.Position().Polar().y;
 
-  dcomp exp_int = exp(n * t * ii);
-  dcomp Jn_kr = Bessel(n, r * kt_m);
-  dcomp Jnd_kr = Bessel_dv(n, r * kt_m);
+  dcomp ur = f.dt(r) / r;
+  dcomp ut = -f.dr(r);
 
-  dcomp w = Jn_kr * exp_int;
+  dcomp grr = f.drdt(r) / r;
 
+  dcomp trr = 2 * m.mu * (f.drdt(r) - f.dt(r) / r);
+  dcomp ttt = 2 * m.mu * (f.dt(r) / r - f.drdt(r));
+  dcomp trt = m.mu * (f.dr(r) / r - f.ddr(r) - f.ddt(r));
+  dcomp norm = f(Config()->CharLength());
+
+  return StateIP(ur, ut, trr, ttt, trt, &cs).in(objCS)*exp(ii * f.N() * t) /
+         norm;
+}
+
+template <>
+StateAP Fiber<StateAP>::ScatterModeT(const CS* objCS, int n) const {
+  return _modeT(objCS, Bessel(Hn, n, kt_m), Config()->Matrix()->Material());
+}
+template <>
+StateAP Fiber<StateAP>::InnerModeT(const CS* objCS, int n) const {
+  return _modeT(objCS, Bessel(Jn, n, kt_f), Config()->Material());
 }
 
 }  // namespace mss

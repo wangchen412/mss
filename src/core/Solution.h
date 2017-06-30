@@ -17,34 +17,23 @@
 //
 // ----------------------------------------------------------------------
 
-#ifndef MSS_CONFIGURATION_H
-#define MSS_CONFIGURATION_H
+#ifndef MSS_SOLUTION_H
+#define MSS_SOLUTION_H
 
-#include "../core/Input.h"
-#include "../core/Matrix.h"
-#include "../core/State.h"
+#include "Incident.h"
+#include "../inhomo/Assembly.h"
 
 namespace mss {
 
 template <typename T>
-class Configuration {
+class Solution {
  public:
-  explicit Configuration(size_t N, const Matrix* matrix)
-      : N_(N), matrix_(matrix) {}
-
-  virtual const Eigen::MatrixXcd& TransMatrix() const = 0;
-
-  virtual const double& CharLength() const = 0;
-
-  const Matrix* Matrix() const { return matrix_; }
-  const double& KL_m() const { return matrix_->KL(); }
-  const double& KT_m() const { return matrix_->KT(); }
-  const double& Lambda_m() const { return matrix_->Lambda(); }
-  const double& Mu_m() const { return matrix_->Mu(); }
 
  protected:
-  const size_t N_;              // Number of the unknown coefficients.
-  const class Matrix* matrix_;  // The matrix.
+  bool solved_;
+  Matrix matrix_;
+  std::vector<Incident<T>*> incident_;
+  Assembly<T> assembly_;
 };
 
 }  // namespace mss

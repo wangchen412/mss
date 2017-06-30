@@ -22,19 +22,37 @@
 #ifndef MSS_MATERIAL_H
 #define MSS_MATERIAL_H
 
-#include "Math.h"
+#include "Input.h"
+#include "State.h"
 
 namespace mss {
 
 struct Material {
   explicit Material(const double& rho, const double& lambda, const double& mu)
       : rho(rho), lambda(lambda), mu(mu) {
+    _computeC();
+  }
+
+  explicit Material(const input::Material& input)
+      : rho(input.rho), lambda(input.lambda), mu(input.mu) {
+    _computeC();
+  }
+
+  StressAP C(const StrainAP& gamma) const { return gamma * mu; }
+  StressIP C(const StrainIP& gamma) const {
+    dcomp gkk = gamma.xx + gamma.yy;
+    return StressIP(lambda * gkk + 2 * mu * gamma.xx,
+                    lambda * gkk + 2 * mu * gamma.yy, mu * gamma.xy);
+  }
+
+  double rho, lambda, mu, cl, ct;
+
+ private:
+  void _computeC() {
     assert(rho > 0 && lambda > 0 && mu > 0);
     cl = std::sqrt((lambda + 2 * mu) / rho);
     ct = std::sqrt(mu / rho);
   }
-
-  double rho, lambda, mu, cl, ct;
 };
 
 }  // namespace mss
