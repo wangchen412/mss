@@ -17,7 +17,8 @@
 //
 // ----------------------------------------------------------------------
 
-// Material struct, in which the material constants are recorded.
+// Material class, in which the material constants are recorded.
+// The constitutive relation can be used as the method C.
 
 #ifndef MSS_MATERIAL_H
 #define MSS_MATERIAL_H
@@ -27,31 +28,38 @@
 
 namespace mss {
 
-struct Material {
-  explicit Material(const double& rho, const double& lambda, const double& mu)
-      : rho(rho), lambda(lambda), mu(mu) {
-    _computeC();
+class Material {
+ public:
+  Material(const double& rho, const double& lambda, const double& mu)
+      : rho_(rho), lambda_(lambda), mu_(mu) {
+    _computeWaveSpeed();
   }
 
   explicit Material(const input::Material& input)
-      : rho(input.rho), lambda(input.lambda), mu(input.mu) {
-    _computeC();
+      : rho_(input.rho), lambda_(input.lambda), mu_(input.mu) {
+    _computeWaveSpeed();
   }
 
-  StressAP C(const StrainAP& gamma) const { return gamma * mu; }
-  StressIP C(const StrainIP& gamma) const {
-    dcomp gkk = gamma.xx + gamma.yy;
-    return StressIP(lambda * gkk + 2 * mu * gamma.xx,
-                    lambda * gkk + 2 * mu * gamma.yy, mu * gamma.xy);
+  StressAP C(const dcomp& gzx, const dcomp& gzy) const {
+    return StressAP(mu_ * gzx, mu_ * gzy);
   }
+  StressIP C(const dcomp& gxx, const dcomp& gyy, const dcomp& gxy) const {
+    dcomp lkk = lambda_ * (gxx + gyy);
+    return StressIP(lkk + 2 * mu_ * gxx, lkk + 2 * mu_ * gyy, mu_ * gxy);
+  }
+  StressAP C(const StrainAP& g) const { return C(g.x, g.y); }
+  StressIP C(const StrainIP& g) const { return C(g.xx, g.yy, g.xy); }
 
-  double rho, lambda, mu, cl, ct;
+  const double& CL() const { return cl_; }
+  const double& CT() const { return ct_; }
 
  private:
-  void _computeC() {
-    assert(rho > 0 && lambda > 0 && mu > 0);
-    cl = std::sqrt((lambda + 2 * mu) / rho);
-    ct = std::sqrt(mu / rho);
+  double rho_, lambda_, mu_, cl_, ct_;
+
+  void _computeWaveSpeed() {
+    assert(rho_ > 0 && lambda_ > 0 && mu_ > 0);
+    cl_ = std::sqrt((lambda_ + 2 * mu_) / rho_);
+    ct_ = std::sqrt(mu_ / rho_);
   }
 };
 

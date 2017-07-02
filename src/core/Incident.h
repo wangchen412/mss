@@ -32,10 +32,7 @@ class Incident {
  public:
   Incident(const Matrix& matrix, const double& amplitude = 1,
            const double& phase = 0)
-      : amp_(amplitude),
-        phase_(phase),
-        l_(matrix.Lambda()),
-        m_(matrix.Mu()) {}
+      : amp_(amplitude), phase_(phase), m(matrix.Material()) {}
 
   virtual ~Incident() {}
 
@@ -47,7 +44,7 @@ class Incident {
 
  protected:
   double amp_, phase_;
-  const double &l_, &m_;
+  const Material& m;
 };
 
 class IncidentP : virtual public Incident<StateIP> {
@@ -97,8 +94,6 @@ class IncidentPlane : virtual public Incident<T> {
   double c_, s_;
 
   using Incident<T>::phase_;
-  using Incident<T>::l_;
-  using Incident<T>::m_;
 
   dcomp _phaseGLB(const PosiVect& position, const double& k) const {
     // Return the phase of the incident wave at the position in global CS.
@@ -112,13 +107,14 @@ class IncidentPlane : virtual public Incident<T> {
     dcomp gxx = ii * k * c_ * u;
     dcomp gyy = ii * k * s_ * v;
     dcomp gxy = ii * k * (s_ * u + c_ * v);
-    return StateIP(u, v, (l_ + 2 * m_) * gxx + l_ * gyy,
-                   (l_ + 2 * m_) * gyy + l_ * gxx, m_ * gxy);
+    StressIP t = this->m.C(gxx, gyy, gxy);
+    return StateIP(u, v, t);
   }
   StateAP _stateGLB(const dcomp& w, const double& k) const {
     // Return the State from known displacement w.
 
-    return StateAP(w, ii * k * m_ * c_ * w, ii * k * m_ * s_ * w);
+    StressAP t = this->m.C(c_, s_) * ii * k * w;
+    return StateAP(w, t);
   }
 };
 

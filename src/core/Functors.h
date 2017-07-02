@@ -27,33 +27,33 @@ namespace mss {
 typedef decltype((Hn)) BesselFunc;
 
 class EigenFunctor {
+  /// The functors for the eigenfunction of scattering problem in cylindrical
+  /// CS. Eigenfunction: Bessel(n, k * r) * exp(ii * n * t).
+
  public:
-  EigenFunctor(BesselFunc f, int n, const double& k)
-      : f(f), n(n), ndr(0), ndt(0), k(k) {}
+  EigenFunctor(BesselFunc f, int n, const double& k) : f(f), n(n), k(k) {}
+
+  dcomp d(const double& x) const { return 0.5 * (f(n - 1, x) - f(n + 1, x)); }
+  dcomp dd(const double& x) const {
+    return 0.25 * (f(n - 2, x) - 2.0 * f(n, x) + f(n + 2, x));
+  }
 
   dcomp operator()(const PosiVect& p) const {
-    return pow(k, ndr) * pow(dcomp(0, n), ndt) * d(n, k * p.x, ndr) *
-           exp(n * p.y * ii);
+    return f(n, k * p.x) * exp(ii * n * p.y);
   }
-
-  dcomp d(int j, const double& x, int i) const {
-    return i > 0 ? (d(j - 1, x, i - 1) - d(j + 1, x, i - 1)) / 2.0 : f(j, x);
+  dcomp dr(const PosiVect& p) const {
+    return k * d(k * p.x) * exp(ii * n * p.y);
   }
-  EigenFunctor dr() const {
-    EigenFunctor rst(*this);
-    rst.ndr++;
-    return rst;
+  dcomp ddr(const PosiVect& p) const {
+    return k * k * dd(k * p.x) * exp(ii * n * p.y);
   }
-  EigenFunctor dt() const {
-    EigenFunctor rst(*this);
-    rst.ndt++;
-    return rst;
-  }
+  dcomp dt(const PosiVect& p) const { return ii * n * (*this)(p); }
+  dcomp ddt(const PosiVect& p) const { return ii * n * dt(p); }
+  dcomp drdt(const PosiVect& p) const { return ii * n * dr(p); }
 
  private:
   BesselFunc f;
-  int n, ndr, ndt;
-  double k;
+  double n, k;  // The order and the wave number.
 };
 
 }  // namespace mss

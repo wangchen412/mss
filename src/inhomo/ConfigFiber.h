@@ -31,23 +31,20 @@ class ConfigFiber : public Configuration<T> {
       : Configuration<T>(2 * input.N_max + 1, matrix),
         R_(input.radius),
         material_(input.material),
-        kl_f(matrix->Frequency() / material_.cl),
-        kt_f(matrix->Frequency() / material_.ct) {}
+        kl_f(matrix->Frequency() / material_.CL()),
+        kt_f(matrix->Frequency() / material_.CT()) {}
 
   const Eigen::MatrixXcd& TransMatrix() const override;
 
   virtual const double& CharLength() const override { return R_; }
   const double& Radius() const { return R_; }
   const Material& Material() const { return material_; }
-  const double& Rho() const { return material_.rho; }
-  const double& Lambda() const { return material_.lambda; }
-  const double& Mu() const { return material_.mu; }
   const double& KL() const { return kl_f; }
   const double& KT() const { return kt_f; }
 
  protected:
   const double R_;
-  const struct Material material_;
+  const class Material material_;
   const double kl_f, kt_f;
 };
 

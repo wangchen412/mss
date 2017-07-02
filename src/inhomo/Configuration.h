@@ -37,10 +37,9 @@ class Configuration {
   virtual const double& CharLength() const = 0;
 
   const Matrix* Matrix() const { return matrix_; }
+  const Material& Material_m() const { return matrix_->Material(); }
   const double& KL_m() const { return matrix_->KL(); }
   const double& KT_m() const { return matrix_->KT(); }
-  const double& Lambda_m() const { return matrix_->Lambda(); }
-  const double& Mu_m() const { return matrix_->Mu(); }
 
  protected:
   const size_t N_;              // Number of the unknown coefficients.

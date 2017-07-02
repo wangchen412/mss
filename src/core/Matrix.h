@@ -36,25 +36,20 @@ class Matrix {
   Matrix(const Material& material, const double& frequency)
       : material_(material),
         omega_(frequency),
-        kl_(frequency / material_.cl),
-        kt_(frequency / material_.ct) {
+        kl_(frequency / material_.CL()),
+        kt_(frequency / material_.CT()) {
     assert(frequency > 0);
   }
 
   virtual ~Matrix() {}
 
   const Material& Material() const { return material_; }
-  const double& MassDensity() const { return material_.rho; }
-  const double& Lambda() const { return material_.lambda; }
-  const double& Mu() const { return material_.mu; }
-  const double& CL() const { return material_.cl; }
-  const double& CT() const { return material_.ct; }
   const double& Frequency() const { return omega_; }
   const double& KL() const { return kl_; }
   const double& KT() const { return kt_; }
 
  private:
-  const struct Material material_;
+  const class Material material_;
   const double omega_, kl_, kt_;
 };
 

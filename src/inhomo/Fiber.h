@@ -49,9 +49,21 @@ class Fiber : public Inhomogeneity<T> {
   const ConfigFiber<T>* config_;
   const double &kl_f, &kt_f;
 
-  T _modeT(const CS* objCS, EigenFunctor& f, const Material& mat) const;
-  T _modeL(const CS* objCS, EigenFunctor& f, const Material& mat) const;
+  T modeT(const CS* objCS, const EigenFunctor& f, const Material& mat) const;
+  T modeL(const CS* objCS, const EigenFunctor& f, const Material& mat) const;
 };
+
+// ---------------------------------------------------------------------------
+// Inline functions:
+
+template <>
+inline StateAP Fiber<StateAP>::ScatterModeT(const CS* objCS, int n) const {
+  return modeT(objCS, EigenFunctor(Hn, n, kt_m), Config()->Material_m());
+}
+template <>
+inline StateAP Fiber<StateAP>::InnerModeT(const CS* objCS, int n) const {
+  return modeT(objCS, EigenFunctor(Jn, n, kt_f), Config()->Material());
+}
 
 }  // namespace mss
 

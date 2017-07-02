@@ -34,6 +34,12 @@ class State {
   State() : displacement_(), stress_(), basis_(nullptr) {}
   explicit State(const T1& disp, const T2& stress, const CS* basis = nullptr)
       : displacement_(disp), stress_(stress), basis_(basis) {}
+  explicit State(const dcomp& w, const StressAP& stress,
+                 const CS* basis = nullptr)
+      : displacement_(w), stress_(stress), basis_(basis) {}
+  explicit State(const dcomp& u, const dcomp& v, const StressIP& stress,
+                 const CS* basis = nullptr)
+      : displacement_(u, v), stress_(stress), basis_(basis) {}
   explicit State(const dcomp& w, const dcomp& szx, const dcomp& szy,
                  const CS* basis = nullptr)
       : displacement_(w), stress_(szx, szy), basis_(basis) {}
@@ -120,17 +126,6 @@ inline State<T1, T2> State<T1, T2>::in(const mss::CS* otherBasis) const {
   if (otherBasis) d = otherBasis->AngleGLB();
   return State<T1, T2>(displacement_, stress_, otherBasis)
       ._rotate(d - AngleGLB());
-}
-
-StrainAP Geo(const EigenFunctor& w, const PosiVect& p) {
-  return StrainAP(w.dr()(p), w.dt()(p));
-}
-StrainIP Geo(const EigenFunctor& u, const EigenFunctor& v,
-                const PosiVect& p) {
-  dcomp grr = u.dr()(p);
-  dcomp gtt = u(p) / p.x + v.dt()(p);
-  dcomp grt = u.dt()(p) / p.x + v.dr()(p) - v(p) / p.x;
-  return StrainIP(grr, gtt, grt);
 }
 
 }  // namespace mss

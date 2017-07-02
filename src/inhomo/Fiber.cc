@@ -21,61 +21,85 @@
 
 namespace mss {
 
-template <>
-StateAP Fiber<StateAP>::_modeT(const CS* objCS, EigenFunctor& f,
-                               const Material& m) const {
-  CS cs(objCS->in(LocalCS()));
-  DispAP w = f(cs.Position());
-  StressAP t = m.C(Geo(f, cs.Position()));
-  dcomp norm = f(Config()->CharLength());
+// ---------------------------------------------------------------------------
+// In-plane modes:
 
-  return StateAP(w, t, &cs).in(objCS) / norm;
+template <>
+StateIP Fiber<StateIP>::modeL(const CS* objCS, const EigenFunctor& f,
+                              const Material& m) const {
+  /// Return the effect of the longitude mode in in-plane problems.
+
+  // Position in the local CS, which is seen as a polar CS:
+  CS cs(objCS->in(LocalCS()));
+  PosiVect p = cs.Position().Polar();
+  const double& r = p.x;
+
+  // Displacement in the local CS:
+  dcomp ur = f.dr(p);
+  dcomp ut = f.dt(p) / r;
+
+  // Stress in the local CS:
+  dcomp grr = f.ddr(p);
+  dcomp gtt = ur / r + f.ddt(p) / r / r;
+  dcomp grt = 2.0 * (f.drdt(r) / r - ut / r);
+  StressIP t = m.C(grr, gtt, grt);
+
+  // Normalized state in the objective CS.
+  return StateIP(ur, ut, t, &cs).in(objCS) / f(Config()->CharLength());
 }
 template <>
-StateIP Fiber<StateIP>::_modeL(const CS* objCS, EigenFunctor& f,
-                               const Material& m) const {
+StateIP Fiber<StateIP>::modeT(const CS* objCS, const EigenFunctor& f,
+                              const Material& m) const {
+  /// Return the effect of the transverse mode in in-plane problems.
+
+  // Position in the local CS, which is seen as a polar CS:
   CS cs(objCS->in(LocalCS()));
+  PosiVect p = cs.Position().Polar();
+  const double& r = p.x;
 
-  auto uf = f.dr();
-  auto vf = f.dt();
-
-  dcomp ur = f.dr(r);
-  dcomp ut = f.dt(r) / r;
-  dcomp grr = f.ddr(r);
-  dcomp gtt = ur / r + f.ddt(r) / r / r;
-  dcomp grt = f.drdt(r) / r - ut / r;
-  dcomp norm = exp(ii * f.N() * t) / f(Config()->CharLength());
-
-  return StateIP({ur, ut}, m.C({grr, gtt, grt}), &cs).in(objCS)*norm;
-}
-template <>
-StateIP Fiber<StateIP>::_modeT(const CS* objCS, const Bessel& f,
-                               const Material& m) const {
-  CS cs(objCS->in(LocalCS()));
-  const double& r = cs.Position().Polar().x;
-  const double& t = cs.Position().Polar().y;
-
+  // Displacement in the local CS:
   dcomp ur = f.dt(r) / r;
   dcomp ut = -f.dr(r);
 
+  // Stress in the local CS:
   dcomp grr = f.drdt(r) / r;
+  dcomp gtt = ur / r - f.drdt(r) / r;
+  dcomp grt = f.ddt(r) / r / r - f.ddr(r) - ut / r;
+  StressIP t = m.C(grr, gtt, grt);
 
-  dcomp trr = 2 * m.mu * (f.drdt(r) - f.dt(r) / r);
-  dcomp ttt = 2 * m.mu * (f.dt(r) / r - f.drdt(r));
-  dcomp trt = m.mu * (f.dr(r) / r - f.ddr(r) - f.ddt(r));
-  dcomp norm = f(Config()->CharLength());
-
-  return StateIP(ur, ut, trr, ttt, trt, &cs).in(objCS)*exp(ii * f.N() * t) /
-         norm;
+  // Normalized state in the objective CS.
+  return StateIP(ur, ut, t, &cs).in(objCS) / f(Config()->CharLength());
 }
 
+// ---------------------------------------------------------------------------
+// Antiplane modes:
+
 template <>
-StateAP Fiber<StateAP>::ScatterModeT(const CS* objCS, int n) const {
-  return _modeT(objCS, Bessel(Hn, n, kt_m), Config()->Matrix()->Material());
+StateAP Fiber<StateAP>::modeL(const CS* objCS, const EigenFunctor&,
+                              const Material&) const {
+  /// Return zero state for the longitude mode in antiplane problems.
+
+  return StateAP(0, 0, 0, objCS);
 }
 template <>
-StateAP Fiber<StateAP>::InnerModeT(const CS* objCS, int n) const {
-  return _modeT(objCS, Bessel(Jn, n, kt_f), Config()->Material());
+StateAP Fiber<StateAP>::modeT(const CS* objCS, const EigenFunctor& f,
+                              const Material& m) const {
+  /// Return the effect of the transverse mode in antiplane problems.
+
+  // Position in the local CS, which is seen as a polar CS:
+  CS cs(objCS->in(LocalCS()));
+  PosiVect p = cs.Position().Polar();
+
+  // Displacement in the local CS:
+  DispAP w = f(p);
+
+  // Stress in the local CS:
+  dcomp gzr = f.dr(p);
+  dcomp gzt = f.dt(p);
+  StressAP t = m.C(gzr, gzt);
+
+  // Normalized state in the objective CS.
+  return StateAP(w, t, &cs).in(objCS) / f(Config()->CharLength());
 }
 
 }  // namespace mss
