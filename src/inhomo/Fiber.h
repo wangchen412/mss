@@ -28,11 +28,13 @@ namespace mss {
 template <typename T>
 class Fiber : public Inhomogeneity<T> {
  public:
-  explicit Fiber(const CS& localCS, const ConfigFiber<T>* config)
-      : Inhomogeneity<T>(localCS, config),
+  explicit Fiber(const ConfigFiber<T>* config, const PosiVect& position)
+      : Inhomogeneity<T>(config, position),
         config_(config),
         kl_f(config->KL()),
-        kt_f(config->KT()) {}
+        kt_f(config->KT()) {
+    add_node();
+  }
 
   T ScatterModeL(const CS* objCS, int n) const override;
   T ScatterModeT(const CS* objCS, int n) const override;
@@ -41,28 +43,53 @@ class Fiber : public Inhomogeneity<T> {
 
   Eigen::VectorXcd InVector(
       const std::vector<Incident<T>*>& incident) const override;
-  Eigen::MatrixXcd ModeMatrix(const Inhomogeneity<T>* other) const override;
 
-  const ConfigFiber<T>* Config() const { return config_; }
+  // Return the effect of modes of other source inhomogeneity at the
+  // collocation points.
+  Eigen::MatrixXcd ModeMatrix(const Inhomogeneity<T>* source) const override;
+
+  const ConfigFiber<T>* Config() const override { return config_; }
 
  protected:
   const ConfigFiber<T>* config_;
   const double &kl_f, &kt_f;
+  std::vector<CS> node_;
 
-  T modeT(const CS* objCS, const EigenFunctor& f, const Material& mat) const;
-  T modeL(const CS* objCS, const EigenFunctor& f, const Material& mat) const;
-};
+  void add_node();
+};  // namespace mss
 
 // ---------------------------------------------------------------------------
 // Inline functions:
 
 template <>
-inline StateAP Fiber<StateAP>::ScatterModeT(const CS* objCS, int n) const {
-  return modeT(objCS, EigenFunctor(Hn, n, kt_m), Config()->Material_m());
+inline StateIP Fiber<StateIP>::ScatterModeL(const CS* objCS, int n) const {
+  return Config()->ModeL(LocalCS(), objCS, EigenFunctor(Hn, n, kl_m),
+                         Config()->Material_m());
+}
+template <>
+inline StateIP Fiber<StateIP>::ScatterModeT(const CS* objCS, int n) const {
+  return Config()->ModeT(LocalCS(), objCS, EigenFunctor(Hn, n, kt_m),
+                         Config()->Material_m());
+}
+template <>
+inline StateIP Fiber<StateIP>::InnerModeL(const CS* objCS, int n) const {
+  return Config()->ModeL(LocalCS(), objCS, EigenFunctor(Jn, n, kl_f),
+                         Config()->Material());
+}
+template <>
+inline StateIP Fiber<StateIP>::InnerModeT(const CS* objCS, int n) const {
+  return Config()->ModeT(LocalCS(), objCS, EigenFunctor(Jn, n, kt_f),
+                         Config()->Material());
 }
 template <>
 inline StateAP Fiber<StateAP>::InnerModeT(const CS* objCS, int n) const {
-  return modeT(objCS, EigenFunctor(Jn, n, kt_f), Config()->Material());
+  return Config()->ModeT(LocalCS(), objCS, EigenFunctor(Jn, n, kt_f),
+                         Config()->Material());
+}
+template <typename T>
+inline void Fiber<T>::add_node() {
+  node_.reserve(Config()->NoN());
+  for (auto& i : Config()->Node()) node_.emplace_back(i, this->LocalCS());
 }
 
 }  // namespace mss

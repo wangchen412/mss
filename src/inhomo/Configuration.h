@@ -29,12 +29,16 @@ namespace mss {
 template <typename T>
 class Configuration {
  public:
-  explicit Configuration(size_t N, const Matrix* matrix)
-      : N_(N), matrix_(matrix) {}
+  explicit Configuration(const Matrix* matrix) : matrix_(matrix) {}
+  virtual ~Configuration() {}
 
+  virtual const std::string& ID() const = 0;
   virtual const Eigen::MatrixXcd& TransMatrix() const = 0;
 
   virtual const double& CharLength() const = 0;
+  virtual int NoN() const = 0;  // Number of collocation points (node).
+  virtual int NoC() const = 0;  // Number of unknown coefficients.
+  virtual int NoE() const = 0;  // Number of equations.
 
   const Matrix* Matrix() const { return matrix_; }
   const Material& Material_m() const { return matrix_->Material(); }
@@ -42,7 +46,6 @@ class Configuration {
   const double& KT_m() const { return matrix_->KT(); }
 
  protected:
-  const size_t N_;              // Number of the unknown coefficients.
   const class Matrix* matrix_;  // The matrix.
 };
 

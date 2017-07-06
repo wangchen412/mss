@@ -38,6 +38,10 @@ class CS {
       : position_(other.position_),
         angle_(other.angle_),
         basis_(other.basis_) {}
+
+  // For instantiation:
+  CS(const CS& other, const CS* basis)
+      : position_(other.position_), angle_(other.angle_), basis_(basis) {}
   virtual ~CS() {}
 
   bool operator==(const CS& other) const;
@@ -50,9 +54,7 @@ class CS {
   const CS* Basis() const { return basis_; }
   const PosiVect& Position() const { return position_; }
   PosiVect PositionGLB() const { return inGLB().Position(); }
-  PosiVect PositionIn(const CS* otherBasis) const {
-    return in(otherBasis).Position();
-  }
+  PosiVect PositionIn(const CS* otherBasis) const;
   const double& Angle() const { return angle_; }
   double AngleGLB() const { return inGLB().Angle(); }
 
@@ -68,6 +70,9 @@ class CS {
 inline bool CS::operator==(const CS& other) const {
   return (position_ == other.position_) && angEqu(angle_, other.angle_) &&
          (basis_ == other.basis_);
+}
+inline PosiVect CS::PositionIn(const CS* otherBasis) const {
+  return in(otherBasis).Position();
 }
 
 }  // namespace mss

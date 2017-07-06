@@ -76,6 +76,7 @@ struct Vector {
   double Angle() const;
   double Angle(const double& L) const;
   Vector Polar() const;
+  Vector Cartesian() const;
 
   T x, y;
 };
@@ -280,6 +281,14 @@ inline Vector<T> Vector<T>::Polar() const {
   assert(typeid(T) == typeid(double));
   double r = Length();
   return Vector<T>(r, Angle(r));
+}
+template <typename T>
+inline Vector<T> Vector<T>::Cartesian() const {
+  // Return the components of the position vector as if it is in a Cartesian
+  // coordinate system. The reverse of the Polar().
+
+  assert(typeid(T) == typeid(double));
+  return Vector<T>(x * cos(y), x * sin(y));
 }
 
 // ----------------------------------------------------------------------

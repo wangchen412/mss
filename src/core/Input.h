@@ -22,6 +22,8 @@
 
 #include <string>
 #include <vector>
+#include "Tensor.h"
+#include "../tools/FileIO.h"
 
 namespace mss {
 
@@ -45,18 +47,22 @@ struct ConfigFiber {
   Material material;
   double radius;
   int N_max;
+  int P;
 };
 struct Fiber {
   std::string configID;
-  double x, y;
+  PosiVect position;
 };
 struct Assembly {
   std::string configID;
-  double x, y, angle;
+  PosiVect position;
+  double angle;
 };
 struct ConfigAssembly {
   std::string ID;
+  std::vector<ConfigFiber> configFiber;
   std::vector<Fiber> fiber;
+  std::vector<ConfigAssembly> a;
   std::vector<Assembly> assembly;
 };
 struct Solution {
@@ -65,8 +71,8 @@ struct Solution {
   Assembly assembly;
 };
 
-} // namespace input
+}  // namespace input
 
-} // namespace mss
+}  // namespace mss
 
 #endif

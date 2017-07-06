@@ -17,47 +17,30 @@
 //
 // ----------------------------------------------------------------------
 
-// Basic mathematical typedef and functions.
+#ifndef MSS_FILEIO_H
+#define MSS_FILEIO_H
 
-#ifndef MSS_MATH_H
-#define MSS_MATH_H
-
-#include <Eigen/Dense>
-#include <cassert>
-#include <complex>
-#include <cstdlib>
-#include <limits>
+#include <fstream>
+#include <iostream>
 #include <string>
 
 namespace mss {
 
-typedef std::complex<double> dcomp;
-
-const dcomp ii(0.0, 1.0);
-const double ee(2.71828182845904523536);
-const double pi(3.14159265358979323846);
-const double pi2(pi * 2);
-const double epsilon(1e-14);
-
-dcomp Jn(int n, const double& x) {
-  return jn(n, x);
+inline bool iequals(const std::string& a, const std::string& b) {
+  size_t sz = a.size();
+  if (b.size() != sz) return false;
+  for (size_t i = 0; i < sz; i++)
+    if (tolower(a[i]) != tolower(b[i])) return false;
+  return true;
 }
 
-dcomp Hn(int n, const double& x) {
-  return jn(n, x) + ii * yn(n, x);
-}
+template <typename T>
+T* FindID(const std::vector<T>& vec, const std::string& name) {
+  for (const T* t : vec)
+    if (iequals(name, t->ID())) return &*t;
 
-inline bool angEqu(const double& a, const double& b) {
-  double t = (a - b) / pi / 2;
-  return std::abs(t - (long long)t) * 2 * pi < epsilon;
-}
-
-template <int p, typename T>
-inline double Lp(std::initializer_list<T> l) {
-  assert(p > 0);
-  double sum = 0;
-  for (T i : l) sum += pow(std::abs(i), p);
-  return pow(sum, 1.0 / p);
+  std::cout << "[mss]: Error. ID: " << name << " not found." << std::endl;
+  exit(EXIT_FAILURE);
 }
 
 }  // namespace mss

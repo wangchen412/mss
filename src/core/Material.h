@@ -50,6 +50,9 @@ class Material {
   StressAP C(const StrainAP& g) const { return C(g.x, g.y); }
   StressIP C(const StrainIP& g) const { return C(g.xx, g.yy, g.xy); }
 
+  const double& MassDensity() const { return rho_; }
+  const double& Lambda() const { return lambda_; }
+  const double& Mu() const { return mu_; }
   const double& CL() const { return cl_; }
   const double& CT() const { return ct_; }
 

@@ -53,6 +53,16 @@ class State {
         basis_(other.basis_) {}
   virtual ~State() {}
 
+  State& operator+=(const State& other) {
+    displacement_ += other.displacement_;
+    stress_ += other.stress_;
+    return *this;
+  }
+  State& operator-=(const State& other) {
+    displacement_ -= other.displacement_;
+    stress_ -= other.stress_;
+    return *this;
+  }
   State& operator*=(const dcomp& n) {
     displacement_ *= n;
     stress_ *= n;
@@ -63,8 +73,10 @@ class State {
     stress_ /= n;
     return *this;
   }
-  State operator*(const dcomp& n) { return State(*this) *= n; }
-  State operator/(const dcomp& n) { return State(*this) /= n; }
+  State operator+(const State& other) const { return State(*this) += other; }
+  State operator-(const State& other) const { return State(*this) -= other; }
+  State operator*(const dcomp& n) const { return State(*this) *= n; }
+  State operator/(const dcomp& n) const { return State(*this) /= n; }
   bool operator==(const State& other) const {
     State tmp(in(other.basis_));
     return (tmp.displacement_ == other.displacement_) &&
