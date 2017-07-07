@@ -24,18 +24,14 @@
 #define MSS_INHOMOGENEITY_H
 
 #include "../core/Incident.h"
-#include "Configuration.h"
 
 namespace mss {
 
 template <typename T>
 class Inhomogeneity {
  public:
-  explicit Inhomogeneity(const Configuration<T>* config,
-                         const PosiVect& position, const double& angle = 0)
-      : localCS_(position, angle),
-        kl_m(config->KL_m()),
-        kt_m(config->KT_m()) {}
+  explicit Inhomogeneity(const PosiVect& position, const double& angle = 0)
+      : localCS_(position, angle) {}
   virtual ~Inhomogeneity() {}
 
   virtual T Scatter(const CS* objCS) const;
@@ -45,15 +41,11 @@ class Inhomogeneity {
   virtual T InnerModeL(const CS* objCS, int n) const = 0;
   virtual T InnerModeT(const CS* objCS, int n) const = 0;
 
-  virtual const Configuration<T>* Config() const = 0;
+  virtual int NoN() const = 0;
+  virtual int NoC() const = 0;
+  virtual int NoE() const = 0;
 
-  virtual int NoP() const { return Config()->NoP(); }
-  virtual int NoC() const { return Config()->NoC(); }
-  virtual int NoE() const { return Config()->NoE(); }
-
-  virtual const Eigen::MatrixXcd& TransMatrix() {
-    return Config()->TransMatrix();
-  }
+  virtual const Eigen::MatrixXcd& TransMatrix() const = 0;
   virtual Eigen::MatrixXcd ModeMatrix(const Inhomogeneity* other) const = 0;
   virtual Eigen::VectorXcd InVector(
       const std::vector<Incident<T>*>& incident) const = 0;
@@ -62,7 +54,6 @@ class Inhomogeneity {
 
  protected:
   const CS localCS_;
-  const double &kl_m, &kt_m;
 };
 
 }  // namespace mss

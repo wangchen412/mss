@@ -20,39 +20,45 @@
 #ifndef MSS_CONFIGFIBER_H
 #define MSS_CONFIGFIBER_H
 
-#include "Configuration.h"
+#include "../core/Input.h"
+#include "../core/Matrix.h"
+#include "../core/State.h"
 
 namespace mss {
 
 template <typename T>
-class ConfigFiber : public Configuration<T> {
+class ConfigFiber {
  public:
   ConfigFiber(const input::ConfigFiber& input, const Matrix* matrix)
-      : Configuration<T>(matrix),
-        ID_(input.ID),
+      : ID_(input.ID),
         N_(input.N_max),
         P_(input.P),
         R_(input.radius),
         material_(input.material),
         kl_(matrix->Frequency() / material_.CL()),
         kt_(matrix->Frequency() / material_.CT()),
+        matrix_(matrix),
         Q_(NoE(), NoC()) {
     add_node();
     computeQ();
   }
 
-  const Eigen::MatrixXcd& TransMatrix() const override;
+  const Eigen::MatrixXcd& TransMatrix() const;
 
-  const double& CharLength() const override { return R_; }
-  int NoN() const override;
-  int NoE() const override;
-  int NoC() const override;
+  const double& CharLength() const { return R_; }
+  int NoN() const;
+  int NoE() const;
+  int NoC() const;
 
-  const std::string& ID() const override { return ID_; }
+  const std::string& ID() const { return ID_; }
   const double& Radius() const { return R_; }
-  const Material& Material() const { return material_; }
+  const class Material& Material() const { return material_; }
   const double& KL() const { return kl_; }
   const double& KT() const { return kt_; }
+  const class Matrix* Matrix() const { return matrix_; }
+  const class Material& Material_m() const { return matrix_->Material(); }
+  const double& KL_m() const { return matrix_->KL(); }
+  const double& KT_m() const { return matrix_->KT(); }
   const std::vector<CS>& Node() const { return node_; }
 
   T ModeT(const CS* localCS, const CS* objCS, const EigenFunctor& f,
@@ -67,6 +73,7 @@ class ConfigFiber : public Configuration<T> {
   const double R_;                 // Radius of the fiber.
   const class Material material_;  // Material of the fiber.
   const double kl_, kt_;           // Wave numbers of the fiber.
+  const class Matrix* matrix_;     // The matrix.
   std::vector<CS> node_;           // Collocation points.
   Eigen::MatrixXcd Q_;             // Transform matrix.
 

@@ -22,43 +22,42 @@
 
 #include "../core/Input.h"
 #include "ConfigFiber.h"
-#include "Configuration.h"
 #include "Fiber.h"
 #include "Inhomogeneity.h"
 
 namespace mss {
 
 template <typename T>
-class ConfigAssembly : public Configuration<T> {
+class ConfigAssembly {
  public:
   ConfigAssembly(const input::ConfigAssembly& input, const Matrix* matrix)
-      : Configuration<T>(matrix), ID_(input.ID), input_(input) {
+      : ID_(input.ID), matrix_(matrix), input_(input) {
     add_inhomo(input);
     allocate();
   }
 
-  virtual ~ConfigAssembly() {
-    delete_inhomo();
-  }
+  virtual ~ConfigAssembly() { delete_inhomo(); }
 
-  const Eigen::MatrixXcd& TransMatrix() const override;
+  const Eigen::MatrixXcd& TransMatrix() const;
 
-  const double& CharLength() const override { return height_ + width_; }
-  int NoP() const override;
-  int NoE() const override;
-  int NoC() const override;
+  const double& CharLength() const { return height_ + width_; }
+  int NoN() const;
+  int NoE() const;
+  int NoC() const;
 
   const double& Height() const { return height_; }
   const double& Width() const { return width_; }
 
  protected:
-  const input::ConfigAssembly& input_;
   std::vector<Inhomogeneity<T>*> inhomo_;
   std::vector<ConfigFiber<T>*> configFiber_;
+  std::vector<ConfigAssembly<T>*> configAssembly_;
   const std::string ID_;
-  const int N_;
   const int P_;
   const double height_, width_;
+  const class Matrix* matrix_;
+  const input::ConfigAssembly& input_;
+
   Eigen::MatrixXcd Q_;
   Eigen::MatrixXcd C_;
 

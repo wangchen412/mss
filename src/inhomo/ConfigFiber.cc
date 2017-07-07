@@ -98,11 +98,6 @@ dcomp ConfigFiber<StateAP>::tT(int n) const {
   dcomp muHR_m = Hm.dr(R_) * Matrix()->Material().Mu();
   return (Jf(R_) - Hm(R_)) * muJR_m / (muJR_f - muHR_m) / Jm(R_);
 }
-template <typename T>
-void ConfigFiber<T>::add_node() {
-  for (int i = 0; i < P_; i++)
-    node_.emplace_back(PosiVect(R_, i * pi2 / P_).Cartesian(), i * pi2 / P_);
-}
 template <>
 void ConfigFiber<StateAP>::computeQ() {
   for (int n = -N_; n <= N_; n++) {

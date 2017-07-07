@@ -56,4 +56,8 @@ void ConfigAssembly<T>::allocate() {
   C_.resize(noe, noc);  // The combined transform matrix.
 }
 
+
+
+
+
 }  // namespace mss
