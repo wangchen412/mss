@@ -103,7 +103,7 @@ void ConfigFiber<StateAP>::computeQ() {
   for (int n = -N_; n <= N_; n++) {
     dcomp tn = tT(n);
     EigenFunctor J(Jn, n, KT()), H(Hn, n, KT_m());
-    for (int i = 0; i < P_; i++) {
+    for (size_t i = 0; i < P_; i++) {
       StateAP s = ModeT(nullptr, &node_[i], J, Material()) * tn -
                   ModeT(nullptr, &node_[i], H, Material_m());
       Q_(i * 2, n + N_) = s.Displacement().x;

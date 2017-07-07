@@ -36,14 +36,18 @@ class Inhomogeneity {
 
   virtual T Scatter(const CS* objCS) const;
   virtual T Inner(const CS* objCS) const;
-  virtual T ScatterModeL(const CS* objCS, int n) const = 0;
-  virtual T ScatterModeT(const CS* objCS, int n) const = 0;
-  virtual T InnerModeL(const CS* objCS, int n) const = 0;
-  virtual T InnerModeT(const CS* objCS, int n) const = 0;
 
-  virtual int NoN() const = 0;
-  virtual int NoC() const = 0;
-  virtual int NoE() const = 0;
+  // The nth Modes. The n should be the serial number, instead of the order.
+  // The transformation from the serial number to the order should be done in
+  // the derived class.
+  virtual T ScatterModeL(const CS* objCS, const size_t& n) const = 0;
+  virtual T ScatterModeT(const CS* objCS, const size_t& n) const = 0;
+  virtual T InnerModeL(const CS* objCS, const size_t& n) const = 0;
+  virtual T InnerModeT(const CS* objCS, const size_t& n) const = 0;
+
+  virtual size_t NoN() const = 0;
+  virtual size_t NoC() const = 0;
+  virtual size_t NoE() const = 0;
 
   virtual const Eigen::MatrixXcd& TransMatrix() const = 0;
   virtual Eigen::MatrixXcd ModeMatrix(const Inhomogeneity* other) const = 0;

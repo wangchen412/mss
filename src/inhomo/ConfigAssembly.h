@@ -41,9 +41,9 @@ class ConfigAssembly {
   const Eigen::MatrixXcd& TransMatrix() const;
 
   const double& CharLength() const { return height_ + width_; }
-  int NoN() const;
-  int NoE() const;
-  int NoC() const;
+  size_t NoN() const;
+  size_t NoE() const;
+  size_t NoC() const;
 
   const double& Height() const { return height_; }
   const double& Width() const { return width_; }
@@ -53,7 +53,7 @@ class ConfigAssembly {
   std::vector<ConfigFiber<T>*> configFiber_;
   std::vector<ConfigAssembly<T>*> configAssembly_;
   const std::string ID_;
-  const int P_;
+  const size_t P_;
   const double height_, width_;
   const class Matrix* matrix_;
   const input::ConfigAssembly& input_;

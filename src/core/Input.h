@@ -47,7 +47,7 @@ struct ConfigFiber {
   Material material;
   double radius;
   int N_max;
-  int P;
+  size_t P;
 };
 struct Fiber {
   std::string configID;

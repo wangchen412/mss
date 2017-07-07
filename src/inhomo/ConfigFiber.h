@@ -46,9 +46,10 @@ class ConfigFiber {
   const Eigen::MatrixXcd& TransMatrix() const;
 
   const double& CharLength() const { return R_; }
-  int NoN() const;
-  int NoE() const;
-  int NoC() const;
+  size_t NoN() const;
+  size_t NoE() const;
+  size_t NoC() const;
+  int TopOrder() const { return N_; }
 
   const std::string& ID() const { return ID_; }
   const double& Radius() const { return R_; }
@@ -69,7 +70,7 @@ class ConfigFiber {
  protected:
   const std::string ID_;           // The ID.
   const int N_;                    // The top order of the series.
-  const int P_;                    // Number of the collocation points.
+  const size_t P_;                 // Number of the collocation points.
   const double R_;                 // Radius of the fiber.
   const class Material material_;  // Material of the fiber.
   const double kl_, kt_;           // Wave numbers of the fiber.
@@ -90,23 +91,23 @@ class ConfigFiber {
 // Inline functions:
 
 template <typename T>
-inline int ConfigFiber<T>::NoN() const {
+inline size_t ConfigFiber<T>::NoN() const {
   return P_;
 }
 template <>
-inline int ConfigFiber<StateIP>::NoC() const {
+inline size_t ConfigFiber<StateIP>::NoC() const {
   return 4 * N_ + 2;
 }
 template <>
-inline int ConfigFiber<StateAP>::NoC() const {
+inline size_t ConfigFiber<StateAP>::NoC() const {
   return 2 * N_ + 1;
 }
 template <>
-inline int ConfigFiber<StateIP>::NoE() const {
+inline size_t ConfigFiber<StateIP>::NoE() const {
   return P_ * 4;
 }
 template <>
-inline int ConfigFiber<StateAP>::NoE() const {
+inline size_t ConfigFiber<StateAP>::NoE() const {
   return P_ * 2;
 }
 template <typename T>
@@ -117,7 +118,7 @@ inline const Eigen::MatrixXcd& ConfigFiber<T>::TransMatrix() const {
 template <typename T>
 inline void ConfigFiber<T>::add_node() {
   node_.reserve(P_);
-  for (int i = 0; i < P_; i++)
+  for (size_t i = 0; i < P_; i++)
     node_.emplace_back(PosiVect(R_, i * pi2 / P_).Cartesian(), i * pi2 / P_);
 }
 

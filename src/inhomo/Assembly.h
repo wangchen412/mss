@@ -35,10 +35,10 @@ class Assembly : public Inhomogeneity<T> {
   // T Scatter(const CS* objCS) const override;
   // T Inner(const CS* objCS) const override;
 
-  T ScatterModeL(const CS* objCS, int n) const override;
-  T ScatterModeT(const CS* objCS, int n) const override;
-  T InnerModeL(const CS* local, int n) const override;
-  T InnerModeT(const CS* local, int n) const override;
+  T ScatterModeL(const CS* objCS, const size_t& n) const override;
+  T ScatterModeT(const CS* objCS, const size_t& n) const override;
+  T InnerModeL(const CS* local, const size_t& n) const override;
+  T InnerModeT(const CS* local, const size_t& n) const override;
 
   Eigen::VectorXcd InVector(
       const std::vector<Incident<T>*>& incident) const override;

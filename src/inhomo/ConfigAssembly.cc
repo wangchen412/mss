@@ -48,16 +48,12 @@ void ConfigAssembly<T>::delete_configFiber() {
 }
 template <typename T>
 void ConfigAssembly<T>::allocate() {
-  int noe = 0, noc = 0;
+  size_t noe = 0, noc = 0;
   for (auto& i : inhomo_) {
     noe += i->NoE();
     noc += i->NoC();
   }
   C_.resize(noe, noc);  // The combined transform matrix.
 }
-
-
-
-
 
 }  // namespace mss
