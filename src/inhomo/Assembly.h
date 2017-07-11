@@ -28,20 +28,22 @@ namespace mss {
 template <typename T>
 class Assembly : public Inhomogeneity<T> {
  public:
-  explicit Assembly(const ConfigAssembly<T>* config, const PosiVect& position,
+  explicit Assembly(const ConfigAssembly<T>* config,
+                    const PosiVect& position = {0, 0},
                     const double& angle = 0)
       : Inhomogeneity<T>(position, angle), config_(config) {}
 
-  // T Scatter(const CS* objCS) const override;
-  // T Inner(const CS* objCS) const override;
+  // TODO: The interactions among assemblies
+  T Scatter(const CS* objCS) const override;
+  T Inner(const CS* objCS) const override;
+  T ScatterMode(const CS* objCS, const size_t& sn) const override;
+  T InnerMode(const CS* objCS, const size_t& sn) const override;
+  T ScatterModeL(const CS* objCS, int n) const;
+  T ScatterModeT(const CS* objCS, int n) const;
+  T InnerModeL(const CS* local, int n) const;
+  T InnerModeT(const CS* local, int n) const;
 
-  T ScatterModeL(const CS* objCS, const size_t& n) const override;
-  T ScatterModeT(const CS* objCS, const size_t& n) const override;
-  T InnerModeL(const CS* local, const size_t& n) const override;
-  T InnerModeT(const CS* local, const size_t& n) const override;
-
-  Eigen::VectorXcd InVector(
-      const std::vector<Incident<T>*>& incident) const override;
+  const std::vector<CS>& Node() const override;
   Eigen::MatrixXcd ModeMatrix(const Inhomogeneity<T>* other) const override;
 
  private:

@@ -20,21 +20,50 @@
 #ifndef MSS_SOLUTION_H
 #define MSS_SOLUTION_H
 
-#include "Incident.h"
 #include "../inhomo/Assembly.h"
+#include "Incident.h"
+#include "Input.h"
 
 namespace mss {
 
 template <typename T>
 class Solution {
  public:
+  Solution(const input::Solution& input)
+      : matrix_(input.matrix), config_(input, &matrix_) {
+    add_incident(input);
+  }
+
+  virtual ~Solution() { delete_incident(); }
+
+  void Solve() { config_.Solve(incident_); }
 
  protected:
-  bool solved_;
-  Matrix matrix_;
+  // bool solved_;
+  const Matrix matrix_;
   std::vector<Incident<T>*> incident_;
-  Assembly<T> assembly_;
+
+  // Only the configuration of the "root" assembly is needed.
+  // The instantiation of the "root" assembly is not necessary.
+  ConfigAssembly<T> config_;
+
+  void add_incident(const input::Solution& input);
+  void delete_incident();
 };
+
+// ---------------------------------------------------------------------------
+// Inline functions:
+
+template <typename T>
+void Solution<T>::add_incident(const input::Solution& input) {
+  InputIncident<T> f(matrix_);
+  for (auto& i : input.incident) incident_.push_back(f(i));
+}
+
+template <typename T>
+void Solution<T>::delete_incident() {
+  for (auto& i : incident_) delete i;
+}
 
 }  // namespace mss
 

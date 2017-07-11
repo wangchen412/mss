@@ -22,6 +22,7 @@
 #ifndef MSS_INCIDENT_H
 #define MSS_INCIDENT_H
 
+#include "Input.h"
 #include "Matrix.h"
 #include "State.h"
 
@@ -38,6 +39,13 @@ class Incident {
 
   virtual T Effect(const PosiVect& position) const = 0;
   virtual T Effect(const CS* localCS) const = 0;
+
+  Eigen::VectorXcd Effect(const std::vector<CS*>& localCS) {
+    Eigen::VectorXcd rst(localCS.size() * T::NoBV);
+    for (size_t i = 0; i < localCS.size(); i++)
+      rst.segment(i * T::NoBV, T::NoBV) = Effect(localCS[i]).DispTracVect();
+    return rst;
+  }
 
   const double& Amplitude() const { return amp_; }
   const double& Phase() const { return phase_; }
@@ -125,6 +133,8 @@ class IncidentPlaneP : public IncidentPlane<StateIP>, public IncidentP {
       : Incident<StateIP>(matrix, amplitude, phase),
         IncidentPlane<StateIP>(matrix, angle, amplitude, phase),
         IncidentP(matrix, amplitude, phase) {}
+  IncidentPlaneP(const Matrix& matrix, const input::IncidentPlane& input)
+      : IncidentPlaneP(matrix, input.angle, input.amplitude, input.phase) {}
 
   StateIP Effect(const PosiVect& position) const override {
     // The effect of the incident plane P-wave at the point with the poisition
@@ -148,6 +158,8 @@ class IncidentPlaneSV : public IncidentPlane<StateIP>,
       : Incident<StateIP>(matrix, amplitude, phase),
         IncidentPlane<StateIP>(matrix, angle, amplitude, phase),
         IncidentS(matrix, amplitude, phase) {}
+  IncidentPlaneSV(const Matrix& matrix, const input::IncidentPlane& input)
+      : IncidentPlaneSV(matrix, input.angle, input.amplitude, input.phase) {}
 
   StateIP Effect(const PosiVect& position) const override {
     // The effect of the incident plane S-wave at the point with the position
@@ -171,6 +183,8 @@ class IncidentPlaneSH : public IncidentPlane<StateAP>,
       : Incident<StateAP>(matrix, amplitude, phase),
         IncidentPlane<StateAP>(matrix, angle, amplitude, phase),
         IncidentS(matrix, amplitude, phase) {}
+  IncidentPlaneSH(const Matrix& matrix, const input::IncidentPlane& input)
+      : IncidentPlaneSH(matrix, input.angle, input.amplitude, input.phase) {}
 
   StateAP Effect(const PosiVect& position) const override {
     // The effect of the incident plane S-wave at the point with the position
@@ -184,6 +198,34 @@ class IncidentPlaneSH : public IncidentPlane<StateAP>,
 
     return Effect(localCS->PositionGLB()).in(localCS);
   }
+};
+
+// ---------------------------------------------------------------------------
+// Input functor:
+
+template <typename T>
+class InputIncident {
+ public:
+  InputIncident(const Matrix& matrix) : matrix_(matrix) {
+    funcMap["PlaneP"] = [this](const input::IncidentPlane& input) {
+      return new IncidentPlaneP(matrix_, input);
+    };
+    funcMap["PlaneSV"] = [this](const input::IncidentPlane& input) {
+      return new IncidentPlaneSV(matrix_, input);
+    };
+    funcMap["PlaneSH"] = [this](const input::IncidentPlane& input) {
+      return new IncidentPlaneSH(matrix_, input);
+    };
+  }
+
+  Incident<T>* operator()(const input::IncidentPlane& input) {
+    return funcMap[input.type](input);
+  }
+
+ private:
+  typedef std::function<Incident<T>*(const input::IncidentPlane&)> funcType;
+  std::map<std::string, funcType, ci_comp> funcMap;
+  const Matrix& matrix_;
 };
 
 }  // namespace mss

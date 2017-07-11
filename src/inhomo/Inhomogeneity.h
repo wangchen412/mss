@@ -40,19 +40,21 @@ class Inhomogeneity {
   // The nth Modes. The n should be the serial number, instead of the order.
   // The transformation from the serial number to the order should be done in
   // the derived class.
-  virtual T ScatterModeL(const CS* objCS, const size_t& n) const = 0;
-  virtual T ScatterModeT(const CS* objCS, const size_t& n) const = 0;
-  virtual T InnerModeL(const CS* objCS, const size_t& n) const = 0;
-  virtual T InnerModeT(const CS* objCS, const size_t& n) const = 0;
+  virtual T ScatterMode(const CS* objCS, const size_t& sn) const = 0;
+  virtual T InnerMode(const CS* objCS, const size_t& sn) const = 0;
 
   virtual size_t NoN() const = 0;
   virtual size_t NoC() const = 0;
   virtual size_t NoE() const = 0;
 
-  virtual const Eigen::MatrixXcd& TransMatrix() const = 0;
-  virtual Eigen::MatrixXcd ModeMatrix(const Inhomogeneity* other) const = 0;
-  virtual Eigen::VectorXcd InVector(
-      const std::vector<Incident<T>*>& incident) const = 0;
+  // The matrix composed of effects of modes (correspond to its unknown
+  // coefficients) of the source on this inhomogeneity's nodes.
+  virtual Eigen::MatrixXcd ModeMatrix(const Inhomogeneity* source) const = 0;
+
+  virtual void SetCoeff(const Eigen::VectorXcd&) = 0;
+
+  // This inhomogeneity's nodes.
+  virtual const std::vector<CS>& Node() const = 0;
 
   const CS* LocalCS() const { return &localCS_; }
 

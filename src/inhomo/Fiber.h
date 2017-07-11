@@ -29,71 +29,102 @@ template <typename T>
 class Fiber : public Inhomogeneity<T> {
  public:
   explicit Fiber(const ConfigFiber<T>* config, const PosiVect& position)
-      : Inhomogeneity<T>(position), config_(config) {
+      : Inhomogeneity<T>(position),
+        config_(config),
+        cSc_(NoC()),
+        cIn_(NoC()) {
     add_node();
   }
+
+  size_t NoN() const override { return config_->NoN(); }
+  size_t NoE() const override { return config_->NoE(); }
+  size_t NoC() const override { return config_->NoC(); }
+
+  void SetCoeff(const Eigen::VectorXcd& solution) override;
 
   // The nth Modes. The n should be the serial number, instead of the order.
   // The transformation from the serial number to the order should be done in
   // the derived class.
   // n starts at zero.
-  T ScatterModeL(const CS* objCS, const size_t& n) const override;
-  T ScatterModeT(const CS* objCS, const size_t& n) const override;
-  T InnerModeL(const CS* objCS, const size_t& n) const override;
-  T InnerModeT(const CS* objCS, const size_t& n) const override;
-
-  Eigen::VectorXcd InVector(
-      const std::vector<Incident<T>*>& incident) const override;
+  T ScatterMode(const CS* objCS, const size_t& sn) const override;
+  T InnerMode(const CS* objCS, const size_t& sn) const override;
 
   // Return the effect of modes of other source inhomogeneity at the
   // collocation points.
   Eigen::MatrixXcd ModeMatrix(const Inhomogeneity<T>* source) const override;
 
+  const std::vector<CS>& Node() const override { return node_; }
+
  protected:
   const ConfigFiber<T>* config_;
   std::vector<CS> node_;
+  std::vector<dcomp> cSc_, cIn_;
 
-  // Transform serial number n to order.
-  int od(const size_t& n) const { return n - config_->TopOrder(); }
+  T scatterModeL(const CS* objCS, int n) const;
+  T scatterModeT(const CS* objCS, int n) const;
+  T innerModeL(const CS* objCS, int n) const;
+  T innerModeT(const CS* objCS, int n) const;
+
   void add_node();
+  int od(const size_t& sn) const { return sn - config_->TopOrder(); }
 };  // namespace mss
 
 // ---------------------------------------------------------------------------
 // Inline functions:
 
+template <typename T>
+inline void Fiber<T>::SetCoeff(const Eigen::VectorXcd& solution) {
+  assert(solution.size() == NoC());
+  for (int i = 0; i < solution.size(); i++) cSc_[i] = solution(i);
+}
 template <>
-inline StateIP Fiber<StateIP>::ScatterModeL(const CS* objCS,
-                                            const size_t& n) const {
-  return config_->ModeL(LocalCS(), objCS,
-                        EigenFunctor(Hn, od(n), config_->KL_m()),
+inline StateIP Fiber<StateIP>::ScatterMode(const CS* objCS,
+                                           const size_t& sn) const {
+  if (sn <= NoC() / 2)
+    return scatterModeL(objCS, od(sn));
+  else
+    return scatterModeT(objCS, od(sn));
+}
+template <>
+inline StateAP Fiber<StateAP>::ScatterMode(const CS* objCS,
+                                           const size_t& sn) const {
+  return scatterModeT(objCS, od(sn));
+}
+template <>
+inline StateIP Fiber<StateIP>::InnerMode(const CS* objCS,
+                                         const size_t& sn) const {
+  if (sn <= NoC() / 2)
+    return innerModeL(objCS, od(sn));
+  else
+    return innerModeT(objCS, od(sn));
+}
+template <>
+inline StateAP Fiber<StateAP>::InnerMode(const CS* objCS,
+                                         const size_t& sn) const {
+  return innerModeT(objCS, od(sn));
+}
+template <typename T>
+inline T Fiber<T>::scatterModeL(const CS* objCS, int n) const {
+  return config_->ModeL(this->LocalCS(), objCS,
+                        EigenFunctor(Hn, n, config_->KL_m()),
                         config_->Material_m());
 }
-template <>
-inline StateIP Fiber<StateIP>::ScatterModeT(const CS* objCS,
-                                            const size_t& n) const {
-  return config_->ModeT(LocalCS(), objCS,
-                        EigenFunctor(Hn, od(n), config_->KT_m()),
+template <typename T>
+inline T Fiber<T>::innerModeL(const CS* objCS, int n) const {
+  return config_->ModeL(this->LocalCS(), objCS,
+                        EigenFunctor(Jn, n, config_->KL()),
+                        config_->Material());
+}
+template <typename T>
+inline T Fiber<T>::scatterModeT(const CS* objCS, int n) const {
+  return config_->ModeT(this->LocalCS(), objCS,
+                        EigenFunctor(Hn, n, config_->KT_m()),
                         config_->Material_m());
 }
-template <>
-inline StateIP Fiber<StateIP>::InnerModeL(const CS* objCS,
-                                          const size_t& n) const {
-  return config_->ModeL(LocalCS(), objCS,
-                        EigenFunctor(Jn, od(n), config_->KL()),
-                        config_->Material());
-}
-template <>
-inline StateIP Fiber<StateIP>::InnerModeT(const CS* objCS,
-                                          const size_t& n) const {
-  return config_->ModeT(LocalCS(), objCS,
-                        EigenFunctor(Jn, od(n), config_->KT()),
-                        config_->Material());
-}
-template <>
-inline StateAP Fiber<StateAP>::InnerModeT(const CS* objCS,
-                                          const size_t& n) const {
-  return config_->ModeT(LocalCS(), objCS,
-                        EigenFunctor(Jn, od(n), config_->KT()),
+template <typename T>
+inline T Fiber<T>::innerModeT(const CS* objCS, int n) const {
+  return config_->ModeT(this->LocalCS(), objCS,
+                        EigenFunctor(Jn, n, config_->KT()),
                         config_->Material());
 }
 template <typename T>
@@ -104,10 +135,14 @@ inline void Fiber<T>::add_node() {
 template <typename T>
 inline Eigen::MatrixXcd Fiber<T>::ModeMatrix(
     const Inhomogeneity<T>* source) const {
-  size_t P = this->NoE(), N = source->NoC();
-  Eigen::MatrixXcd M(P, N);
-  for (size_t n = 0; n < N; n++) {
-  }
+  if (source == this) return config_->TransMatrix();
+
+  Eigen::MatrixXcd M(this->NoE(), source->NoC());
+  for (size_t sn = 0; sn < source->NoC(); sn++)
+    for (size_t i = 0; i < this->NoN(); i++)
+      M.block<T::NoBV, 1>(T::NoBV * i, sn) =
+          source->ScatterMode(&node_[i], sn).DispTracVect();
+  return M *= -1;
 }
 
 }  // namespace mss

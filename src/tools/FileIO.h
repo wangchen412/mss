@@ -26,23 +26,23 @@
 
 namespace mss {
 
-inline bool iequals(const std::string& a, const std::string& b) {
-  size_t sz = a.size();
-  if (b.size() != sz) return false;
-  for (size_t i = 0; i < sz; i++)
-    if (tolower(a[i]) != tolower(b[i])) return false;
-  return true;
-}
+// Case insensitive comparison of two std::strings.
+struct ci_comp {
+  bool operator()(const std::string &lhs, const std::string &rhs) const {
+    return strcasecmp(lhs.c_str(), rhs.c_str()) < 0;
+  }
+};
 
 template <typename T>
-T* FindID(const std::vector<T>& vec, const std::string& name) {
-  for (const T* t : vec)
-    if (iequals(name, t->ID())) return &*t;
+T *FindID(const std::vector<T> &vec, const std::string &name) {
+  for (const T *t : vec)
+    if (ci_comp()(name, t->ID()))
+      return &*t;
 
   std::cout << "[mss]: Error. ID: " << name << " not found." << std::endl;
   exit(EXIT_FAILURE);
 }
 
-}  // namespace mss
+} // namespace mss
 
 #endif

@@ -22,23 +22,21 @@
 
 #include <string>
 #include <vector>
-#include "Tensor.h"
 #include "../tools/FileIO.h"
+#include "Tensor.h"
 
 namespace mss {
 
 namespace input {
 
 struct Material {
-  std::string ID;
   double rho, lambda, mu;
 };
 struct Matrix {
-  std::string materialID;
+  Material material;
   double frequency;
 };
 struct IncidentPlane {
-  std::string ID;
   std::string type;
   double amplitude, phase, angle;
 };
@@ -67,7 +65,7 @@ struct ConfigAssembly {
 };
 struct Solution {
   Matrix matrix;
-  std::vector<IncidentPlane> incidentPlane;
+  std::vector<IncidentPlane> incident;
   Assembly assembly;
 };
 

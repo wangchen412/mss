@@ -34,11 +34,8 @@ class Material {
       : rho_(rho), lambda_(lambda), mu_(mu) {
     _computeWaveSpeed();
   }
-
-  explicit Material(const input::Material& input)
-      : rho_(input.rho), lambda_(input.lambda), mu_(input.mu) {
-    _computeWaveSpeed();
-  }
+  Material(const input::Material& input)
+      : Material(input.rho, input.lambda, input.mu) {}
 
   StressAP C(const dcomp& gzx, const dcomp& gzy) const {
     return StressAP(mu_ * gzx, mu_ * gzy);

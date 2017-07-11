@@ -27,6 +27,7 @@
 #include <complex>
 #include <cstdlib>
 #include <limits>
+#include <map>
 #include <string>
 
 namespace mss {

@@ -48,6 +48,8 @@ class ConfigAssembly {
   const double& Height() const { return height_; }
   const double& Width() const { return width_; }
 
+  void Solve(const std::vector<Incident<T>*>& incident);
+
  protected:
   std::vector<Inhomogeneity<T>*> inhomo_;
   std::vector<ConfigFiber<T>*> configFiber_;
@@ -67,6 +69,9 @@ class ConfigAssembly {
   void delete_inhomo();
   void delete_configFiber();
   void allocate();
+  void compute_MatrixC();
+  Eigen::VectorXcd inVect(const std::vector<Incident<T>*>& incident);
+  void distSolution(const Eigen::VectorXcd& solution);
 };
 
 }  // namespace mss

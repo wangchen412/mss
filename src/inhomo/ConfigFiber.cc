@@ -90,6 +90,7 @@ StateAP ConfigFiber<StateAP>::ModeT(const CS* localCS, const CS* objCS,
   // Normalized state in the objective CS.
   return StateAP(w, t, &cs).in(objCS) / f(CharLength());
 }
+
 template <>
 dcomp ConfigFiber<StateAP>::tT(int n) const {
   BesselFunctor Jf(Jn, n, KT()), Jm(Jn, n, KT_m()), Hm(Hn, n, KT_m());
@@ -99,7 +100,7 @@ dcomp ConfigFiber<StateAP>::tT(int n) const {
   return (Jf(R_) - Hm(R_)) * muJR_m / (muJR_f - muHR_m) / Jm(R_);
 }
 template <>
-void ConfigFiber<StateAP>::computeQ() {
+void ConfigFiber<StateAP>::compute_MatrixQ() {
   for (int n = -N_; n <= N_; n++) {
     dcomp tn = tT(n);
     EigenFunctor J(Jn, n, KT()), H(Hn, n, KT_m());

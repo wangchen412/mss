@@ -94,7 +94,7 @@ class State {
     assert(st == State());  // Write in empty state only.
     double angle;
     is >> angle >> st.displacement_ >> st.stress_;
-    st._rotate(-angle);
+    st.rotate(-angle);
     return is;
   }
 
@@ -105,21 +105,31 @@ class State {
   double AngleGLB() const;
   State in(const CS* otherBasis) const;
 
+  // Assumed that the x axis of the basis CS of the state is the normal
+  // vector.
+  auto DispTracVect() const;
+  static size_t NoBV;  // Number of boundary values.
+
  private:
   T1 displacement_;
   T2 stress_;
   const CS* basis_;
-  State& _rotate(const double& angle);
+  State& rotate(const double& angle);
 };
 
 typedef State<DispAP, StressAP> StateAP;
 typedef State<DispIP, StressIP> StateIP;
 
+template <>
+size_t StateAP::NoBV = 2;
+template <>
+size_t StateIP::NoBV = 4;
+
 // ---------------------------------------------------------------------------
 // Inline functions:
 
 template <typename T1, typename T2>
-inline State<T1, T2>& State<T1, T2>::_rotate(const double& angle) {
+inline State<T1, T2>& State<T1, T2>::rotate(const double& angle) {
   displacement_.RotateInPlace(angle);
   stress_.RotateInPlace(angle);
   return *this;
@@ -137,7 +147,16 @@ inline State<T1, T2> State<T1, T2>::in(const mss::CS* otherBasis) const {
   double d = 0;
   if (otherBasis) d = otherBasis->AngleGLB();
   return State<T1, T2>(displacement_, stress_, otherBasis)
-      ._rotate(d - AngleGLB());
+      .rotate(d - AngleGLB());
+}
+template <>
+auto StateIP::DispTracVect() const {
+  return Eigen::Vector4cd(displacement_.x, displacement_.y, stress_.xx,
+                          stress_.xy);
+}
+template <>
+auto StateAP::DispTracVect() const {
+  return Eigen::Vector2cd(displacement_.x, stress_.x);
 }
 
 }  // namespace mss
