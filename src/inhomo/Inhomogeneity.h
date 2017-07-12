@@ -23,7 +23,7 @@
 #ifndef MSS_INHOMOGENEITY_H
 #define MSS_INHOMOGENEITY_H
 
-#include "../core/Incident.h"
+#include "../incident/Incident.h"
 
 namespace mss {
 

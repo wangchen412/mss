@@ -23,7 +23,7 @@
 #ifndef MSS_MATERIAL_H
 #define MSS_MATERIAL_H
 
-#include "Input.h"
+#include "../input/Input.h"
 #include "State.h"
 
 namespace mss {

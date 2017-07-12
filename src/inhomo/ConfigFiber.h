@@ -20,9 +20,9 @@
 #ifndef MSS_CONFIGFIBER_H
 #define MSS_CONFIGFIBER_H
 
-#include "../core/Input.h"
 #include "../core/Matrix.h"
 #include "../core/State.h"
+#include "../input/Input.h"
 
 namespace mss {
 
@@ -79,7 +79,7 @@ class ConfigFiber {
   std::vector<CS> node_;           // Collocation points.
   Eigen::MatrixXcd Q_;             // Transform matrix.
 
-  // Funtions for the factor T_n: B_n = T_n A_n.
+  // Functions for the factor T_n: B_n = T_n A_n.
   // tL is for longitude modes and tT is for transverse modes.
   dcomp tL(int n) const;  // TODO: T-matrix for in-plane problem.
   dcomp tT(int n) const;

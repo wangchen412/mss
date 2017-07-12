@@ -19,36 +19,32 @@
 
 // Test plane incident wave classes.
 
-#include <iostream>
-#include <iomanip>
-#include <sstream>
-#include <fstream>
-#include <string>
-#include <gtest/gtest.h>
 #include <gmock/gmock.h>
-#include "../../src/core/Incident.h"
-
+#include <gtest/gtest.h>
+#include <fstream>
+#include <iomanip>
+#include <iostream>
+#include <sstream>
+#include <string>
+#include "../../src/incident/Incident.h"
 
 namespace mss {
 
-namespace test
-{
+namespace test {
 
-class IncidentTest : public testing::Test
-{
-protected:
+class IncidentTest : public testing::Test {
+ protected:
   IncidentTest()
-    : m(Material(1300, 1.41908e9, 0.832e9), 1.25664e6),
-    p1(m),
-    p2(m, 0, 1, 2),
-    p3(m, pi / 3),
-    v1(m),
-    v2(m, 0, 1, 2),
-    v3(m, pi / 3),
-    h1(m),
-    h2(m, 0, 1, 2),
-    h3(m, pi / 3)
-  {}
+      : m(Material(1300, 1.41908e9, 0.832e9), 1.25664e6),
+        p1(m),
+        p2(m, 0, 1, 2),
+        p3(m, pi / 3),
+        v1(m),
+        v2(m, 0, 1, 2),
+        v3(m, pi / 3),
+        h1(m),
+        h2(m, 0, 1, 2),
+        h3(m, pi / 3) {}
 
   Matrix m;
   IncidentPlaneP p1, p2, p3;
@@ -58,16 +54,13 @@ protected:
 
 template <typename T>
 void IncidentTest_ReadFile(const Incident<T>* inc,
-                           const std::string& fileName,
-                           std::vector<T>& ref,
-                           std::vector<T>& com)
-{
+                           const std::string& fileName, std::vector<T>& ref,
+                           std::vector<T>& com) {
   std::string src(__FILE__);
-  std::ifstream file(src.replace(src.end() - 16,
-                                 src.end(), "data/incident/") + fileName);
+  std::ifstream file(
+      src.replace(src.end() - 16, src.end(), "data/incident/") + fileName);
   std::string ts;
-  while(std::getline(file, ts))
-  {
+  while (std::getline(file, ts)) {
     std::stringstream tss(ts);
     PosiVect r;
     T s;
@@ -77,8 +70,7 @@ void IncidentTest_ReadFile(const Incident<T>* inc,
   }
 }
 
-TEST_F(IncidentTest, Constructors)
-{
+TEST_F(IncidentTest, Constructors) {
   EXPECT_EQ(p1.Angle(), 0);
   EXPECT_EQ(p1.Amplitude(), 1);
   EXPECT_EQ(p1.Phase(), 0);
@@ -107,8 +99,7 @@ TEST_F(IncidentTest, Constructors)
   EXPECT_EQ(h3.Amplitude(), 1);
   EXPECT_EQ(h3.Phase(), 0);
 }
-TEST_F(IncidentTest, EffectSH)
-{
+TEST_F(IncidentTest, EffectSH) {
   std::vector<StateAP> ref1, ref2, ref3;
   std::vector<StateAP> com1, com2, com3;
 
@@ -120,8 +111,7 @@ TEST_F(IncidentTest, EffectSH)
   EXPECT_THAT(com2, testing::ContainerEq(ref2));
   EXPECT_THAT(com3, testing::ContainerEq(ref3));
 }
-TEST_F(IncidentTest, EffectP)
-{
+TEST_F(IncidentTest, EffectP) {
   std::vector<StateIP> ref1, ref2, ref3;
   std::vector<StateIP> com1, com2, com3;
 
@@ -134,8 +124,7 @@ TEST_F(IncidentTest, EffectP)
   EXPECT_THAT(com3, testing::ContainerEq(ref3));
 }
 
-TEST_F(IncidentTest, EffectSV)
-{
+TEST_F(IncidentTest, EffectSV) {
   std::vector<StateIP> ref1, ref2, ref3;
   std::vector<StateIP> com1, com2, com3;
 
@@ -148,6 +137,6 @@ TEST_F(IncidentTest, EffectSV)
   EXPECT_THAT(com3, testing::ContainerEq(ref3));
 }
 
-}  // namespace mss::test
+}  // namespace test
 
 }  // namespace mss

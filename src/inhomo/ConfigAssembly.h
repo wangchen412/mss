@@ -20,7 +20,7 @@
 #ifndef MSS_CONFIGASSEMBLY_H
 #define MSS_CONFIGASSEMBLY_H
 
-#include "../core/Input.h"
+#include "../input/Input.h"
 #include "ConfigFiber.h"
 #include "Fiber.h"
 #include "Inhomogeneity.h"

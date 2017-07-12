@@ -22,8 +22,8 @@
 
 #include <string>
 #include <vector>
+#include "../core/Tensor.h"
 #include "../tools/FileIO.h"
-#include "Tensor.h"
 
 namespace mss {
 

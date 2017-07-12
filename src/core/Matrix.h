@@ -26,7 +26,7 @@
 #ifndef MSS_MATRIX_H
 #define MSS_MATRIX_H
 
-#include "Input.h"
+#include "../input/Input.h"
 #include "Material.h"
 #include "Math.h"
 

@@ -20,9 +20,9 @@
 #ifndef MSS_SOLUTION_H
 #define MSS_SOLUTION_H
 
+#include "../incident/Incident.h"
 #include "../inhomo/Assembly.h"
-#include "Incident.h"
-#include "Input.h"
+#include "../input/Input.h"
 
 namespace mss {
 
@@ -74,8 +74,7 @@ Inhomogeneity<T>* Solution<T>::InWhich(const CS* objCS) const {
 }
 
 template <typename T>
-T Solution<T>::Resultant(const CS* objCS,
-                         const Inhomogeneity<T>* in) const {
+T Solution<T>::Resultant(const CS* objCS, const Inhomogeneity<T>* in) const {
   return config_->Resultant(objCS, in, incident_);
 }
 

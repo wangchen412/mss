@@ -22,9 +22,9 @@
 #ifndef MSS_INCIDENT_H
 #define MSS_INCIDENT_H
 
-#include "Input.h"
-#include "Matrix.h"
-#include "State.h"
+#include "../core/Matrix.h"
+#include "../core/State.h"
+#include "../input/Input.h"
 
 namespace mss {
 
