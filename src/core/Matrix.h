@@ -46,7 +46,7 @@ class Matrix {
 
   virtual ~Matrix() {}
 
-  const Material& Material() const { return material_; }
+  const class Material& Material() const { return material_; }
   const double& Frequency() const { return omega_; }
   const double& KL() const { return kl_; }
   const double& KT() const { return kt_; }

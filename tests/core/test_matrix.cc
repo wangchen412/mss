@@ -39,37 +39,15 @@ class MatrixTest : public testing::Test {
 };
 
 TEST_F(MatrixTest, Constructors) {
-  // EXPECT_DOUBLE_EQ(a.MassDensity(), 1300);
-  // EXPECT_DOUBLE_EQ(a.Lambda(), 1.41908e9);
-  // EXPECT_DOUBLE_EQ(a.Mu(), 0.832e9);
-  // EXPECT_DOUBLE_EQ(a.CL(), 1540);
-  // EXPECT_DOUBLE_EQ(a.CT(), 800);
-
   EXPECT_DOUBLE_EQ(a.Frequency(), pi / 2);
   EXPECT_DOUBLE_EQ(a.KL(), 0.001019997614801881);
   EXPECT_DOUBLE_EQ(a.KT(), 0.0019634954084936209);
-
-  // EXPECT_DOUBLE_EQ(b.MassDensity(), 11400);
-  // EXPECT_DOUBLE_EQ(b.Lambda(), 36.32496e9);
-  // EXPECT_DOUBLE_EQ(b.Mu(), 8.43e9);
-  // EXPECT_DOUBLE_EQ(b.CL(), 2159.941519676182);
-  // EXPECT_DOUBLE_EQ(b.CT(), 859.926557451581);
-
   EXPECT_DOUBLE_EQ(b.Frequency(), pi);
   EXPECT_DOUBLE_EQ(b.KL(), 0.001454480422257349);
   EXPECT_DOUBLE_EQ(b.KT(), 0.0036533267014104112);
 }
-TEST_F(MatrixTest, UpdateFreq) {
-  a.UpdateFreq(2);
-  EXPECT_DOUBLE_EQ(a.Frequency(), 2);
-  EXPECT_DOUBLE_EQ(a.KL(), 0.001298701298701299);
-  EXPECT_DOUBLE_EQ(a.KT(), 0.0025);
 
-  b.UpdateFreq(12);
-  EXPECT_DOUBLE_EQ(b.Frequency(), 12);
-  EXPECT_DOUBLE_EQ(b.KL(), 0.005555705971983462);
-  EXPECT_DOUBLE_EQ(b.KT(), 0.013954680078217818);
-}
+// TODO: Add tests for constitutive relation methods.
 
 }  // namespace test
 

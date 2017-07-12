@@ -41,11 +41,11 @@ const double pi2(pi * 2);
 const double pi_2(pi / 2);
 const double epsilon(1e-14);
 
-dcomp Jn(int n, const double& x) {
+inline dcomp Jn(int n, const double& x) {
   return jn(n, x);
 }
 
-dcomp Hn(int n, const double& x) {
+inline dcomp Hn(int n, const double& x) {
   return jn(n, x) + ii * yn(n, x);
 }
 

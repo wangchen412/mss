@@ -123,7 +123,8 @@ TEST_F(StateTest, IO) {
   string fn = src.replace(src.end() - 13, src.end(), "data/state/TestIO.txt");
   ofstream outFile(fn);
   outFile.precision(16);
-  outFile << a << b << c << d << aa << bb << cc << dd << endl;
+  outFile << a << " " << b << " " << c << " "  << d << " "
+          << aa << " "  << bb << " "  << cc << " "  << dd << endl;
   outFile.close();
 
   StateAP ra, rb, rc, rd;
