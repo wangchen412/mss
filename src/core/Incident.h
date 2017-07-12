@@ -37,9 +37,13 @@ class Incident {
 
   virtual ~Incident() {}
 
+  // The effect on the position in global CS.
   virtual T Effect(const PosiVect& position) const = 0;
+
+  // The effect on the origin of the local CS.
   virtual T Effect(const CS* localCS) const = 0;
 
+  // The effect vector along the boundary.
   Eigen::VectorXcd Effect(const std::vector<CS*>& localCS) {
     Eigen::VectorXcd rst(localCS.size() * T::NoBV);
     for (size_t i = 0; i < localCS.size(); i++)

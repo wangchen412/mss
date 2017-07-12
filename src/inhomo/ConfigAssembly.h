@@ -50,6 +50,10 @@ class ConfigAssembly {
 
   void Solve(const std::vector<Incident<T>*>& incident);
 
+  Inhomogeneity<T>* InWhich(const CS* objCS) const;
+  T Resultant(const CS* objCS, const Inhomogeneity<T>* inhomo,
+              const std::vector<Incident<T>*>& incident) const;
+
  protected:
   std::vector<Inhomogeneity<T>*> inhomo_;
   std::vector<ConfigFiber<T>*> configFiber_;

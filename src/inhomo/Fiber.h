@@ -42,6 +42,13 @@ class Fiber : public Inhomogeneity<T> {
 
   void SetCoeff(const Eigen::VectorXcd& solution) override;
 
+  // Check if the position of the objective CS is inside the fiber.
+  bool Contain(const CS* objCS) const override;
+
+  // Resultant states.
+  T Scatter(const CS* objCS) const override;
+  T Inner(const CS* objCS) const override;
+
   // The nth Modes. The n should be the serial number, instead of the order.
   // The transformation from the serial number to the order should be done in
   // the derived class.
@@ -55,7 +62,7 @@ class Fiber : public Inhomogeneity<T> {
 
   const std::vector<CS>& Node() const override { return node_; }
 
- protected:
+ private:
   const ConfigFiber<T>* config_;
   std::vector<CS> node_;
   std::vector<dcomp> cSc_, cIn_;
@@ -73,9 +80,28 @@ class Fiber : public Inhomogeneity<T> {
 // Inline functions:
 
 template <typename T>
+inline bool Fiber<T>::Contain(const CS* objCS) const {
+  return objCS->PositionIn(this->LocalCS()).Length() < config_->Radius();
+}
+template <typename T>
+inline T Fiber<T>::Scatter(const CS* objCS) const {
+  T rst(objCS);
+  for (size_t i = 0; i < NoC(); i++) rst += ScatterMode(objCS, i) * cSc_[i];
+  return rst;
+}
+template <typename T>
+inline T Fiber<T>::Inner(const CS* objCS) const {
+  T rst(objCS);
+  for (size_t i = 0; i < NoC(); i++) rst += InnerMode(objCS, i) * cIn_[i];
+  return rst;
+}
+template <typename T>
 inline void Fiber<T>::SetCoeff(const Eigen::VectorXcd& solution) {
   assert(solution.size() == NoC());
-  for (int i = 0; i < solution.size(); i++) cSc_[i] = solution(i);
+  for (int i = 0; i < solution.size(); i++) {
+    cSc_[i] = solution(i);
+    cIn_[i] = cSc_[i] * config_->tT(od(i));  // TODO: in-plane problem.
+  }
 }
 template <>
 inline StateIP Fiber<StateIP>::ScatterMode(const CS* objCS,

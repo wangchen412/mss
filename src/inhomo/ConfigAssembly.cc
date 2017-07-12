@@ -56,6 +56,31 @@ void ConfigAssembly<T>::distSolution(const Eigen::VectorXcd& solution) {
 }
 
 template <typename T>
+Inhomogeneity<T>* ConfigAssembly<T>::InWhich(const CS* objCS) const {
+  // Return the pointer to the inhomogeneity in which the objCS is.
+  // The local CS is considered as the global CS.
+
+  Inhomogeneity<T>* rst = nullptr;
+  for (auto& i : inhomo_)
+    if (i->Contain(objCS)) rst = i;
+  return rst;
+}
+
+template <typename T>
+T ConfigAssembly<T>::Resultant(
+    const CS* objCS, const Inhomogeneity<T>* in,
+    const std::vector<Incident<T>*>& incident) const {
+  T rst(objCS);
+  if (in)
+    rst = in->Inner(objCS);
+  else {
+    for (auto& i : incident) rst += i->Effect(objCS);
+    for (auto& i : inhomo_) rst += i->Scatter(objCS);
+  }
+  return rst;
+}
+
+template <typename T>
 void ConfigAssembly<T>::add_inhomo() {
   add_fiber();
 }

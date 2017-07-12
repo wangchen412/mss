@@ -34,8 +34,12 @@ class Inhomogeneity {
       : localCS_(position, angle) {}
   virtual ~Inhomogeneity() {}
 
+  // Resultant states.
   virtual T Scatter(const CS* objCS) const;
   virtual T Inner(const CS* objCS) const;
+
+  // Check if the position of the objective CS is inside the inhomogeneity.
+  virtual bool Contain(const CS* objCS) const = 0;
 
   // The nth Modes. The n should be the serial number, instead of the order.
   // The transformation from the serial number to the order should be done in
@@ -58,7 +62,7 @@ class Inhomogeneity {
 
   const CS* LocalCS() const { return &localCS_; }
 
- protected:
+ private:
   const CS localCS_;
 };
 

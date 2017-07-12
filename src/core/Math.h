@@ -38,6 +38,7 @@ const dcomp ii(0.0, 1.0);
 const double ee(2.71828182845904523536);
 const double pi(3.14159265358979323846);
 const double pi2(pi * 2);
+const double pi_2(pi / 2);
 const double epsilon(1e-14);
 
 dcomp Jn(int n, const double& x) {

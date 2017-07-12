@@ -46,8 +46,14 @@ class CS {
 
   bool operator==(const CS& other) const;
 
+  // Output the 
+  friend std::ostream& operator<<(std::ostream& os, const CS& cs) {
+    return os << cs.PositionGLB() << "\t" << cs.AngleGLB();
+  }
+
   // Return a new CS object which is the map of this CS in another basis CS.
   CS in(const CS* otherBasis) const;
+
   // Return a new CS object which is in the global CS.
   CS inGLB() const { return in(nullptr); }
 

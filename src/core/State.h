@@ -31,7 +31,8 @@ namespace mss {
 template <typename T1, typename T2>
 class State {
  public:
-  State() : displacement_(), stress_(), basis_(nullptr) {}
+  State(const CS* basis = nullptr)
+      : displacement_(), stress_(), basis_(basis) {}
   explicit State(const T1& disp, const T2& stress, const CS* basis = nullptr)
       : displacement_(disp), stress_(stress), basis_(basis) {}
   explicit State(const dcomp& w, const StressAP& stress,
@@ -83,8 +84,7 @@ class State {
            (tmp.stress_ == other.stress_);
   }
   friend std::ostream& operator<<(std::ostream& os, const State& st) {
-    return os << st.AngleGLB() << "\t" << st.displacement_ << "\t"
-              << st.stress_;
+    return os << *st.basis_ << "\t" << st.displacement_ << "\t" << st.stress_;
   }
   friend std::istream& operator>>(std::istream& is, State& st) {
     // Since the object is read from file, the only CS it can be based on is

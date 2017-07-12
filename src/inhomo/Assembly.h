@@ -34,6 +34,7 @@ class Assembly : public Inhomogeneity<T> {
       : Inhomogeneity<T>(position, angle), config_(config) {}
 
   // TODO: The interactions among assemblies
+  bool Contain(const CS* objCS) const override;
   T Scatter(const CS* objCS) const override;
   T Inner(const CS* objCS) const override;
   T ScatterMode(const CS* objCS, const size_t& sn) const override;

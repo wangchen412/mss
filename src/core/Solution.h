@@ -37,6 +37,9 @@ class Solution {
   virtual ~Solution() { delete_incident(); }
 
   void Solve() { config_.Solve(incident_); }
+  Inhomogeneity<T>* InWhich(const CS* objCS) const;
+  T Resultant(const CS* objCS, const Inhomogeneity<T>* inhomo) const;
+  T Resultant(const CS* objCS) const;
 
  protected:
   // bool solved_;
@@ -63,6 +66,22 @@ void Solution<T>::add_incident(const input::Solution& input) {
 template <typename T>
 void Solution<T>::delete_incident() {
   for (auto& i : incident_) delete i;
+}
+
+template <typename T>
+Inhomogeneity<T>* Solution<T>::InWhich(const CS* objCS) const {
+  return config_->InWhich(objCS);
+}
+
+template <typename T>
+T Solution<T>::Resultant(const CS* objCS,
+                         const Inhomogeneity<T>* in) const {
+  return config_->Resultant(objCS, in, incident_);
+}
+
+template <typename T>
+T Solution<T>::Resultant(const CS* objCS) const {
+  return config_->Resultant(objCS, InWhich(objCS), incident_);
 }
 
 }  // namespace mss

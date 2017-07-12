@@ -81,7 +81,7 @@ class ConfigFiber {
 
   // Funtions for the factor T_n: B_n = T_n A_n.
   // tL is for longitude modes and tT is for transverse modes.
-  dcomp tL(int n) const;
+  dcomp tL(int n) const;  // TODO: T-matrix for in-plane problem.
   dcomp tT(int n) const;
 
   void add_node();
