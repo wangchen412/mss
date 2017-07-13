@@ -100,9 +100,10 @@ inline void Fiber<T>::SetCoeff(const Eigen::VectorXcd& solution) {
   assert(solution.size() == NoC());
   for (int i = 0; i < solution.size(); i++) {
     cSc_[i] = solution(i);
-    cIn_[i] = cSc_[i] * config_->tT(od(i));  // TODO: in-plane problem.
+    cIn_[i] = cSc_[i] * config_->TT(od(i));  // TODO: in-plane problem.
   }
 }
+
 template <>
 inline StateIP Fiber<StateIP>::ScatterMode(const CS* objCS,
                                            const size_t& sn) const {

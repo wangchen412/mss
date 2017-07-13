@@ -109,7 +109,7 @@ class State {
   // Assumed that the x axis of the basis CS of the state is the normal
   // vector.
   auto DispTracVect() const;
-  static size_t NoBV;  // Number of boundary values.
+  static const size_t NoBV;  // Number of boundary values.
 
  private:
   T1 displacement_;
@@ -122,9 +122,9 @@ typedef State<DispAP, StressAP> StateAP;
 typedef State<DispIP, StressIP> StateIP;
 
 template <>
-size_t StateAP::NoBV = 2;
+size_t const StateAP::NoBV = 2;
 template <>
-size_t StateIP::NoBV = 4;
+size_t const StateIP::NoBV = 4;
 
 // ---------------------------------------------------------------------------
 // Inline functions:

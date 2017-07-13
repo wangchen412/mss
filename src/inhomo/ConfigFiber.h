@@ -67,6 +67,11 @@ class ConfigFiber {
   T ModeL(const CS* localCS, const CS* objCS, const EigenFunctor& f,
           const class Material& mat) const;
 
+  // Functions for the factor T_n: B_n = T_n A_n.
+  // tL is for longitude modes and tT is for transverse modes.
+  dcomp TL(int n) const;  // TODO: T-matrix for in-plane problem.
+  dcomp TT(int n) const;
+
  protected:
   const std::string ID_;           // The ID.
   const int N_;                    // The top order of the series.
@@ -78,11 +83,6 @@ class ConfigFiber {
   const class Matrix* matrix_;     // The matrix.
   std::vector<CS> node_;           // Collocation points.
   Eigen::MatrixXcd Q_;             // Transform matrix.
-
-  // Functions for the factor T_n: B_n = T_n A_n.
-  // tL is for longitude modes and tT is for transverse modes.
-  dcomp tL(int n) const;  // TODO: T-matrix for in-plane problem.
-  dcomp tT(int n) const;
 
   void add_node();
   void compute_MatrixQ();

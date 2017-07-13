@@ -92,7 +92,7 @@ StateAP ConfigFiber<StateAP>::ModeT(const CS* localCS, const CS* objCS,
 }
 
 template <>
-dcomp ConfigFiber<StateAP>::tT(int n) const {
+dcomp ConfigFiber<StateAP>::TT(int n) const {
   BesselFunctor Jf(Jn, n, KT()), Jm(Jn, n, KT_m()), Hm(Hn, n, KT_m());
   dcomp muJR_f = Jf.dr(R_) * Material().Mu();
   dcomp muJR_m = Jm.dr(R_) * Matrix()->Material().Mu();
@@ -102,7 +102,7 @@ dcomp ConfigFiber<StateAP>::tT(int n) const {
 template <>
 void ConfigFiber<StateAP>::compute_MatrixQ() {
   for (int n = -N_; n <= N_; n++) {
-    dcomp tn = tT(n);
+    dcomp tn = TT(n);
     EigenFunctor J(Jn, n, KT()), H(Hn, n, KT_m());
     for (size_t i = 0; i < P_; i++) {
       StateAP s = ModeT(nullptr, &node_[i], J, Material()) * tn -
@@ -111,6 +111,18 @@ void ConfigFiber<StateAP>::compute_MatrixQ() {
       Q_(i * 2 + 1, n + N_) = s.Stress().x;
     }
   }
+}
+template <>
+dcomp ConfigFiber<StateIP>::TL(int) const {
+  return 0;  // TODO: tL of in-plane problem
+}
+template <>
+dcomp ConfigFiber<StateIP>::TT(int) const {
+  return 0;  // TODO: tT of in-plane problem
+}
+template <>
+void ConfigFiber<StateIP>::compute_MatrixQ() {
+  // TODO: tT of in-plane problem
 }
 
 }  // namespace mss
