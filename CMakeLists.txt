@@ -28,5 +28,7 @@ project(mss)
 enable_testing()
 
 include_directories("~/Programming/eigen/")
+include_directories("~/.third_party/")
+link_directories("~/.third_party/")
 add_subdirectory(src)
 add_subdirectory(tests)
