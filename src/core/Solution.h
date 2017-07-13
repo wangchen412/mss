@@ -20,7 +20,7 @@
 #ifndef MSS_SOLUTION_H
 #define MSS_SOLUTION_H
 
-#include "../incident/Incident.h"
+#include "../incident/IncidentInput.h"
 #include "../inhomo/Assembly.h"
 #include "../input/Input.h"
 
@@ -59,7 +59,7 @@ class Solution {
 
 template <typename T>
 void Solution<T>::add_incident(const input::Solution& input) {
-  InputIncident<T> f(matrix_);
+  IncidentInput<T> f(matrix_);
   for (auto& i : input.incident) incident_.push_back(f(i));
 }
 

@@ -26,7 +26,7 @@
 #include <iostream>
 #include <sstream>
 #include <string>
-#include "../../src/incident/Incident.h"
+#include "../../src/incident/IncidentInput.h"
 
 namespace mss {
 

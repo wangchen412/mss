@@ -84,7 +84,8 @@ class State {
            (tmp.stress_ == other.stress_);
   }
   friend std::ostream& operator<<(std::ostream& os, const State& st) {
-    return os << st.AngleGLB() << "\t" << st.displacement_ << "\t" << st.stress_;
+    return os << st.AngleGLB() << "\t" << st.displacement_ << "\t"
+              << st.stress_;
   }
   friend std::istream& operator>>(std::istream& is, State& st) {
     // Since the object is read from file, the only CS it can be based on is
