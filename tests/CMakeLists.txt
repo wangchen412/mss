@@ -18,3 +18,5 @@
 # ----------------------------------------------------------------------
 
 add_subdirectory(core)
+add_subdirectory(incident)
+add_subdirectory(inhomo)

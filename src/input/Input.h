@@ -29,10 +29,18 @@ namespace mss {
 
 namespace input {
 
-struct Material {
+class Material {
+ public:
+  Material() {}
+  Material(std::stringstream data);
+
+  std::string ID;
   double rho, lambda, mu;
 };
 struct Matrix {
+  Matrix() {}
+  Matrix(const std::string& file) { read(file); }
+  void read(const std::string& file);
   Material material;
   double frequency;
 };
@@ -64,9 +72,25 @@ struct ConfigAssembly {
   std::vector<Assembly> assembly;
 };
 struct Solution {
+  Solution(const std::string& file) : fn_(file) {}
+
   Matrix matrix;
   std::vector<IncidentPlane> incident;
-  Assembly assembly;
+  ConfigAssembly config;
+
+ private:
+  std::string fn_;
+  std::vector<Material*> material_;
+  std::vector<ConfigFiber*> configFiber_;
+  std::vector<Fiber*> fiber_;
+  std::vector<ConfigAssembly*> configAssembly_;
+  std::vector<Assembly*> assembly_;
+
+  void read(const std::string& file);
+  void add_material(const std::string& file);
+
+  template <typename T>
+  void add(std::vector<T*>& vec, const std::string& key);
 };
 
 }  // namespace input

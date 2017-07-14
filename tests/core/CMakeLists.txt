@@ -17,14 +17,9 @@
 #
 # ----------------------------------------------------------------------
 
-function(add_test_core test_name)
-  add_executable(${test_name} ${test_name}.cc)
-  target_link_libraries(${test_name} mss_core gtest gtest_main)
-  add_test(NAME ${test_name} COMMAND ${test_name})
-endfunction()
+include(${CMAKE_CURRENT_SOURCE_DIR}/../AddTest.cmake)
 
-add_test_core(test_math)
-add_test_core(test_cs)
-add_test_core(test_state)
-add_test_core(test_matrix)
-add_test_core(test_incident)
+mss_add_test(test_math)
+mss_add_test(test_cs)
+mss_add_test(test_state)
+mss_add_test(test_matrix)

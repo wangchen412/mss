@@ -20,29 +20,102 @@
 #ifndef MSS_FILEIO_H
 #define MSS_FILEIO_H
 
+#include <cstring>
 #include <fstream>
 #include <iostream>
+#include <sstream>
 #include <string>
+#include <vector>
 
 namespace mss {
 
 // Case insensitive comparison of two std::strings.
 struct ci_comp {
-  bool operator()(const std::string &lhs, const std::string &rhs) const {
+  bool operator()(const std::string& lhs, const std::string& rhs) const {
     return strcasecmp(lhs.c_str(), rhs.c_str()) < 0;
   }
 };
 
 template <typename T>
-T *FindID(const std::vector<T> &vec, const std::string &name) {
-  for (const T *t : vec)
-    if (ci_comp()(name, t->ID()))
-      return &*t;
+T* FindID(const std::vector<T>& vec, const std::string& name) {
+  for (const T* t : vec)
+    if (ci_comp()(name, t->ID())) return &*t;
 
   std::cout << "[mss]: Error. ID: " << name << " not found." << std::endl;
   exit(EXIT_FAILURE);
 }
 
-} // namespace mss
+// Generate file name that follows the existing files with same format.
+inline std::string NewFileName(const std::string& fileName,
+                               const std::string& extension) {
+  std::string name(fileName);
+  int i = 1;
+  while (std::ifstream(name + extension))
+    name = fileName + std::to_string((long long)i++);
+  return name + extension;
+}
+
+// Find the last created file with the same format.
+inline std::string FindCurrentFile(const std::string& fileName,
+                                   const std::string& extension) {
+  std::string name(fileName);
+  int i = 1;
+  while (std::ifstream(name + extension))
+    name = fileName + std::to_string((long long)i++);
+  return fileName + std::to_string((long long)--i) + extension;
+}
+
+// Determine if the string is "white".
+inline bool isWhiteSpace(const std::string input) {
+  if (input.empty()) return true;
+  for (auto it = input.begin(); it != input.end(); it++)
+    if (!isspace(*it)) return false;
+  return true;
+}
+
+// Skip n lines of the input file stream.
+inline void skip(std::ifstream& inputFile, int n) {
+  std::string tmp;
+  for (int i = 0; i < n; i++) std::getline(inputFile, tmp);
+}
+
+// Skip lines of the input file stream until find the objective string, then,
+// optionally, skip extra n lines.
+inline bool skipUntil(std::ifstream& inputFile, const std::string& obj,
+                      int n = 0) {
+  std::string tmp;
+  while (std::getline(inputFile, tmp))
+    if (ci_comp()(tmp, obj)) {
+      skip(inputFile, n);
+      return true;
+    }
+  std::cout << obj << "\t"
+            << "not found" << std::endl;
+  return false;
+}
+
+// Copy file.
+inline bool copyFile(const std::string& inFileName, std::ofstream& outFile,
+                     const std::string& endStr) {
+  std::ifstream inFile(inFileName);
+  std::string tmp;
+  bool notblank = true;
+  while (std::getline(inFile, tmp)) {
+    notblank = true;
+    if (tmp == endStr) return notblank;
+    if (isWhiteSpace(tmp)) notblank = false;
+    outFile << tmp << std::endl;
+  }
+  return notblank;
+}
+
+// Convert double to std::string.
+inline std::string d2string(const double& x) {
+  std::stringstream s;
+  s << x;
+  return s.str();
+}
+
+}  // namespace mss
 
 #endif
