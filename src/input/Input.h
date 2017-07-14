@@ -29,25 +29,33 @@ namespace mss {
 
 namespace input {
 
-class Material {
- public:
-  Material() {}
+struct Material {
   Material(std::stringstream data);
 
   std::string ID;
   double rho, lambda, mu;
+  static const std::string key;
 };
+
 struct Matrix {
-  Matrix() {}
-  Matrix(const std::string& file) { read(file); }
-  void read(const std::string& file);
-  Material material;
-  double frequency;
+  Matrix(std::stringstream data);
+
+  double frequency, delta;
+  const Material* material;
+  static const std::string key;
 };
+
 struct IncidentPlane {
+  IncidentPlane(std::stringstream data);
+
   std::string type;
   double amplitude, phase, angle;
+  static const std::string key;
 };
+
+
+
+
 struct ConfigFiber {
   std::string ID;
   Material material;
@@ -71,27 +79,33 @@ struct ConfigAssembly {
   std::vector<ConfigAssembly> a;
   std::vector<Assembly> assembly;
 };
-struct Solution {
-  Solution(const std::string& file) : fn_(file) {}
 
-  Matrix matrix;
-  std::vector<IncidentPlane> incident;
-  ConfigAssembly config;
+class Solution {
+ public:
+  Solution(const std::string& file);
 
  private:
   std::string fn_;
   std::vector<Material*> material_;
+  std::vector<Matrix*> matrix_;
+  std::vector<IncidentPlane*> incident_;
   std::vector<ConfigFiber*> configFiber_;
   std::vector<Fiber*> fiber_;
   std::vector<ConfigAssembly*> configAssembly_;
   std::vector<Assembly*> assembly_;
 
-  void read(const std::string& file);
-  void add_material(const std::string& file);
-
   template <typename T>
-  void add(std::vector<T*>& vec, const std::string& key);
+  void add(std::vector<T*>& vec);
 };
+
+
+// ---------------------------------------------------------------------------
+// Input Keys
+
+const std::string Material::key = "[Materials]";
+const std::string Matrix::key = "[Matrix]";
+const std::string IncidentPlane::key = "[Incident Waves]";
+
 
 }  // namespace input
 

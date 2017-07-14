@@ -29,20 +29,20 @@ Material::Material(stringstream data) {
   data >> ID >> rho >> lambda >> mu;
 }
 
-void Solution::read(const string& fn) {
-  add_material(fn);
+Matrix::Matrix(stringstream data) {
+  data >> frequency >> delta >> 
 }
 
-void Solution::add_material(const std::string& fn) {
-  ifstream file(fn);
-  skipUntil(file, "[Materials]", 2);
-  std::string tmp;
+Solution::Solution(const string& file) : fn_(file) {
+  add(material_);
+  add(matrix_);
+  add(incident_);
 }
 
 template <typename T>
-void Solution::add(vector<T*>& vec, const string& key) {
+void Solution::add(vector<T*>& vec) {
   ifstream file(fn_);
-  skipUntil(file, key, 2);
+  skipUntil(file, T::key, 2);
   string tmp;
   while (getline(file, tmp)) {
     if (isWhiteSpace(tmp)) break;
