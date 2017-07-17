@@ -256,6 +256,7 @@ paket-files/
 GTAGS
 GPATH
 GRTAGS
+GSYMS
 
 # Doxygen
 /doc/html

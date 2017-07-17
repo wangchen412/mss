@@ -20,6 +20,7 @@
 #ifndef MSS_FILEIO_H
 #define MSS_FILEIO_H
 
+#include <string.h>
 #include <cstring>
 #include <fstream>
 #include <iostream>
@@ -30,16 +31,26 @@
 namespace mss {
 
 // Case insensitive comparison of two std::strings.
+inline bool iequals(const std::string& a, const std::string& b) {
+  size_t sz = a.size();
+  if (b.size() != sz) return false;
+  for (size_t i = 0; i < sz; i++)
+    if (tolower(a[i]) != tolower(b[i])) return false;
+  return true;
+}
+
+// Case insensitive comparison functor for std::map.
 struct ci_comp {
   bool operator()(const std::string& lhs, const std::string& rhs) const {
     return strcasecmp(lhs.c_str(), rhs.c_str()) < 0;
   }
 };
 
+// Find the element of which the ID matches "name" in the std::vector "vec".
 template <typename T>
-T* FindID(const std::vector<T>& vec, const std::string& name) {
-  for (const T* t : vec)
-    if (ci_comp()(name, t->ID())) return &*t;
+const T* FindID(const std::vector<T>& vec, const std::string& name) {
+  for (const T& t : vec)
+    if (iequals(name, t.ID())) return &t;
 
   std::cout << "[mss]: Error. ID: " << name << " not found." << std::endl;
   exit(EXIT_FAILURE);
@@ -85,7 +96,7 @@ inline bool skipUntil(std::ifstream& inputFile, const std::string& obj,
                       int n = 0) {
   std::string tmp;
   while (std::getline(inputFile, tmp))
-    if (ci_comp()(tmp, obj)) {
+    if (iequals(tmp, obj)) {
       skip(inputFile, n);
       return true;
     }
@@ -114,6 +125,11 @@ inline std::string d2string(const double& x) {
   std::stringstream s;
   s << x;
   return s.str();
+}
+
+// Return test data path.
+inline std::string testDataPath(std::string path) {
+  return path.substr(0, path.rfind("/")) + std::string("/data/");
 }
 
 }  // namespace mss

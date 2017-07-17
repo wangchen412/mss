@@ -56,9 +56,8 @@ template <typename T>
 void IncidentTest_ReadFile(const Incident<T>* inc,
                            const std::string& fileName, std::vector<T>& ref,
                            std::vector<T>& com) {
-  std::string src(__FILE__);
-  std::ifstream file(
-      src.replace(src.end() - 16, src.end(), "data/incident/") + fileName);
+  std::ifstream file(testDataPath(__FILE__) + fileName);
+
   std::string ts;
   while (std::getline(file, ts)) {
     std::stringstream tss(ts);
@@ -107,6 +106,10 @@ TEST_F(IncidentTest, EffectSH) {
   IncidentTest_ReadFile(&h2, "SH2.dat", ref2, com2);
   IncidentTest_ReadFile(&h3, "SH3.dat", ref3, com3);
 
+  EXPECT_EQ(com1.size(), 401);
+  EXPECT_EQ(com2.size(), 401);
+  EXPECT_EQ(com3.size(), 401);
+
   EXPECT_THAT(com1, testing::ContainerEq(ref1));
   EXPECT_THAT(com2, testing::ContainerEq(ref2));
   EXPECT_THAT(com3, testing::ContainerEq(ref3));
@@ -118,6 +121,10 @@ TEST_F(IncidentTest, EffectP) {
   IncidentTest_ReadFile(&p1, "P1.dat", ref1, com1);
   IncidentTest_ReadFile(&p2, "P2.dat", ref2, com2);
   IncidentTest_ReadFile(&p3, "P3.dat", ref3, com3);
+
+  EXPECT_EQ(com1.size(), 401);
+  EXPECT_EQ(com2.size(), 401);
+  EXPECT_EQ(com3.size(), 401);
 
   EXPECT_THAT(com1, testing::ContainerEq(ref1));
   EXPECT_THAT(com2, testing::ContainerEq(ref2));
@@ -131,6 +138,10 @@ TEST_F(IncidentTest, EffectSV) {
   IncidentTest_ReadFile(&v1, "SV1.dat", ref1, com1);
   IncidentTest_ReadFile(&v2, "SV2.dat", ref2, com2);
   IncidentTest_ReadFile(&v3, "SV3.dat", ref3, com3);
+
+  EXPECT_EQ(com1.size(), 401);
+  EXPECT_EQ(com2.size(), 401);
+  EXPECT_EQ(com3.size(), 401);
 
   EXPECT_THAT(com1, testing::ContainerEq(ref1));
   EXPECT_THAT(com2, testing::ContainerEq(ref2));

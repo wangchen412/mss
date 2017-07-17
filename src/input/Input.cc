@@ -25,29 +25,62 @@ namespace input {
 
 using namespace std;
 
-Material::Material(stringstream data) {
-  data >> ID >> rho >> lambda >> mu;
+void operator>>(istream& is, Material& m) {
+  is >> m.ID >> m.rho >> m.mu >> m.lambda;
+}
+ostream& operator<<(ostream& os, const Material& m) {
+  return os << m.ID << "\t" << m.rho << "\t" << m.mu << "\t" << m.lambda;
 }
 
-Matrix::Matrix(stringstream data) {
-  data >> frequency >> delta >> 
+void operator>>(istream& is, Matrix& m) {
+  is >> m.frequency >> m.delta >> m.materialID;
+}
+ostream& operator<<(ostream& os, const Matrix& m) {
+  return os << m.frequency << "\t" << m.delta << "\t" << m.materialID;
 }
 
-Solution::Solution(const string& file) : fn_(file) {
-  add(material_);
-  add(matrix_);
-  add(incident_);
+void operator>>(istream& is, IncidentPlane& i) {
+  is >> i.type >> i.angle >> i.amplitude >> i.phase;
+}
+ostream& operator<<(ostream& os, const IncidentPlane& i) {
+  return os << i.type << "\t" << i.angle << "\t" << i.amplitude << "\t"
+            << i.phase;
+}
+
+void operator>>(istream& is, ConfigFiber& c) {
+  is >> c.ID >> c.radius >> c.N_max >> c.materialID;
+}
+ostream& operator<<(ostream& os, const ConfigFiber& c) {
+  return os << c.ID << "\t" << c.radius << "\t" << c.N_max << "\t"
+            << c.materialID;
+}
+
+void operator>>(istream& is, Fiber& f) {
+  is >> f.position >> f.configID;
+}
+ostream& operator<<(ostream& os, const Fiber& f) {
+  return os << f.position << "\t" << f.configID;
+}
+
+Solution::Solution(const string& fn) : fn_(fn) {
+  add(material_, "[Materials]");
+  add(matrix_, "[Matrix]");
+  add(incident_, "[Incident Waves]");
+  add(configFiber_, "[Fiber Configurations]");
+  add(fiber_, "[Fibers]");
 }
 
 template <typename T>
-void Solution::add(vector<T*>& vec) {
+void Solution::add(vector<T>& vec, const string& key) {
   ifstream file(fn_);
-  skipUntil(file, T::key, 2);
+  skipUntil(file, key, 2);
   string tmp;
   while (getline(file, tmp)) {
     if (isWhiteSpace(tmp)) break;
     if (tmp[0] == '#') continue;
-    vec.push_back(new T(stringstream(tmp)));
+    vec.emplace_back();
+    stringstream(tmp) >> vec.back();
+    //    vec.emplace_back(stringstream(tmp));
   }
   file.close();
 }

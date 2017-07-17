@@ -17,6 +17,7 @@
 #
 # ----------------------------------------------------------------------
 
-add_subdirectory(core)
-add_subdirectory(inhomo)
-add_subdirectory(input)
+file(GLOB _src *.cc)
+
+add_library(mss_input ${_src})
+target_link_libraries(mss_input m dl pthread)

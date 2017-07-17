@@ -17,6 +17,6 @@
 #
 # ----------------------------------------------------------------------
 
-add_subdirectory(core)
-add_subdirectory(inhomo)
-add_subdirectory(input)
+include(${CMAKE_CURRENT_SOURCE_DIR}/../AddTest.cmake)
+
+mss_add_test(test_input)
