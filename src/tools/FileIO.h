@@ -85,19 +85,21 @@ inline bool isWhiteSpace(const std::string input) {
 }
 
 // Skip n lines of the input file stream.
-inline void skip(std::ifstream& inputFile, int n) {
+inline void skip(std::ifstream& inputFile, int n,
+                 std::string* last = nullptr) {
   std::string tmp;
   for (int i = 0; i < n; i++) std::getline(inputFile, tmp);
+  if (last) *last = tmp;
 }
 
 // Skip lines of the input file stream until find the objective string, then,
 // optionally, skip extra n lines.
 inline bool skipUntil(std::ifstream& inputFile, const std::string& obj,
-                      int n = 0) {
+                      int n = 0, std::string* last = nullptr) {
   std::string tmp;
   while (std::getline(inputFile, tmp))
     if (iequals(tmp, obj)) {
-      skip(inputFile, n);
+      skip(inputFile, n, last);
       return true;
     }
   std::cout << obj << "\t"
@@ -131,6 +133,19 @@ inline std::string d2string(const double& x) {
 inline std::string testDataPath(std::string path) {
   return path.substr(0, path.rfind("/")) + std::string("/data/");
 }
+
+class separator {
+ public:
+  separator(const std::string& s, const size_t& n = 75) : s_(s), n_(n) {}
+  friend std::ostream& operator<<(std::ostream& os, const separator& sep) {
+    for (size_t i = 0; i < sep.n_; i++) os << sep.s_;
+    return os << std::endl;
+  }
+
+ private:
+  std::string s_;
+  size_t n_;
+};
 
 }  // namespace mss
 

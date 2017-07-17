@@ -19,4 +19,4 @@
 
 add_subdirectory(core)
 add_subdirectory(inhomo)
-# add_subdirectory(input)
+add_subdirectory(input)

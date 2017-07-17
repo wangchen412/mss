@@ -22,7 +22,6 @@ set(CMAKE_CXX_COMPILER icpc)
 #set(CMAKE_VERBOSE_MAKEFILE ON)
 set(CMAKE_CXX_STANDARD 14)
 
-
 project(mss)
 
 enable_testing()

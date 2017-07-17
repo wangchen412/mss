@@ -17,34 +17,31 @@
 //
 // ----------------------------------------------------------------------
 
-// Test input classes.
-
-#include <gmock/gmock.h>
-#include <gtest/gtest.h>
-#include <fstream>
-#include <iomanip>
-#include <iostream>
-#include <sstream>
-#include <string>
-#include "../../src/input/Input.h"
+#include "Input.h"
 
 namespace mss {
 
-namespace test {
+namespace input {
 
-std::string f1 = testDataPath(__FILE__) + std::string("input.txt");
-
-class InputTest : public testing::Test {
- protected:
-  InputTest() : s(f1) {}
-
-  input::Solution s;
-};
-
-TEST_F(InputTest, Constructors) {
-  s.Print(std::cout);
+Solution::Solution(const std::string& file) : fn_(file) {
+  add_keyword();
+  add(material_, matrix_, incident_, configFiber_, configAssembly_, solve_);
+}
+std::ostream& Solution::Print(std::ostream& os) const {
+  return print(os, material_, matrix_, incident_, configFiber_,
+               configAssembly_, solve_);
 }
 
-}  // namespace test
+void Solution::add_keyword() {
+  keyword_[typeid(Material)]       = "[Materials]";
+  keyword_[typeid(Matrix)]         = "[Matrix]";
+  keyword_[typeid(IncidentPlane)]  = "[Incident Waves]";
+  keyword_[typeid(ConfigFiber)]    = "[Fiber Configurations]";
+  keyword_[typeid(Fiber)]          = "[Fibers]";
+  keyword_[typeid(ConfigAssembly)] = "[Assembly Configurations]";
+  keyword_[typeid(std::string)]    = "[Solve]";
+}
+
+}  // namespace input
 
 }  // namespace mss

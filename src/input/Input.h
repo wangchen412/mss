@@ -20,138 +20,58 @@
 #ifndef MSS_INPUT_H
 #define MSS_INPUT_H
 
-#include <string>
-#include <typeindex>
-#include <vector>
-#include "../core/Tensor.h"
-#include "../tools/FileIO.h"
+#include "InputData.h"
 
 namespace mss {
 
 namespace input {
 
-struct Material {
-  std::string ID;
-  double rho, lambda, mu;
-};
-struct Matrix {
-  double frequency, delta;
-  std::string materialID;
-};
-struct IncidentPlane {
-  std::string type;
-  double amplitude, phase, angle;
-};
-struct ConfigFiber {
-  std::string ID;
-  std::string materialID;
-  double radius;
-  int N_max;
-};
-struct Fiber {
-  std::string configID;
-  PosiVect position;
-};
-struct Assembly {
-  std::string configID;
-  PosiVect position;
-  double angle;
-};
-struct ConfigAssembly {
-  std::string ID;
-  std::vector<ConfigFiber> configFiber;
-  std::vector<Fiber> fiber;
-  std::vector<ConfigAssembly> a;
-  std::vector<Assembly> assembly;
-};
-
 class Solution {
  public:
-  Solution(const std::string& file) : fn_(file) {
-    add_keyword();
-    add(material_);
-    add(matrix_);
-    add(incident_);
-    add(configFiber_);
-  }
+  Solution(const std::string& file);
 
-  friend std::ostream& operator<<(std::ostream& os, const Solution& s);
+  std::ostream& Print(std::ostream& os) const;
 
  private:
-  std::string fn_;
   std::vector<Material> material_;
   std::vector<Matrix> matrix_;
   std::vector<IncidentPlane> incident_;
   std::vector<ConfigFiber> configFiber_;
   std::vector<ConfigAssembly> configAssembly_;
-  std::vector<Assembly> assembly_;
+  std::vector<std::string> solve_;
+  // std::vector<Assembly> assembly_;  // TODO
+
+  std::string fn_;
   std::map<std::type_index, std::string> keyword_;
+  std::map<std::type_index, std::string> header_;
+
+  // Add parsing keywords to dictionary.
   void add_keyword();
+
+  // Add entries of vec's element type to the back of vec.
+  // The position of the input file stream is after the header.
+  // For the ConfigAssembly class, which is partially specialized, each entry
+  // includes multiple Fiber entries.
+  template <typename T>
+  void add_entry(std::ifstream& file, std::vector<T>& vec);
 
   template <typename T>
   void add(std::vector<T>& vec);
+  template <typename T, typename... Ts>
+  void add(std::vector<T>& vec, std::vector<Ts>&... vecs);
+
+  template <typename T>
+  std::ostream& print(std::ostream& os, const std::vector<T>& vec) const;
+  template <typename T, typename... Ts>
+  std::ostream& print(std::ostream& os, const std::vector<T>& vec,
+                      const std::vector<Ts>&... vecs) const;
 };
 
 // ---------------------------------------------------------------------------
 // Inline functions:
 
-inline void operator>>(std::istream& is, Material& m) {
-  is >> m.ID >> m.rho >> m.mu >> m.lambda;
-}
-inline std::ostream& operator<<(std::ostream& os, const Material& m) {
-  return os << m.ID << "\t" << m.rho << "\t" << m.mu << "\t" << m.lambda;
-}
-
-inline void operator>>(std::istream& is, Matrix& m) {
-  is >> m.frequency >> m.delta >> m.materialID;
-}
-inline std::ostream& operator<<(std::ostream& os, const Matrix& m) {
-  return os << m.frequency << "\t" << m.delta << "\t" << m.materialID;
-}
-
-inline void operator>>(std::istream& is, IncidentPlane& i) {
-  is >> i.type >> i.angle >> i.amplitude >> i.phase;
-}
-inline std::ostream& operator<<(std::ostream& os, const IncidentPlane& i) {
-  return os << i.type << "\t" << i.angle << "\t" << i.amplitude << "\t"
-            << i.phase;
-}
-
-inline void operator>>(std::istream& is, ConfigFiber& c) {
-  is >> c.ID >> c.radius >> c.N_max >> c.materialID;
-}
-inline std::ostream& operator<<(std::ostream& os, const ConfigFiber& c) {
-  return os << c.ID << "\t" << c.radius << "\t" << c.N_max << "\t"
-            << c.materialID;
-}
-
-inline void operator>>(std::istream& is, Fiber& f) {
-  is >> f.position >> f.configID;
-}
-inline std::ostream& operator<<(std::ostream& os, const Fiber& f) {
-  return os << f.position << "\t" << f.configID;
-}
-
-inline std::ostream& operator<<(std::ostream& os, const Solution& s) {
-  for (const auto& i : s.material_) os << i << std::endl;
-  for (const auto& i : s.matrix_) os << i << std::endl;
-  for (const auto& i : s.incident_) os << i << std::endl;
-  for (const auto& i : s.configFiber_) os << i << std::endl;
-  return os;
-}
-
-void Solution::add_keyword() {
-  keyword_[typeid(Material)]       = "[Materials]";
-  keyword_[typeid(Matrix)]         = "[Matrix]";
-  keyword_[typeid(IncidentPlane)]  = "[Incident Waves]";
-  keyword_[typeid(ConfigFiber)]    = "[Fiber Configurations]";
-  keyword_[typeid(ConfigAssembly)] = "[Assembly Configurations]";
-}
-
 template <typename T>
-inline void Solution::add(std::vector<T>& vec) {
-  std::ifstream file(fn_);
-  skipUntil(file, keyword_[typeid(T)], 2);
+inline void Solution::add_entry(std::ifstream& file, std::vector<T>& vec) {
   std::string tmp;
   while (getline(file, tmp)) {
     if (isWhiteSpace(tmp)) break;
@@ -159,7 +79,51 @@ inline void Solution::add(std::vector<T>& vec) {
     vec.emplace_back();
     std::stringstream(tmp) >> vec.back();
   }
+}
+template <>
+inline void Solution::add_entry(std::ifstream& file,
+                                std::vector<ConfigAssembly>& vec) {
+  std::string tmp;
+  skip(file, 2, &tmp);
+  while (iequals(tmp, "ID")) {
+    ConfigAssembly rst;
+    getline(file, rst.ID);
+    skipUntil(file, keyword_[typeid(Fiber)], 2);
+    add_entry(file, rst.fiber);
+    vec.push_back(rst);
+    skip(file, 2, &tmp);
+  }
+}
+
+template <typename T>
+inline void Solution::add(std::vector<T>& vec) {
+  std::ifstream file(fn_);
+  std::string tmp;
+  skipUntil(file, keyword_[typeid(T)], 2, &tmp);
+  header_[typeid(T)] = tmp;
+  add_entry(file, vec);
   file.close();
+}
+template <typename T, typename... Ts>
+inline void Solution::add(std::vector<T>& vec, std::vector<Ts>&... vecs) {
+  add(vec);
+  add(vecs...);
+}
+
+template <typename T>
+inline std::ostream& Solution::print(std::ostream& os,
+                                     const std::vector<T>& vec) const {
+  os << separator("=") << keyword_.at(typeid(T)) << std::endl
+     << separator("-") << header_.at(typeid(T)) << std::endl;
+  for (const auto& i : vec) os << i << std::endl;
+  return os << std::endl << std::endl;
+}
+template <typename T, typename... Ts>
+inline std::ostream& Solution::print(std::ostream& os,
+                                     const std::vector<T>& vec,
+                                     const std::vector<Ts>&... vecs) const {
+  print(os, vec);
+  return print(os, vecs...);
 }
 
 }  // namespace input
