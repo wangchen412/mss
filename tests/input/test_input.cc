@@ -32,7 +32,7 @@ namespace mss {
 
 namespace test {
 
-std::string f1 = testDataPath(__FILE__) + std::string("input_material.txt");
+std::string f1 = testDataPath(__FILE__) + std::string("input.txt");
 
 class InputTest : public testing::Test {
  protected:
@@ -42,26 +42,7 @@ class InputTest : public testing::Test {
 };
 
 TEST_F(InputTest, Constructors) {
-  EXPECT_EQ(1, 1);
-
-  for (const auto& i : s.material_) {
-    std::cout << i << std::endl;
-  }
-
-  std::cout << s.matrix_.size() << std::endl;
-  for (auto& i : s.matrix_) {
-    std::cout << i.materialID << std::endl;
-  }
-
-  for (auto& i : s.incident_) {
-    std::cout << i.type << " " << i.angle << " " << i.amplitude << " "
-              << i.phase << std::endl;
-  }
-
-  for (auto& i : s.configFiber_) {
-    std::cout << i.ID << " " << i.radius << " " << i.N_max << " "
-              << i.materialID << std::endl;
-  }
+  std::cout << s << std::endl;
 }
 
 }  // namespace test
