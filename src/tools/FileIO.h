@@ -50,7 +50,7 @@ struct ci_comp {
 template <typename T>
 const T* FindID(const std::vector<T>& vec, const std::string& name) {
   for (const T& t : vec)
-    if (iequals(name, t.ID())) return &t;
+    if (iequals(name, t.ID)) return &t;
 
   std::cout << "[mss]: Error. ID: " << name << " not found." << std::endl;
   exit(EXIT_FAILURE);

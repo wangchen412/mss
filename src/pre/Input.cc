@@ -26,7 +26,30 @@ namespace input {
 Solution::Solution(const std::string& file) : fn_(file) {
   add_keyword();
   add(material_, matrix_, incident_, configFiber_, configAssembly_, solve_);
+  link();
 }
+
+void Solution::link() {
+  for (auto& i : material_) {
+    i.cl = std::sqrt((i.lambda + 2 * i.mu) / i.rho);
+    i.ct = std::sqrt(i.mu / i.rho);
+  }
+  for (auto& i : matrix_) {
+    i.material = FindID(material_, i.materialID);
+    i.kl       = i.frequency / i.material->cl;
+    i.kt       = i.frequency / i.material->ct;
+  }
+  for (auto& i : configFiber_) {
+    i.material = FindID(material_, i.materialID);
+    i.P = std::max(size_t(matrix().kt * i.radius * matrix().delta), P_MIN);
+  }
+  for (auto& i : configAssembly_) {
+    i.configFiber = &configFiber_;
+    for (auto& j : i.fiber) j.config = FindID(configFiber_, j.configID);
+  }
+
+}
+
 std::ostream& Solution::Print(std::ostream& os) const {
   return print(os, material_, matrix_, incident_, configFiber_,
                configAssembly_, solve_);

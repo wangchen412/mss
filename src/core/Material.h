@@ -23,7 +23,7 @@
 #ifndef MSS_MATERIAL_H
 #define MSS_MATERIAL_H
 
-#include "../input/Input.h"
+#include "../pre/Input.h"
 #include "State.h"
 
 namespace mss {
@@ -35,7 +35,9 @@ class Material {
     _computeWaveSpeed();
   }
   Material(const input::Material& input)
-      : Material(input.rho, input.lambda, input.mu) {}
+      : Material(input.rho, input.lambda, input.mu) {
+    assert(input.cl == cl_ && input.ct == ct_);
+  }
 
   StressAP C(const dcomp& gzx, const dcomp& gzy) const {
     return StressAP(mu_ * gzx, mu_ * gzy);

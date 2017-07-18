@@ -23,12 +23,15 @@
 #define MSS_MATH_H
 
 #include <Eigen/Dense>
+#include <algorithm>
 #include <cassert>
 #include <complex>
 #include <cstdlib>
 #include <limits>
 #include <map>
 #include <string>
+#include <vector>
+#include <typeindex>
 
 namespace mss {
 

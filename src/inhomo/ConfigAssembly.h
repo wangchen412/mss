@@ -20,7 +20,7 @@
 #ifndef MSS_CONFIGASSEMBLY_H
 #define MSS_CONFIGASSEMBLY_H
 
-#include "../input/Input.h"
+#include "../pre/Input.h"
 #include "ConfigFiber.h"
 #include "Fiber.h"
 #include "Inhomogeneity.h"
@@ -30,9 +30,10 @@ namespace mss {
 template <typename T>
 class ConfigAssembly {
  public:
-  ConfigAssembly(const input::ConfigAssembly& input, const Matrix* matrix)
-      : ID_(input.ID), matrix_(matrix), input_(input) {
-    add_inhomo(input);
+  ConfigAssembly(const std::string& ID, const input::ConfigAssembly& input,
+                 const Matrix* matrix)
+      : ID_(ID), matrix_(matrix), input_(input) {
+    add_inhomo();
     allocate();
   }
 

@@ -24,7 +24,7 @@
 
 #include "../core/Matrix.h"
 #include "../core/State.h"
-#include "../input/Input.h"
+#include "../pre/Input.h"
 
 namespace mss {
 

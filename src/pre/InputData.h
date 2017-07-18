@@ -20,9 +20,6 @@
 #ifndef MSS_INPUTDATA_H
 #define MSS_INPUTDATA_H
 
-#include <string>
-#include <typeindex>
-#include <vector>
 #include "../core/Tensor.h"
 #include "../tools/FileIO.h"
 
@@ -33,10 +30,13 @@ namespace input {
 struct Material {
   std::string ID;
   double rho, lambda, mu;
+  double cl, ct;
 };
 struct Matrix {
   double frequency, delta;
   std::string materialID;
+  const Material* material;
+  double kl, kt;
 };
 struct IncidentPlane {
   std::string type;
@@ -47,10 +47,13 @@ struct ConfigFiber {
   std::string materialID;
   double radius;
   int N_max;
+  size_t P;
+  const Material* material;
 };
 struct Fiber {
   std::string configID;
   PosiVect position;
+  const ConfigFiber* config;
 };
 // TODO
 // struct Assembly {
@@ -61,6 +64,7 @@ struct Fiber {
 struct ConfigAssembly {
   std::string ID;
   std::vector<Fiber> fiber;
+  const std::vector<ConfigFiber>* configFiber;
   // std::vector<ConfigAssembly> a;   // TODO
   // std::vector<Assembly> assembly;  // TODO
 };

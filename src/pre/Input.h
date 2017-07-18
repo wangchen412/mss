@@ -20,17 +20,26 @@
 #ifndef MSS_INPUT_H
 #define MSS_INPUT_H
 
+#include <algorithm>
 #include "InputData.h"
 
 namespace mss {
 
 namespace input {
 
+const size_t P_MIN = 300;
+
 class Solution {
  public:
   Solution(const std::string& file);
 
   std::ostream& Print(std::ostream& os) const;
+
+  const auto& matrix() const { return matrix_[0]; }
+  const auto& frequency() const { return matrix().frequency; }
+  const auto& configFiber() const { return configFiber_; }
+  const auto& incident() const { return incident_; }
+  const auto& config() const { return *FindID(configAssembly_, solve_[0]); }
 
  private:
   std::vector<Material> material_;
@@ -45,8 +54,11 @@ class Solution {
   std::map<std::type_index, std::string> keyword_;
   std::map<std::type_index, std::string> header_;
 
-  // Add parsing keywords to dictionary.
+  // Add parsing keywords to the dictionary.
   void add_keyword();
+
+  template <typename T>
+  void add_header(std::ifstream& file);
 
   // Add entries of vec's element type to the back of vec.
   // The position of the input file stream is after the header.
@@ -65,10 +77,18 @@ class Solution {
   template <typename T, typename... Ts>
   std::ostream& print(std::ostream& os, const std::vector<T>& vec,
                       const std::vector<Ts>&... vecs) const;
+  void link();
 };
 
 // ---------------------------------------------------------------------------
 // Inline functions:
+
+template <typename T>
+inline void Solution::add_header(std::ifstream& file) {
+  std::string tmp;
+  skipUntil(file, keyword_[typeid(T)], 2, &tmp);
+  header_[typeid(T)] = tmp;
+}
 
 template <typename T>
 inline void Solution::add_entry(std::ifstream& file, std::vector<T>& vec) {
@@ -88,7 +108,7 @@ inline void Solution::add_entry(std::ifstream& file,
   while (iequals(tmp, "ID")) {
     ConfigAssembly rst;
     getline(file, rst.ID);
-    skipUntil(file, keyword_[typeid(Fiber)], 2);
+    add_header<Fiber>(file);
     add_entry(file, rst.fiber);
     vec.push_back(rst);
     skip(file, 2, &tmp);
@@ -98,9 +118,7 @@ inline void Solution::add_entry(std::ifstream& file,
 template <typename T>
 inline void Solution::add(std::vector<T>& vec) {
   std::ifstream file(fn_);
-  std::string tmp;
-  skipUntil(file, keyword_[typeid(T)], 2, &tmp);
-  header_[typeid(T)] = tmp;
+  add_header<T>(file);
   add_entry(file, vec);
   file.close();
 }

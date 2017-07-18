@@ -26,7 +26,7 @@
 #ifndef MSS_MATRIX_H
 #define MSS_MATRIX_H
 
-#include "../input/Input.h"
+#include "../pre/Input.h"
 #include "Material.h"
 #include "Math.h"
 
@@ -42,7 +42,9 @@ class Matrix {
     assert(frequency > 0);
   }
   Matrix(const input::Matrix& input)
-      : Matrix(input.material, input.frequency) {}
+      : Matrix(*input.material, input.frequency) {
+    assert(input.kl == kl_ && input.kt == kt_);
+  }
 
   virtual ~Matrix() {}
 

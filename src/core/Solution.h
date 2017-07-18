@@ -22,7 +22,7 @@
 
 #include "../incident/IncidentInput.h"
 #include "../inhomo/Assembly.h"
-#include "../input/Input.h"
+#include "../pre/Input.h"
 
 namespace mss {
 
@@ -30,7 +30,7 @@ template <typename T>
 class Solution {
  public:
   Solution(const input::Solution& input)
-      : matrix_(input.matrix), config_(input, &matrix_) {
+      : matrix_(input.matrix()), config_(input.config(), &matrix_) {
     add_incident(input);
   }
 
@@ -60,7 +60,7 @@ class Solution {
 template <typename T>
 void Solution<T>::add_incident(const input::Solution& input) {
   IncidentInput<T> f(matrix_);
-  for (auto& i : input.incident) incident_.push_back(f(i));
+  for (auto& i : input.incident()) incident_.push_back(f(i));
 }
 
 template <typename T>

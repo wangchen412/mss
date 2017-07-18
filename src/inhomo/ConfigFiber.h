@@ -22,20 +22,21 @@
 
 #include "../core/Matrix.h"
 #include "../core/State.h"
-#include "../input/Input.h"
+#include "../pre/Input.h"
 
 namespace mss {
 
 template <typename T>
 class ConfigFiber {
  public:
-  ConfigFiber(const input::ConfigFiber& input, const Matrix* matrix)
-      : ID_(input.ID),
+  ConfigFiber(const input::ConfigFiber& input,
+              const Matrix* matrix)
+      : ID_(ID),
         N_(input.N_max),
         NoC_(2 * N_ + 1 * T::NoBV / 2),
         P_(input.P),
         R_(input.radius),
-        material_(input.material),
+        material_(*input.material),
         kl_(matrix->Frequency() / material_.CL()),
         kt_(matrix->Frequency() / material_.CT()),
         matrix_(matrix),

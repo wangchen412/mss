@@ -26,7 +26,7 @@
 #include <iostream>
 #include <sstream>
 #include <string>
-#include "../../src/input/Input.h"
+#include "../../src/pre/Input.h"
 
 namespace mss {
 

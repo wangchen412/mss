@@ -93,7 +93,7 @@ void ConfigAssembly<T>::add_fiber() {
 }
 template <typename T>
 void ConfigAssembly<T>::add_configFiber() {
-  for (auto& i : input_.configFiber)
+  for (auto& i : *input_.configFiber)
     configFiber_.pushback(new ConfigFiber<T>(i, this->Matrix()));
 }
 template <typename T>
