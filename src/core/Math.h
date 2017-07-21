@@ -30,8 +30,8 @@
 #include <limits>
 #include <map>
 #include <string>
-#include <vector>
 #include <typeindex>
+#include <vector>
 
 namespace mss {
 

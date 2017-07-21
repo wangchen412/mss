@@ -18,7 +18,7 @@
 // ----------------------------------------------------------------------
 
 // Virtual base class of inhomogeneity classes.
-// Contains local CS and informations about the matrix.
+// Contains local CS and information about the matrix.
 
 #ifndef MSS_INHOMOGENEITY_H
 #define MSS_INHOMOGENEITY_H
@@ -35,8 +35,8 @@ class Inhomogeneity {
   virtual ~Inhomogeneity() {}
 
   // Resultant states.
-  virtual T Scatter(const CS* objCS) const;
-  virtual T Inner(const CS* objCS) const;
+  virtual T Scatter(const CS* objCS) const = 0;
+  virtual T Inner(const CS* objCS) const = 0;
 
   // Check if the position of the objective CS is inside the inhomogeneity.
   virtual bool Contain(const CS* objCS) const = 0;
@@ -58,9 +58,11 @@ class Inhomogeneity {
   virtual void SetCoeff(const Eigen::VectorXcd&) = 0;
 
   // This inhomogeneity's nodes.
-  virtual const std::vector<CS>& Node() const = 0;
+  virtual const std::vector<CS*>& Node() const = 0;
 
   const CS* LocalCS() const { return &localCS_; }
+  const CS* Basis() const { return localCS_.Basis(); }
+  const PosiVect& Position() const { return localCS_.Position(); }
 
  private:
   const CS localCS_;

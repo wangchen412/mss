@@ -75,10 +75,10 @@ struct ConfigAssembly {
 // I/O of the input data structs.
 
 inline void operator>>(std::istream& is, Material& m) {
-  is >> m.ID >> m.rho >> m.mu >> m.lambda;
+  is >> m.ID >> m.rho >> m.lambda >> m.mu;
 }
 inline std::ostream& operator<<(std::ostream& os, const Material& m) {
-  return os << m.ID << "\t\t" << m.rho << "\t\t" << m.mu << "\t" << m.lambda;
+  return os << m.ID << "\t\t" << m.rho << "\t\t" << m.lambda << "\t" << m.mu;
 }
 
 inline void operator>>(std::istream& is, Matrix& m) {

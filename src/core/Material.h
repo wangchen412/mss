@@ -49,6 +49,11 @@ class Material {
   StressAP C(const StrainAP& g) const { return C(g.x, g.y); }
   StressIP C(const StrainIP& g) const { return C(g.xx, g.yy, g.xy); }
 
+  bool operator==(const Material& other) const {
+    return (rho_ == other.rho_) && (lambda_ == other.lambda_) &&
+           (mu_ == other.mu_);
+  }
+
   const double& MassDensity() const { return rho_; }
   const double& Lambda() const { return lambda_; }
   const double& Mu() const { return mu_; }

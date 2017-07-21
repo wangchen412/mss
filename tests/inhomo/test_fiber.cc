@@ -24,6 +24,7 @@
 #include <iostream>
 #include <sstream>
 #include <string>
+#include "../../src/incident/IncidentInput.h"
 #include "../../src/inhomo/ConfigFiber.h"
 #include "../../src/inhomo/Fiber.h"
 
@@ -33,7 +34,90 @@ namespace test {
 
 class FiberTest : public testing::Test {
  protected:
+  const double omega = 1.25664e6;
+  Material rubber = {1300, 1.41908e9, 0.832e9};
+  Material lead = {11400, 36.32496e9, 8.43e9};
+  Matrix matrix = {rubber, omega};
+
+  ConfigFiber<StateIP> c1 = {"c1", 30, 300, 1e-3, lead, &matrix};
+  ConfigFiber<StateAP> c2 = {"c2", 30, 300, 1e-3, lead, &matrix};
+
+  Fiber<StateIP> f1 = {&c1};
+  Fiber<StateAP> f2 = {&c2, {1, 2}};
 };
+
+TEST_F(FiberTest, ConfigCtor) {
+  EXPECT_EQ(c1.TransMatrix().rows(), 1200);
+  EXPECT_EQ(c1.TransMatrix().cols(), 122);
+  EXPECT_EQ(c1.NoN(), 300);
+  EXPECT_EQ(c1.TopOrder(), 30);
+  EXPECT_EQ(c1.ID(), "c1");
+  EXPECT_EQ(c1.Radius(), 1e-3);
+  EXPECT_EQ(c1.Material(), lead);
+  EXPECT_EQ(c1.KL(), omega / lead.CL());
+  EXPECT_EQ(c1.KT(), omega / lead.CT());
+  EXPECT_EQ(c1.Material_m(), rubber);
+  EXPECT_EQ(c1.KL_m(), omega / rubber.CL());
+  EXPECT_EQ(c1.KT_m(), omega / rubber.CT());
+  EXPECT_EQ(c1.Node().size(), 300);
+
+  EXPECT_EQ(c2.TransMatrix().rows(), 600);
+  EXPECT_EQ(c2.TransMatrix().cols(), 61);
+  EXPECT_EQ(c2.NoN(), 300);
+  EXPECT_EQ(c2.TopOrder(), 30);
+  EXPECT_EQ(c2.ID(), "c2");
+  EXPECT_EQ(c2.Radius(), 1e-3);
+  EXPECT_EQ(c2.Material(), lead);
+  EXPECT_EQ(c2.KL(), omega / lead.CL());
+  EXPECT_EQ(c2.KT(), omega / lead.CT());
+  EXPECT_EQ(c2.Material_m(), rubber);
+  EXPECT_EQ(c2.KL_m(), omega / rubber.CL());
+  EXPECT_EQ(c2.KT_m(), omega / rubber.CT());
+  EXPECT_EQ(c2.Node().size(), 300);
+}
+TEST_F(FiberTest, FiberCtor) {
+  EXPECT_EQ(f1.Position(), PosiVect(0, 0));
+  EXPECT_EQ(f1.Basis(), nullptr);
+  EXPECT_EQ(f1.NoN(), 300);
+  EXPECT_EQ(f1.NoC(), 122);
+  EXPECT_EQ(f1.NoE(), 1200);
+  EXPECT_EQ(f1.Node().size(), 300);
+
+  EXPECT_EQ(f2.Position(), PosiVect(1, 2));
+  EXPECT_EQ(f2.Basis(), nullptr);
+  EXPECT_EQ(f2.NoN(), 300);
+  EXPECT_EQ(f2.NoC(), 61);
+  EXPECT_EQ(f2.NoE(), 600);
+  EXPECT_EQ(f1.Node().size(), 300);
+}
+TEST_F(FiberTest, Contain) {
+  const double r = 1e-3;
+  PosiVect s(1, 2);
+  CS cs0;
+  CS cs10(r + epsilon, 0), cs20(r - epsilon, 0);
+  CS cs01(0, -r - epsilon), cs02(0, -r + epsilon);
+
+  EXPECT_TRUE(f1.Contain(&cs0));
+  EXPECT_FALSE(f1.Contain(&cs10));
+  EXPECT_TRUE(f1.Contain(&cs20));
+  EXPECT_FALSE(f1.Contain(&cs01));
+  EXPECT_TRUE(f1.Contain(&cs02));
+
+  EXPECT_TRUE(f2.Contain(&(cs0 += s)));
+  EXPECT_FALSE(f2.Contain(&(cs10 += s)));
+  EXPECT_TRUE(f2.Contain(&(cs20 += s)));
+  EXPECT_FALSE(f2.Contain(&(cs01 += s)));
+  EXPECT_TRUE(f2.Contain(&(cs02 += s)));
+}
+TEST_F(FiberTest, SingleScattering) {
+  IncidentPlaneP p1(matrix, 1.2, 2.3e-6, 3.4);
+  IncidentPlaneSV sv1(matrix, 1.2, 2.3e-6, 3.4);
+  IncidentPlaneSH sh1(matrix, 1.2, 2.3e-6, 3.4);
+
+  Eigen::MatrixXcd Q = f1.ModeMatrix(&f1);
+  auto svd = Q.jacobiSvd(Eigen::ComputeThinU | Eigen::ComputeThinV);
+  //  Eigen::Vectorxcd coeff = svd.solve();
+}
 
 }  // namespace test
 

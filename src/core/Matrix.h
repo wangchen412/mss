@@ -45,6 +45,7 @@ class Matrix {
       : Matrix(*input.material, input.frequency) {
     assert(input.kl == kl_ && input.kt == kt_);
   }
+  Matrix(const input::Solution& input) : Matrix(input.matrix()) {}
 
   virtual ~Matrix() {}
 

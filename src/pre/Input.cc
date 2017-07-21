@@ -45,9 +45,8 @@ void Solution::link() {
   }
   for (auto& i : configAssembly_) {
     i.configFiber = &configFiber_;
-    for (auto& j : i.fiber) j.config = FindID(configFiber_, j.configID);
+    for (auto& j : i.fiber) j.config= FindID(configFiber_, j.configID);
   }
-
 }
 
 std::ostream& Solution::Print(std::ostream& os) const {

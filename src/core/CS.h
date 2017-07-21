@@ -45,6 +45,8 @@ class CS {
   virtual ~CS() {}
 
   bool operator==(const CS& other) const;
+  CS& operator+=(const PosiVect& shift);
+  CS operator+(const PosiVect& shift) const;
 
   friend std::ostream& operator<<(std::ostream& os, const CS& cs) {
     return os << cs.PositionGLB();
@@ -75,6 +77,15 @@ class CS {
 inline bool CS::operator==(const CS& other) const {
   return (position_ == other.position_) && angEqu(angle_, other.angle_) &&
          (basis_ == other.basis_);
+}
+inline CS& CS::operator+=(const PosiVect& shift) {
+  position_ += shift;
+  return *this;
+}
+inline CS CS::operator+(const PosiVect& shift) const {
+  CS rst(*this);
+  rst += shift;
+  return rst;
 }
 inline PosiVect CS::PositionIn(const CS* otherBasis) const {
   return in(otherBasis).Position();

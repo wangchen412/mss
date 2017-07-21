@@ -28,13 +28,15 @@ namespace mss {
 template <typename T>
 class Fiber : public Inhomogeneity<T> {
  public:
-  explicit Fiber(const ConfigFiber<T>* config, const PosiVect& position)
+  Fiber(const ConfigFiber<T>* config, const PosiVect& position = 0)
       : Inhomogeneity<T>(position),
         config_(config),
         cSc_(NoC()),
         cIn_(NoC()) {
     add_node();
   }
+
+  virtual ~Fiber() { delete_node(); }
 
   size_t NoN() const override { return config_->NoN(); }
   size_t NoE() const override { return config_->NoE(); }
@@ -60,11 +62,11 @@ class Fiber : public Inhomogeneity<T> {
   // collocation points.
   Eigen::MatrixXcd ModeMatrix(const Inhomogeneity<T>* source) const override;
 
-  const std::vector<CS>& Node() const override { return node_; }
+  const std::vector<CS*>& Node() const override { return node_; }
 
  private:
   const ConfigFiber<T>* config_;
-  std::vector<CS> node_;
+  std::vector<CS*> node_;
   std::vector<dcomp> cSc_, cIn_;
 
   T scatterModeL(const CS* objCS, int n) const;
@@ -73,6 +75,7 @@ class Fiber : public Inhomogeneity<T> {
   T innerModeT(const CS* objCS, int n) const;
 
   void add_node();
+  void delete_node();
   int od(const size_t& sn) const { return sn - config_->TopOrder(); }
 };  // namespace mss
 
@@ -97,8 +100,8 @@ inline T Fiber<T>::Inner(const CS* objCS) const {
 }
 template <typename T>
 inline void Fiber<T>::SetCoeff(const Eigen::VectorXcd& solution) {
-  assert(solution.size() == NoC());
-  for (int i = 0; i < solution.size(); i++) {
+  assert(solution.size() == long(NoC()));
+  for (long i = 0; i < solution.size(); i++) {
     cSc_[i] = solution(i);
     cIn_[i] = cSc_[i] * config_->TT(od(i));  // TODO: in-plane problem.
   }
@@ -157,8 +160,11 @@ inline T Fiber<T>::innerModeT(const CS* objCS, int n) const {
 template <typename T>
 inline void Fiber<T>::add_node() {
   node_.reserve(config_->NoN());
-  for (auto& i : config_->Node()) node_.emplace_back(i, this->LocalCS());
+  for (auto& i : config_->Node())
+    node_.push_back(new CS(*i, this->LocalCS()));
 }
+template <typename T>
+inline void Fiber<T>::delete_node() {}
 template <typename T>
 inline Eigen::MatrixXcd Fiber<T>::ModeMatrix(
     const Inhomogeneity<T>* source) const {
@@ -168,7 +174,7 @@ inline Eigen::MatrixXcd Fiber<T>::ModeMatrix(
   for (size_t sn = 0; sn < source->NoC(); sn++)
     for (size_t i = 0; i < this->NoN(); i++)
       M.block<T::NoBV, 1>(T::NoBV * i, sn) =
-          source->ScatterMode(&node_[i], sn).DispTracVect();
+          source->ScatterMode(node_[i], sn).DispTracVect();
   return M *= -1;
 }
 
