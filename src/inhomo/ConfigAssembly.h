@@ -100,7 +100,8 @@ Eigen::VectorXcd ConfigAssembly<T>::inVect(
   for (auto& i : inhomo_) n += i->NoE();
   Eigen::VectorXcd rst(n);
   for (auto& i : inhomo_) {
-    for (auto& j : incident) rst.segment(u, i->NoE()) += j->Effect(i->Node());
+    for (auto& j : incident)
+      rst.segment(u, i->NoE()) += j->EffectBV(i->Node());
     u += i->NoE();
   }
 

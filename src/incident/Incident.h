@@ -44,10 +44,10 @@ class Incident {
   virtual T Effect(const CS* localCS) const = 0;
 
   // The effect vector along the boundary.
-  Eigen::VectorXcd Effect(const std::vector<CS*>& localCS) {
+  Eigen::VectorXcd EffectBV(const std::vector<CS*>& localCS) {
     Eigen::VectorXcd rst(localCS.size() * T::NoBV);
     for (size_t i = 0; i < localCS.size(); i++)
-      rst.segment(i * T::NoBV, T::NoBV) = Effect(localCS[i]).DispTracVect();
+      rst.segment(i * T::NoBV, T::NoBV) = Effect(localCS[i]).BV();
     return rst;
   }
 

@@ -44,7 +44,16 @@ class FiberTest : public testing::Test {
 
   Fiber<StateIP> f1 = {&c1};
   Fiber<StateAP> f2 = {&c2, {1, 2}};
+  Fiber<StateAP> f3 = {&c2};
 };
+
+void FiberTest_ReadFile(const std::string& fn, Eigen::VectorXcd& sc,
+                        Eigen::VectorXcd& in) {
+  std::ifstream file(testDataPath(__FILE__) + fn);
+  skip(file, 4);
+  for (int i = 0; i < sc.size(); i++ ) file >> sc(i);
+  for (int i = 0; i < in.size(); i++ ) file >> in(i);
+}
 
 TEST_F(FiberTest, ConfigCtor) {
   EXPECT_EQ(c1.TransMatrix().rows(), 1200);
@@ -109,15 +118,32 @@ TEST_F(FiberTest, Contain) {
   EXPECT_FALSE(f2.Contain(&(cs01 += s)));
   EXPECT_TRUE(f2.Contain(&(cs02 += s)));
 }
-TEST_F(FiberTest, SingleScattering) {
-  IncidentPlaneP p1(matrix, 1.2, 2.3e-6, 3.4);
-  IncidentPlaneSV sv1(matrix, 1.2, 2.3e-6, 3.4);
-  IncidentPlaneSH sh1(matrix, 1.2, 2.3e-6, 3.4);
-
-  Eigen::MatrixXcd Q = f1.ModeMatrix(&f1);
-  auto svd = Q.jacobiSvd(Eigen::ComputeThinU | Eigen::ComputeThinV);
-  //  Eigen::Vectorxcd coeff = svd.solve();
+TEST_F(FiberTest, TT) {
+  Eigen::VectorXcd sc(61), in(61);
+  FiberTest_ReadFile("Single_SH1.dat", sc, in);
+  for (int i = -5; i < 6; i++)
+    EXPECT_EQ(sc(i+30)*f3.Config()->TT(i), in(i+30));
 }
+
+
+
+// TEST_F(FiberTest, SingleScattering) {
+//   // IncidentPlaneP inP(matrix, 1.2, 2.3e-6, 3.4);
+//   // IncidentPlaneSV inSV(matrix, 1.2, 2.3e-6, 3.4);
+//   IncidentPlaneSH inSH(matrix, 1.2, 2.3e-6, 3.4);
+
+//   // Eigen::VectorXcd vp1 = inP.EffectBV(f1.Node());
+//   Eigen::VectorXcd vsh2 = inSH.EffectBV(f2.Node());
+
+//   // Eigen::MatrixXcd Q1 = f1.ModeMatrix(&f1);
+//   // auto svd1 = Q1.jacobiSvd(Eigen::ComputeThinU | Eigen::ComputeThinV);
+//   // Eigen::VectorXcd coeff1 = svd1.solve(vp1);
+
+//   Eigen::VectorXcd coeff2 =
+//       f2.ModeMatrix(&f2)
+//           .jacobiSvd(Eigen::ComputeThinU | Eigen::ComputeThinV)
+//           .solve(vsh2);
+// }
 
 }  // namespace test
 

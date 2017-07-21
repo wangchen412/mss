@@ -106,9 +106,9 @@ class State {
   double AngleGLB() const;
   State in(const CS* otherBasis) const;
 
-  // Assumed that the x axis of the basis CS of the state is the normal
-  // vector.
-  auto DispTracVect() const;
+  // Boundary values. Assumed that the x axis of the basis CS of the state is
+  // the normal vector.
+  auto BV() const;
   static const size_t NoBV;  // Number of boundary values.
 
  private:
@@ -151,12 +151,12 @@ inline State<T1, T2> State<T1, T2>::in(const mss::CS* otherBasis) const {
       .rotate(d - AngleGLB());
 }
 template <>
-auto StateIP::DispTracVect() const {
+auto StateIP::BV() const {
   return Eigen::Vector4cd(displacement_.x, displacement_.y, stress_.xx,
                           stress_.xy);
 }
 template <>
-auto StateAP::DispTracVect() const {
+auto StateAP::BV() const {
   return Eigen::Vector2cd(displacement_.x, stress_.x);
 }
 

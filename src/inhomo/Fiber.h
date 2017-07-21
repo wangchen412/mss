@@ -62,6 +62,7 @@ class Fiber : public Inhomogeneity<T> {
   // collocation points.
   Eigen::MatrixXcd ModeMatrix(const Inhomogeneity<T>* source) const override;
 
+  const ConfigFiber<T>* Config() const { return config_; }
   const std::vector<CS*>& Node() const override { return node_; }
 
  private:
@@ -174,7 +175,7 @@ inline Eigen::MatrixXcd Fiber<T>::ModeMatrix(
   for (size_t sn = 0; sn < source->NoC(); sn++)
     for (size_t i = 0; i < this->NoN(); i++)
       M.block<T::NoBV, 1>(T::NoBV * i, sn) =
-          source->ScatterMode(node_[i], sn).DispTracVect();
+          source->ScatterMode(node_[i], sn).BV();
   return M *= -1;
 }
 
