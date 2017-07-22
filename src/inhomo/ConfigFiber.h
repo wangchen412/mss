@@ -183,10 +183,11 @@ StateAP ConfigFiber<StateAP>::ModeT(const CS* localCS, const CS* objCS,
 template <>
 dcomp ConfigFiber<StateAP>::TT(int n) const {
   BesselFunctor Jf(Jn, n, KT()), Jm(Jn, n, KT_m()), Hm(Hn, n, KT_m());
-  dcomp muJR_f = Jf.dr(R_) * Material().Mu();
-  dcomp muJR_m = Jm.dr(R_) * Matrix()->Material().Mu();
-  dcomp muHR_m = Hm.dr(R_) * Matrix()->Material().Mu();
-  return (Jf(R_) - Hm(R_)) * muJR_m / (muJR_f - muHR_m) / Jm(R_);
+  dcomp mJf = Jf.dr(R_) * Material().Mu();
+  dcomp mJm = Jm.dr(R_) * Matrix()->Material().Mu();
+  dcomp mHm = Hm.dr(R_) * Matrix()->Material().Mu();
+
+  return (mJm - mHm * (Jm(R_)/Hm(R_))) / (mJm - mJf * (Jm(R_)/Jf(R_)));
 }
 template <>
 void ConfigFiber<StateAP>::compute_MatrixQ() {
