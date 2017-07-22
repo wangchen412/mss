@@ -119,32 +119,26 @@ TEST_F(FiberTest, Contain) {
   EXPECT_TRUE(f2.Contain(&(cs02 += s)));
 }
 TEST_F(FiberTest, TT) {
+  // Only -12 ~ +12 order coefficients are tested and the acceptable relative
+  // error is set as 1e-6. The reference data is computed by the previous
+  // version mss.
+
+  int k = 12;
+  const double re = 1e-6;
+
   Eigen::VectorXcd sc(61), in(61);
   FiberTest_ReadFile("Single_SH1.dat", sc, in);
-  int k = 10;
   for (int i = 30 - k; i < 30 + k; i++)
-    //    EXPECT_LT()
-    std::cout << in(i) << "\t" << sc(i) * f3.Config()->TT(i - 30)
-              << std::endl;
+    EXPECT_TRUE(near(in(i), sc(i) * f3.Config()->TT(i - 30), re));
 }
-
-// TEST_F(FiberTest, SingleScattering) {
-//   // IncidentPlaneP inP(matrix, 1.2, 2.3e-6, 3.4);
-//   // IncidentPlaneSV inSV(matrix, 1.2, 2.3e-6, 3.4);
-//   IncidentPlaneSH inSH(matrix, 1.2, 2.3e-6, 3.4);
-
-//   // Eigen::VectorXcd vp1 = inP.EffectBV(f1.Node());
-//   Eigen::VectorXcd vsh2 = inSH.EffectBV(f2.Node());
-
-//   // Eigen::MatrixXcd Q1 = f1.ModeMatrix(&f1);
-//   // auto svd1 = Q1.jacobiSvd(Eigen::ComputeThinU | Eigen::ComputeThinV);
-//   // Eigen::VectorXcd coeff1 = svd1.solve(vp1);
-
-//   Eigen::VectorXcd coeff2 =
-//       f2.ModeMatrix(&f2)
-//           .jacobiSvd(Eigen::ComputeThinU | Eigen::ComputeThinV)
-//           .solve(vsh2);
-// }
+TEST_F(FiberTest, SingleScattering) {
+  IncidentPlaneSH inSH(matrix, 1.2, 2.3e-6, 3.4);
+  Eigen::VectorXcd vsh = inSH.EffectBV(f3.Node());
+  Eigen::MatrixXcd Q3 = f3.ModeMatrix(&f3);
+  auto svd3 = Q3.jacobiSvd(Eigen::ComputeThinU | Eigen::ComputeThinV);
+  Eigen::VectorXcd coeff3 = svd3.solve(vsh);
+  std::cout << coeff3 << std::endl;
+}
 
 }  // namespace test
 

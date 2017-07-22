@@ -65,6 +65,11 @@ inline double Lp(std::initializer_list<T> l) {
   return pow(sum, 1.0 / p);
 }
 
+template <typename T>
+inline bool near(const T& a, const T& b, const double& re) {
+  return std::abs(a - b) / std::max(std::abs(a), std::abs(b)) < re;
+}
+
 }  // namespace mss
 
 #endif
