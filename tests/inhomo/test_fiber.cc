@@ -132,12 +132,22 @@ TEST_F(FiberTest, TT) {
     EXPECT_TRUE(near(in(i), sc(i) * f3.Config()->TT(i - 30), re));
 }
 TEST_F(FiberTest, SingleScattering) {
+  // -14 ~ +14 order coefficients are tested to be near the results obtained
+  // by previous program. The acceptable relative error is 1e-4.
+
   IncidentPlaneSH inSH(matrix, 1.2, 2.3e-6, 3.4);
   Eigen::VectorXcd vsh = inSH.EffectBV(f3.Node());
   Eigen::MatrixXcd Q3 = f3.ModeMatrix(&f3);
   auto svd3 = Q3.jacobiSvd(Eigen::ComputeThinU | Eigen::ComputeThinV);
   Eigen::VectorXcd coeff3 = svd3.solve(vsh);
-  std::cout << coeff3 << std::endl;
+
+  int k = 14;
+  const double re = 1e-4;
+
+  Eigen::VectorXcd sc(61), in(61);
+  FiberTest_ReadFile("Single_SH1.dat", sc, in);
+  for (int i = 30 - k; i < 30 + k; i++)
+    EXPECT_TRUE(near(sc(i), coeff3(i), re));
 }
 
 }  // namespace test

@@ -187,7 +187,7 @@ dcomp ConfigFiber<StateAP>::TT(int n) const {
   dcomp mJm = Jm.dr(R_) * Matrix()->Material().Mu();
   dcomp mHm = Hm.dr(R_) * Matrix()->Material().Mu();
 
-  return (mJm - mHm * (Jm(R_)/Hm(R_))) / (mJm - mJf * (Jm(R_)/Jf(R_)));
+  return (mJm - mHm * (Jm(R_) / Hm(R_))) / (mJm - mJf * (Jm(R_) / Jf(R_)));
 }
 template <>
 void ConfigFiber<StateAP>::compute_MatrixQ() {
