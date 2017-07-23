@@ -33,17 +33,42 @@ namespace mss {
 namespace test {
 
 std::string f1 = testDataPath(__FILE__) + std::string("input.txt");
+std::string f2 = testDataPath(__FILE__) + std::string("output.txt");
 
-class InputTest : public testing::Test {
+class InputTest : public testing::TestWithParam<input::Solution*> {
+ public:
+  virtual ~InputTest() { delete s_; }
+  virtual void SetUp() { s_ = GetParam(); }
+  virtual void TearDown() {
+    delete s_;
+    s_ = nullptr;
+  }
+
  protected:
-  InputTest() : s(f1) {}
-
-  input::Solution s;
+  input::Solution* s_;
 };
 
-TEST_F(InputTest, Constructors) {
-  s.Print(std::cout);
+TEST_P(InputTest, Constructors) {
+  EXPECT_EQ(s_->material().size(), 4);
+  EXPECT_EQ(s_->material()[2].lambda, 68.5472e9);
+  EXPECT_EQ(s_->frequency(), 1.23);
+  EXPECT_EQ(s_->matrix().material->ID, "rubber");
+  EXPECT_EQ(s_->incident().size(), 2);
+  EXPECT_EQ(s_->configFiber().size(), 3);
+  EXPECT_EQ(s_->configFiber()[2].material->lambda, 68.5472e9);
+  EXPECT_EQ(s_->config().fiber.size(), 5);
+  EXPECT_EQ(s_->config().fiber[2].config->radius, 8e-3);
 }
+
+auto p1 = new input::Solution(f1);
+input::Solution* read(const input::Solution* p) {
+  std::ofstream file(f2);
+  p->Print(file);
+  return new input::Solution(f2);
+}
+
+INSTANTIATE_TEST_CASE_P(ioCtorsTest, InputTest,
+                        testing::Values(p1, read(p1)));
 
 }  // namespace test
 

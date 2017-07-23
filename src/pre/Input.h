@@ -35,6 +35,7 @@ class Solution {
 
   std::ostream& Print(std::ostream& os) const;
 
+  const auto& material() const { return material_; }
   const auto& matrix() const { return matrix_[0]; }
   const auto& frequency() const { return matrix().frequency; }
   const auto& configFiber() const { return configFiber_; }
