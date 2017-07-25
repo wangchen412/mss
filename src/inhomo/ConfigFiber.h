@@ -22,6 +22,7 @@
 
 #include "../core/Matrix.h"
 #include "../core/State.h"
+#include "../incident/Incident.h"
 #include "../pre/Input.h"
 
 namespace mss {
@@ -79,6 +80,10 @@ class ConfigFiber {
   dcomp TL(int n) const;  // TODO: T-matrix for in-plane problem.
   dcomp TT(int n) const;
 
+  Eigen::VectorXcd InciVect(const InciPtrs<T>& incident) const;
+  Eigen::VectorXcd Solve(const Eigen::VectorXcd& v) const;
+  Eigen::VectorXcd Solve(const InciPtrs<T>& incident) const;
+
  protected:
   const std::string ID_;           // The ID.
   const int N_;                    // The top order of the series.
@@ -118,7 +123,7 @@ StateIP ConfigFiber<StateIP>::ModeL(const CS* localCS, const CS* objCS,
 
   // Position in the local CS, which is seen as a polar CS:
   CS cs(objCS->in(localCS));
-  PosiVect p = cs.Position().Polar();
+  PosiVect p      = cs.Position().Polar();
   const double& r = p.x;
 
   // Displacement in the local CS:
@@ -126,9 +131,9 @@ StateIP ConfigFiber<StateIP>::ModeL(const CS* localCS, const CS* objCS,
   dcomp ut = f.dt(p) / r;
 
   // Stress in the local CS:
-  dcomp grr = f.ddr(p);
-  dcomp gtt = ur / r + f.ddt(p) / r / r;
-  dcomp grt = 2.0 * (f.drdt(r) / r - ut / r);
+  dcomp grr  = f.ddr(p);
+  dcomp gtt  = ur / r + f.ddt(p) / r / r;
+  dcomp grt  = 2.0 * (f.drdt(r) / r - ut / r);
   StressIP t = m.C(grr, gtt, grt);
 
   // Normalized state in the objective CS.
@@ -142,7 +147,7 @@ StateIP ConfigFiber<StateIP>::ModeT(const CS* localCS, const CS* objCS,
 
   // Position in the local CS, which is seen as a polar CS:
   CS cs(objCS->in(localCS));
-  PosiVect p = cs.Position().Polar();
+  PosiVect p      = cs.Position().Polar();
   const double& r = p.x;
 
   // Displacement in the local CS:
@@ -150,9 +155,9 @@ StateIP ConfigFiber<StateIP>::ModeT(const CS* localCS, const CS* objCS,
   dcomp ut = -f.dr(r);
 
   // Stress in the local CS:
-  dcomp grr = f.drdt(r) / r;
-  dcomp gtt = ur / r - f.drdt(r) / r;
-  dcomp grt = f.ddt(r) / r / r - f.ddr(r) - ut / r;
+  dcomp grr  = f.drdt(r) / r;
+  dcomp gtt  = ur / r - f.drdt(r) / r;
+  dcomp grt  = f.ddt(r) / r / r - f.ddr(r) - ut / r;
   StressIP t = m.C(grr, gtt, grt);
 
   // Normalized state in the objective CS.
@@ -172,14 +177,13 @@ StateAP ConfigFiber<StateAP>::ModeT(const CS* localCS, const CS* objCS,
   DispAP w = f(p);
 
   // Stress in the local CS:
-  dcomp gzr = f.dr(p);
-  dcomp gzt = f.dt(p);
+  dcomp gzr  = f.dr(p);
+  dcomp gzt  = f.dt(p);
   StressAP t = m.C(gzr, gzt);
 
   // Normalized state in the objective CS.
   return StateAP(w, t, &cs).in(objCS) / f(CharLength());
 }
-
 template <>
 dcomp ConfigFiber<StateAP>::TT(int n) const {
   BesselFunctor Jf(Jn, n, KT()), Jm(Jn, n, KT_m()), Hm(Hn, n, KT_m());
@@ -197,7 +201,7 @@ void ConfigFiber<StateAP>::compute_MatrixQ() {
     for (size_t i = 0; i < P_; i++) {
       StateAP s = ModeT(nullptr, node_[i], J, Material()) * tn -
                   ModeT(nullptr, node_[i], H, Material_m());
-      Q_(i * 2, n + N_) = s.Displacement().x;
+      Q_(i * 2, n + N_)     = s.Displacement().x;
       Q_(i * 2 + 1, n + N_) = s.Stress().x;
     }
   }
@@ -213,6 +217,21 @@ dcomp ConfigFiber<StateIP>::TT(int) const {
 template <>
 void ConfigFiber<StateIP>::compute_MatrixQ() {
   // TODO: tT of in-plane problem
+}
+template <typename T>
+Eigen::VectorXcd ConfigFiber<T>::InciVect(const InciPtrs<T>& incident) const {
+  Eigen::VectorXcd rst(NoE());
+  rst.setZero();
+  for (auto& i : incident) rst += i->EffectBV(Node());
+  return rst;
+}
+template <typename T>
+Eigen::VectorXcd ConfigFiber<T>::Solve(const Eigen::VectorXcd& v) const {
+  return Q_.jacobiSvd(Eigen::ComputeThinU | Eigen::ComputeThinV).solve(v);
+}
+template <typename T>
+Eigen::VectorXcd ConfigFiber<T>::Solve(const InciPtrs<T>& incident) const {
+  return Solve(InciVect(incident));
 }
 
 }  // namespace mss

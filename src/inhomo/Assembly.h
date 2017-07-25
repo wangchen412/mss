@@ -30,7 +30,7 @@ class Assembly : public Inhomogeneity<T> {
  public:
   explicit Assembly(const ConfigAssembly<T>* config,
                     const PosiVect& position = {0, 0},
-                    const double& angle = 0)
+                    const double& angle      = 0)
       : Inhomogeneity<T>(position, angle), config_(config) {}
 
   // TODO: The interactions among assemblies
@@ -46,6 +46,8 @@ class Assembly : public Inhomogeneity<T> {
 
   const std::vector<CS>& Node() const override;
   Eigen::MatrixXcd ModeMatrix(const Inhomogeneity<T>* other) const override;
+  Eigen::VectorXcd InciVect(const InciPtrs<T>& incident) const override;
+  Eigen::VectorXcd Solve(const InciPtrs<T>& incident) const override;
 
  private:
   const ConfigAssembly<T>* config_;

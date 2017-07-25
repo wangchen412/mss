@@ -32,13 +32,25 @@ namespace mss {
 
 namespace test {
 
-std::string f1 = testDataPath(__FILE__) + std::string("input.txt");
-std::string f2 = testDataPath(__FILE__) + std::string("output.txt");
+typedef input::Solution* CreateInputFunc();
 
-class InputTest : public testing::TestWithParam<input::Solution*> {
+input::Solution* ReadInput() {
+  return new input::Solution(testDataPath(__FILE__) + "input.txt");
+}
+
+input::Solution* ReadWritten() {
+  input::Solution s(testDataPath(__FILE__) + "input.txt");
+  std::ofstream file(testDataPath(__FILE__) + "output.txt");
+  s.Print(file);
+  file.close();
+  return new input::Solution(testDataPath(__FILE__) +
+                             std::string("output.txt"));
+}
+
+class InputTest : public testing::TestWithParam<CreateInputFunc*> {
  public:
   virtual ~InputTest() { delete s_; }
-  virtual void SetUp() { s_ = GetParam(); }
+  virtual void SetUp() { s_ = (*GetParam())(); }
   virtual void TearDown() {
     delete s_;
     s_ = nullptr;
@@ -60,15 +72,8 @@ TEST_P(InputTest, Constructors) {
   EXPECT_EQ(s_->config().fiber[2].config->radius, 8e-3);
 }
 
-auto p1 = new input::Solution(f1);
-input::Solution* read(const input::Solution* p) {
-  std::ofstream file(f2);
-  p->Print(file);
-  return new input::Solution(f2);
-}
-
 INSTANTIATE_TEST_CASE_P(ioCtorsTest, InputTest,
-                        testing::Values(p1, read(p1)));
+                        testing::Values(&ReadInput, &ReadWritten));
 
 }  // namespace test
 

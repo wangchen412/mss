@@ -20,3 +20,4 @@
 include(${CMAKE_CURRENT_SOURCE_DIR}/../AddTest.cmake)
 
 mss_add_test(test_fiber)
+mss_add_test(test_assembly)

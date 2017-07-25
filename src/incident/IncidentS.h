@@ -32,7 +32,7 @@ class IncidentS : virtual public Incident<T> {
       : Incident<T>(matrix, amplitude, phase), k_(matrix.KT()) {}
 
   virtual T Effect(const PosiVect& position) const = 0;
-  virtual T Effect(const CS* localCS) const = 0;
+  virtual T Effect(const CS* localCS) const        = 0;
 
  protected:
   const double& k_;

@@ -41,8 +41,10 @@ class Fiber : public Inhomogeneity<T> {
   size_t NoN() const override { return config_->NoN(); }
   size_t NoE() const override { return config_->NoE(); }
   size_t NoC() const override { return config_->NoC(); }
+  const double& Radius() { return config_->Radius(); }
 
   void SetCoeff(const Eigen::VectorXcd& solution) override;
+  void PrintCoeff(std::ostream& os) const override;
 
   // Check if the position of the objective CS is inside the fiber.
   bool Contain(const CS* objCS) const override;
@@ -62,13 +64,17 @@ class Fiber : public Inhomogeneity<T> {
   // collocation points.
   Eigen::MatrixXcd ModeMatrix(const Inhomogeneity<T>* source) const override;
 
+  Eigen::VectorXcd InciVect(const InciPtrs<T>& incident) const override;
+  Eigen::VectorXcd Solve(const InciPtrs<T>& incident) const override;
+
   const ConfigFiber<T>* Config() const { return config_; }
   const std::vector<CS*>& Node() const override { return node_; }
+  const Eigen::VectorXcd& ScatterCoeff() const override { return cSc_; }
 
  private:
   const ConfigFiber<T>* config_;
   std::vector<CS*> node_;
-  std::vector<dcomp> cSc_, cIn_;
+  Eigen::VectorXcd cSc_, cIn_;
 
   T scatterModeL(const CS* objCS, int n) const;
   T scatterModeT(const CS* objCS, int n) const;
@@ -90,24 +96,27 @@ inline bool Fiber<T>::Contain(const CS* objCS) const {
 template <typename T>
 inline T Fiber<T>::Scatter(const CS* objCS) const {
   T rst(objCS);
-  for (size_t i = 0; i < NoC(); i++) rst += ScatterMode(objCS, i) * cSc_[i];
+  for (size_t i = 0; i < NoC(); i++) rst += ScatterMode(objCS, i) * cSc_(i);
   return rst;
 }
 template <typename T>
 inline T Fiber<T>::Inner(const CS* objCS) const {
   T rst(objCS);
-  for (size_t i = 0; i < NoC(); i++) rst += InnerMode(objCS, i) * cIn_[i];
+  for (size_t i = 0; i < NoC(); i++) rst += InnerMode(objCS, i) * cIn_(i);
   return rst;
 }
 template <typename T>
 inline void Fiber<T>::SetCoeff(const Eigen::VectorXcd& solution) {
   assert(solution.size() == long(NoC()));
   for (long i = 0; i < solution.size(); i++) {
-    cSc_[i] = solution(i);
-    cIn_[i] = cSc_[i] * config_->TT(od(i));  // TODO: in-plane problem.
+    cSc_(i) = solution(i);
+    cIn_(i) = cSc_(i) * config_->TT(od(i));  // TODO: in-plane problem.
   }
 }
-
+template <typename T>
+inline void Fiber<T>::PrintCoeff(std::ostream& os) const {
+  os << setMaxPrecision << cSc_ << std::endl;
+}
 template <>
 inline StateIP Fiber<StateIP>::ScatterMode(const CS* objCS,
                                            const size_t& sn) const {
@@ -165,7 +174,9 @@ inline void Fiber<T>::add_node() {
     node_.push_back(new CS(*i, this->LocalCS()));
 }
 template <typename T>
-inline void Fiber<T>::delete_node() {}
+inline void Fiber<T>::delete_node() {
+  for (auto& i : node_) delete i;
+}
 template <typename T>
 inline Eigen::MatrixXcd Fiber<T>::ModeMatrix(
     const Inhomogeneity<T>* source) const {
@@ -177,6 +188,18 @@ inline Eigen::MatrixXcd Fiber<T>::ModeMatrix(
       M.block<T::NoBV, 1>(T::NoBV * i, sn) =
           source->ScatterMode(node_[i], sn).BV();
   return M *= -1;
+}
+template <typename T>
+inline Eigen::VectorXcd Fiber<T>::InciVect(
+    const InciPtrs<T>& incident) const {
+  Eigen::VectorXcd rst(NoE());
+  rst.setZero();
+  for (auto& i : incident) rst += i->EffectBV(Node());
+  return rst;
+}
+template <typename T>
+inline Eigen::VectorXcd Fiber<T>::Solve(const InciPtrs<T>& incident) const {
+  return config_->Solve(InciVect(incident));
 }
 
 }  // namespace mss

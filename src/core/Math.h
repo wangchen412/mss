@@ -27,6 +27,7 @@
 #include <cassert>
 #include <complex>
 #include <cstdlib>
+#include <iomanip>
 #include <limits>
 #include <map>
 #include <string>
@@ -43,6 +44,8 @@ const double pi(3.14159265358979323846);
 const double pi2(pi * 2);
 const double pi_2(pi / 2);
 const double epsilon(1e-14);
+const auto setMaxPrecision =
+    std::setprecision(std::numeric_limits<double>::digits10 + 1);
 
 inline dcomp Jn(int n, const double& x) {
   return jn(n, x);
@@ -65,9 +68,22 @@ inline double Lp(std::initializer_list<T> l) {
   return pow(sum, 1.0 / p);
 }
 
+// Check if the two values are approximately equal with relative error.
 template <typename T>
-inline bool near(const T& a, const T& b, const double& re) {
+inline bool ApproxRV(const T& a, const T& b, const double& re = epsilon) {
   return std::abs(a - b) / std::max(std::abs(a), std::abs(b)) < re;
+}
+
+// Check if the elements of two vectors are approximately equal with relative
+// error.
+template <typename T>
+inline bool ApproxRV(const Eigen::Matrix<T, Eigen::Dynamic, 1>& a,
+                     const Eigen::Matrix<T, Eigen::Dynamic, 1>& b,
+                     const double& re = epsilon) {
+  assert(a.size() == b.size());
+  for (long i = 0; i < a.size(); i++)
+    if (!ApproxRV(a(i), b(i), re)) return false;
+  return true;
 }
 
 }  // namespace mss

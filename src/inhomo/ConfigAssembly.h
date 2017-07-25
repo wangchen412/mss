@@ -42,12 +42,13 @@ class ConfigAssembly {
   const Eigen::MatrixXcd& TransMatrix() const;
 
   const double& CharLength() const { return height_ + width_; }
-  size_t NoN() const;
-  size_t NoE() const;
-  size_t NoC() const;
+  size_t NoN() const;  // TODO
+  size_t NoE() const;  // TODO
+  size_t NoC() const;  // TODO
 
   const double& Height() const { return height_; }
   const double& Width() const { return width_; }
+  const std::string& ID() const { return ID_; }
 
   void Solve(const std::vector<Incident<T>*>& incident);
 
@@ -55,13 +56,19 @@ class ConfigAssembly {
   T Resultant(const CS* objCS, const Inhomogeneity<T>* inhomo,
               const std::vector<Incident<T>*>& incident) const;
 
+  void PrintCoeff(std::ostream& os) const;
+
+  const auto& Inhomo() const { return inhomo_; }
+
  protected:
+  const std::string ID_;
   std::vector<Inhomogeneity<T>*> inhomo_;
   std::vector<ConfigFiber<T>*> configFiber_;
   std::vector<ConfigAssembly<T>*> configAssembly_;
-  const std::string ID_;
-  const size_t P_;
-  const double height_, width_;
+
+  const size_t P_      = {0};                // TODO
+  const double height_ = {0}, width_ = {0};  // TODO
+
   const class Matrix* matrix_;
   const input::ConfigAssembly& input_;
 
@@ -75,7 +82,7 @@ class ConfigAssembly {
   void delete_configFiber();
   void allocate();
   void compute_MatrixC();
-  Eigen::VectorXcd inVect(const std::vector<Incident<T>*>& incident);
+  Eigen::VectorXcd inVect(const InciPtrs<T>& incident);
   void distSolution(const Eigen::VectorXcd& solution);
 };
 
@@ -85,6 +92,7 @@ class ConfigAssembly {
 template <typename T>
 void ConfigAssembly<T>::Solve(const std::vector<Incident<T>*>& incident) {
   // Jacobi SVD:
+  compute_MatrixC();
   auto svd = C_.jacobiSvd(Eigen::ComputeThinU | Eigen::ComputeThinV);
   Eigen::VectorXcd solution = svd.solve(inVect(incident));
   distSolution(solution);
@@ -100,8 +108,7 @@ Eigen::VectorXcd ConfigAssembly<T>::inVect(
   for (auto& i : inhomo_) n += i->NoE();
   Eigen::VectorXcd rst(n);
   for (auto& i : inhomo_) {
-    for (auto& j : incident)
-      rst.segment(u, i->NoE()) += j->EffectBV(i->Node());
+    rst.segment(u, i->NoE()) = i->InciVect(incident);
     u += i->NoE();
   }
 
@@ -143,30 +150,40 @@ T ConfigAssembly<T>::Resultant(
 }
 
 template <typename T>
+void ConfigAssembly<T>::PrintCoeff(std::ostream& os) const {
+  for (auto& i : inhomo_) i->PrintCoeff(os);
+}
+
+template <typename T>
 void ConfigAssembly<T>::add_inhomo() {
   add_fiber();
 }
+
 template <typename T>
 void ConfigAssembly<T>::add_fiber() {
   add_configFiber();
   for (auto& i : input_.fiber)
-    inhomo_.pushback(
-        new Fiber<T>(FindID(configFiber_, i.configID), i.position));
+    inhomo_.push_back(
+        new Fiber<T>(FindPtrID(configFiber_, i.configID), i.position));
 }
+
 template <typename T>
 void ConfigAssembly<T>::add_configFiber() {
   for (auto& i : *input_.configFiber)
-    configFiber_.pushback(new ConfigFiber<T>(i, this->Matrix()));
+    configFiber_.push_back(new ConfigFiber<T>(i, matrix_));
 }
+
 template <typename T>
 void ConfigAssembly<T>::delete_inhomo() {
   for (auto& i : inhomo_) delete i;
   delete_configFiber();
 }
+
 template <typename T>
 void ConfigAssembly<T>::delete_configFiber() {
   for (auto& i : configFiber_) delete i;
 }
+
 template <typename T>
 void ConfigAssembly<T>::allocate() {
   size_t noe = 0, noc = 0;
@@ -176,6 +193,7 @@ void ConfigAssembly<T>::allocate() {
   }
   C_.resize(noe, noc);  // The combined transform matrix.
 }
+
 template <typename T>
 void ConfigAssembly<T>::compute_MatrixC() {
   for (size_t u = 0; u < inhomo_.size(); u++) {
@@ -183,7 +201,7 @@ void ConfigAssembly<T>::compute_MatrixC() {
     for (size_t k = 0; k < u; k++) i += inhomo_[k]->NoE();
     int Nu = inhomo_[u]->NoE();
     for (size_t v = 0; v < inhomo_.size(); v++) {
-      size_t Nv = inhomo_[v]->NoE();
+      int Nv                 = inhomo_[v]->NoC();
       C_.block(i, j, Nu, Nv) = inhomo_[u]->ModeMatrix(inhomo_[v]);
       j += Nv;
     }

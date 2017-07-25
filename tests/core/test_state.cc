@@ -50,7 +50,7 @@ class StateTest : public testing::Test {
 
   const double at34 = atan(0.75);
   const double at54 = atan(1.25);
-  const double t = pi - at34;
+  const double t    = pi - at34;
 
   CS cs1, cs2, cs3, cs4;
   StateAP a, b, c, d;

@@ -26,6 +26,7 @@
 #include <string>
 #include "../../src/incident/IncidentInput.h"
 #include "../../src/inhomo/ConfigAssembly.h"
+#include "../../src/pre/Input.h"
 
 namespace mss {
 
@@ -33,14 +34,50 @@ namespace test {
 
 class AssemblyTest : public testing::Test {
  protected:
-  const double omega = 1.25664e6;
-  Material rubber = {1300, 1.41908e9, 0.832e9};
-  Material lead = {11400, 36.32496e9, 8.43e9};
-  Matrix matrix = {rubber, omega};
-
-  ConfigFiber<StateIP> c1 = {"c1", 30, 300, 1e-3, lead, &matrix};
-  ConfigFiber<StateAP> c2 = {"c2", 30, 300, 1e-3, lead, &matrix};
+  input::Solution s1{testDataPath(__FILE__) + "Multiple.txt"};
+  input::Solution s2{testDataPath(__FILE__) + "Single.txt"};
+  Matrix matrix1{s1};
+  Matrix matrix2{s2};
+  ConfigAssembly<StateAP> c1{"c1", s1.config(), &matrix1};
+  ConfigAssembly<StateAP> c2{"c2", s2.config(), &matrix2};
 };
+
+void AssemblyTest_ReadFile(const std::string& fn, Eigen::VectorXcd& sc) {
+  std::ifstream file(testDataPath(__FILE__) + fn);
+  for (int i = 0; i < sc.size(); i++) file >> sc(i);
+  file.close();
+}
+
+TEST_F(AssemblyTest, Constructor) {
+  EXPECT_EQ(c1.ID(), "c1");
+  EXPECT_EQ(c1.Inhomo()[0]->Position(), PosiVect(0, 0));
+  EXPECT_EQ(c1.Inhomo()[1]->Position(), PosiVect(18e-3, 18e-3));
+  EXPECT_EQ(c1.Inhomo()[2]->Position(), PosiVect(-18e-3, -18e-3));
+  EXPECT_EQ(c1.Inhomo()[3]->Position(), PosiVect(-18e-3, 18e-3));
+  EXPECT_EQ(c1.Inhomo()[4]->Position(), PosiVect(18e-3, -18e-3));
+}
+TEST_F(AssemblyTest, InWhich) {
+  CS p1(0, 0), p2(12e-3, 0), p3(17e-3, 17e-3), p4(-11e-3, -11e-3),
+      p5(15e-3, -15e-3), p6(50e-3, 50e-3),
+      p7(21e-3 - epsilon, 22e-3 - epsilon),
+      p8(21e-3 + epsilon, 22e-3 + epsilon);
+
+  EXPECT_EQ(c1.InWhich(&p1), c1.Inhomo()[0]);
+  EXPECT_EQ(c1.InWhich(&p2), nullptr);
+  EXPECT_EQ(c1.InWhich(&p3), c1.Inhomo()[1]);
+  EXPECT_EQ(c1.InWhich(&p4), nullptr);
+  EXPECT_EQ(c1.InWhich(&p5), c1.Inhomo()[4]);
+  EXPECT_EQ(c1.InWhich(&p6), nullptr);
+  EXPECT_EQ(c1.InWhich(&p7), c1.Inhomo()[1]);
+  EXPECT_EQ(c1.InWhich(&p8), nullptr);
+}
+TEST_F(AssemblyTest, SingleScattering) {
+  IncidentPlaneSH inSH(matrix2, s2.incident()[0]);
+  c2.Solve({&inSH});
+  EXPECT_EQ(c2.Inhomo()[0]->Solve({&inSH}), c2.Inhomo()[0]->ScatterCoeff());
+
+  Eigen::MatrixXcd a;
+}
 
 }  // namespace test
 

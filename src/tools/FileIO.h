@@ -49,8 +49,17 @@ struct ci_comp {
 // Find the element of which the ID matches "name" in the std::vector "vec".
 template <typename T>
 const T* FindID(const std::vector<T>& vec, const std::string& name) {
-  for (const T& t : vec)
+  for (const auto& t : vec)
     if (iequals(name, t.ID)) return &t;
+
+  std::cout << "[mss]: Error. ID: " << name << " not found." << std::endl;
+  exit(EXIT_FAILURE);
+}
+
+template <typename T>
+const T* FindPtrID(const std::vector<T*>& vec, const std::string& name) {
+  for (const auto& t : vec)
+    if (iequals(name, t->ID())) return t;
 
   std::cout << "[mss]: Error. ID: " << name << " not found." << std::endl;
   exit(EXIT_FAILURE);
@@ -129,11 +138,6 @@ inline std::string d2string(const double& x) {
   return s.str();
 }
 
-// Return test data path.
-inline std::string testDataPath(std::string path) {
-  return path.substr(0, path.rfind("/")) + std::string("/data/");
-}
-
 class separator {
  public:
   separator(const std::string& s, const size_t& n = 75) : s_(s), n_(n) {}
@@ -146,6 +150,11 @@ class separator {
   std::string s_;
   size_t n_;
 };
+
+// Return test data path.
+inline std::string testDataPath(std::string path) {
+  return path.substr(0, path.rfind("/")) + std::string("/data/");
+}
 
 }  // namespace mss
 

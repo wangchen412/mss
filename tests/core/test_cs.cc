@@ -32,7 +32,7 @@ class CSTest : public testing::Test {
 
   const double at34 = atan(0.75);
   const double at54 = atan(1.25);
-  const double t = pi - at34;
+  const double t    = pi - at34;
 
   CS a, b, c, d;
 };

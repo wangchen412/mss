@@ -35,24 +35,28 @@ namespace test {
 class FiberTest : public testing::Test {
  protected:
   const double omega = 1.25664e6;
-  Material rubber = {1300, 1.41908e9, 0.832e9};
-  Material lead = {11400, 36.32496e9, 8.43e9};
-  Matrix matrix = {rubber, omega};
+  Material rubber    = {1300, 1.41908e9, 0.832e9};
+  Material lead      = {11400, 36.32496e9, 8.43e9};
+  Matrix matrix      = {rubber, omega};
+
+  input::Solution s2{testDataPath(__FILE__) + "Single.txt"};
+  Matrix matrix2{s2};
 
   ConfigFiber<StateIP> c1 = {"c1", 30, 300, 1e-3, lead, &matrix};
   ConfigFiber<StateAP> c2 = {"c2", 30, 300, 1e-3, lead, &matrix};
+  ConfigFiber<StateAP> c3 = {s2.configFiber()[0], &matrix2};
 
   Fiber<StateIP> f1 = {&c1};
   Fiber<StateAP> f2 = {&c2, {1, 2}};
-  Fiber<StateAP> f3 = {&c2};
+  Fiber<StateAP> f3 = {&c3};
 };
 
 void FiberTest_ReadFile(const std::string& fn, Eigen::VectorXcd& sc,
                         Eigen::VectorXcd& in) {
   std::ifstream file(testDataPath(__FILE__) + fn);
-  skip(file, 4);
   for (int i = 0; i < sc.size(); i++) file >> sc(i);
   for (int i = 0; i < in.size(); i++) file >> in(i);
+  file.close();
 }
 
 TEST_F(FiberTest, ConfigCtor) {
@@ -119,35 +123,21 @@ TEST_F(FiberTest, Contain) {
   EXPECT_TRUE(f2.Contain(&(cs02 += s)));
 }
 TEST_F(FiberTest, TT) {
-  // Only -12 ~ +12 order coefficients are tested and the acceptable relative
-  // error is set as 1e-6. The reference data is computed by the previous
-  // version mss.
-
-  int k = 12;
-  const double re = 1e-6;
+  // Compare with the results computed by previous version of mss.
+  // The acceptable relative error is set as 1e-9.
 
   Eigen::VectorXcd sc(61), in(61);
   FiberTest_ReadFile("Single_SH1.dat", sc, in);
-  for (int i = 30 - k; i < 30 + k; i++)
-    EXPECT_TRUE(near(in(i), sc(i) * f3.Config()->TT(i - 30), re));
+  for (int i = 0; i < 61; i++) sc(i) *= f3.Config()->TT(i - 30);
+  EXPECT_TRUE(ApproxRV(sc, in, 1e-9));
 }
 TEST_F(FiberTest, SingleScattering) {
-  // -14 ~ +14 order coefficients are tested to be near the results obtained
-  // by previous program. The acceptable relative error is 1e-4.
-
-  IncidentPlaneSH inSH(matrix, 1.2, 2.3e-6, 3.4);
-  Eigen::VectorXcd vsh = inSH.EffectBV(f3.Node());
-  Eigen::MatrixXcd Q3 = f3.ModeMatrix(&f3);
-  auto svd3 = Q3.jacobiSvd(Eigen::ComputeThinU | Eigen::ComputeThinV);
-  Eigen::VectorXcd coeff3 = svd3.solve(vsh);
-
-  int k = 14;
-  const double re = 1e-4;
+  // The acceptable relative error is set as 1e-4.
 
   Eigen::VectorXcd sc(61), in(61);
   FiberTest_ReadFile("Single_SH1.dat", sc, in);
-  for (int i = 30 - k; i < 30 + k; i++)
-    EXPECT_TRUE(near(sc(i), coeff3(i), re));
+  IncidentPlaneSH inSH(matrix, 1.2, 2.3e-6, 3.4);
+  EXPECT_TRUE(ApproxRV(sc, f3.Solve({&inSH}), 1e-4));
 }
 
 }  // namespace test

@@ -146,7 +146,7 @@ template <typename T1, typename T2>
 inline State<T1, T2> State<T1, T2>::in(const mss::CS* otherBasis) const {
   if (otherBasis == basis_) return *this;
   double d = 0;
-  if (otherBasis) d = otherBasis->AngleGLB();
+  if (otherBasis) d= otherBasis->AngleGLB();
   return State<T1, T2>(displacement_, stress_, otherBasis)
       .rotate(d - AngleGLB());
 }

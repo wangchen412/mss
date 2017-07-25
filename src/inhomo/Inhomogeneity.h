@@ -36,7 +36,7 @@ class Inhomogeneity {
 
   // Resultant states.
   virtual T Scatter(const CS* objCS) const = 0;
-  virtual T Inner(const CS* objCS) const = 0;
+  virtual T Inner(const CS* objCS) const   = 0;
 
   // Check if the position of the objective CS is inside the inhomogeneity.
   virtual bool Contain(const CS* objCS) const = 0;
@@ -45,7 +45,7 @@ class Inhomogeneity {
   // The transformation from the serial number to the order should be done in
   // the derived class.
   virtual T ScatterMode(const CS* objCS, const size_t& sn) const = 0;
-  virtual T InnerMode(const CS* objCS, const size_t& sn) const = 0;
+  virtual T InnerMode(const CS* objCS, const size_t& sn) const   = 0;
 
   virtual size_t NoN() const = 0;
   virtual size_t NoC() const = 0;
@@ -55,7 +55,12 @@ class Inhomogeneity {
   // coefficients) of the source on this inhomogeneity's nodes.
   virtual Eigen::MatrixXcd ModeMatrix(const Inhomogeneity* source) const = 0;
 
-  virtual void SetCoeff(const Eigen::VectorXcd&) = 0;
+  virtual Eigen::VectorXcd InciVect(const InciPtrs<T>& incident) const = 0;
+  virtual Eigen::VectorXcd Solve(const InciPtrs<T>& incident) const    = 0;
+
+  virtual void SetCoeff(const Eigen::VectorXcd&)       = 0;
+  virtual const Eigen::VectorXcd& ScatterCoeff() const = 0;
+  virtual void PrintCoeff(std::ostream& os) const      = 0;
 
   // This inhomogeneity's nodes.
   virtual const std::vector<CS*>& Node() const = 0;
@@ -63,6 +68,7 @@ class Inhomogeneity {
   const CS* LocalCS() const { return &localCS_; }
   const CS* Basis() const { return localCS_.Basis(); }
   const PosiVect& Position() const { return localCS_.Position(); }
+  const PosiVect& PositionGLB() const { return localCS_.PositionGLB(); }
 
  private:
   const CS localCS_;
