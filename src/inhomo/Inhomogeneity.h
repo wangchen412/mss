@@ -55,15 +55,16 @@ class Inhomogeneity {
   // coefficients) of the source on this inhomogeneity's nodes.
   virtual Eigen::MatrixXcd ModeMatrix(const Inhomogeneity* source) const = 0;
 
-  virtual Eigen::VectorXcd InciVect(const InciPtrs<T>& incident) const = 0;
-  virtual Eigen::VectorXcd Solve(const InciPtrs<T>& incident) const    = 0;
+  virtual Eigen::VectorXcd InciVect(const InciCPtrs<T>& incident) const = 0;
+
+  virtual Eigen::VectorXcd Solve(const InciCPtrs<T>& incident) const = 0;
 
   virtual void SetCoeff(const Eigen::VectorXcd&)       = 0;
   virtual const Eigen::VectorXcd& ScatterCoeff() const = 0;
   virtual void PrintCoeff(std::ostream& os) const      = 0;
 
   // This inhomogeneity's nodes.
-  virtual const std::vector<CS*>& Node() const = 0;
+  virtual const CSCPtrs& Node() const = 0;
 
   const CS* LocalCS() const { return &localCS_; }
   const CS* Basis() const { return localCS_.Basis(); }
@@ -73,6 +74,12 @@ class Inhomogeneity {
  private:
   const CS localCS_;
 };
+
+template <typename T>
+using InhomoPtrs = std::vector<Inhomogeneity<T>*>;
+
+template <typename T>
+using InhomoCPtrs = std::vector<const Inhomogeneity<T>*>;
 
 }  // namespace mss
 

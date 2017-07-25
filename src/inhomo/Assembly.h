@@ -44,14 +44,14 @@ class Assembly : public Inhomogeneity<T> {
   T InnerModeL(const CS* local, int n) const;
   T InnerModeT(const CS* local, int n) const;
 
-  const std::vector<CS>& Node() const override;
+  const CSCPtrs& Node() const override;
   Eigen::MatrixXcd ModeMatrix(const Inhomogeneity<T>* other) const override;
-  Eigen::VectorXcd InciVect(const InciPtrs<T>& incident) const override;
-  Eigen::VectorXcd Solve(const InciPtrs<T>& incident) const override;
+  Eigen::VectorXcd InciVect(const InciCPtrs<T>& incident) const override;
+  Eigen::VectorXcd Solve(const InciCPtrs<T>& incident) const override;
 
  private:
   const ConfigAssembly<T>* config_;
-  std::vector<CS> node_;
+  CSCPtrs node_;
 };
 
 }  // namespace mss

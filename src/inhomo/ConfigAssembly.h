@@ -28,6 +28,15 @@
 namespace mss {
 
 template <typename T>
+class ConfigAssembly;
+
+template <typename T>
+using ConfigAssemPtrs = std::vector<ConfigAssembly<T>*>;
+
+template <typename T>
+using ConfigAssemCPtrs = std::vector<const ConfigAssembly<T>*>;
+
+template <typename T>
 class ConfigAssembly {
  public:
   ConfigAssembly(const std::string& ID, const input::ConfigAssembly& input,
@@ -50,11 +59,11 @@ class ConfigAssembly {
   const double& Width() const { return width_; }
   const std::string& ID() const { return ID_; }
 
-  void Solve(const std::vector<Incident<T>*>& incident);
+  void Solve(const InciCPtrs<T>& incident);
 
   Inhomogeneity<T>* InWhich(const CS* objCS) const;
   T Resultant(const CS* objCS, const Inhomogeneity<T>* inhomo,
-              const std::vector<Incident<T>*>& incident) const;
+              const InciCPtrs<T>& incident) const;
 
   void PrintCoeff(std::ostream& os) const;
 
@@ -62,9 +71,9 @@ class ConfigAssembly {
 
  protected:
   const std::string ID_;
-  std::vector<Inhomogeneity<T>*> inhomo_;
-  std::vector<ConfigFiber<T>*> configFiber_;
-  std::vector<ConfigAssembly<T>*> configAssembly_;
+  InhomoPtrs<T> inhomo_;
+  ConfigFiberCPtrs<T> configFiber_;
+  ConfigAssemCPtrs<T> configAssembly_;
 
   const size_t P_      = {0};                // TODO
   const double height_ = {0}, width_ = {0};  // TODO
@@ -82,7 +91,7 @@ class ConfigAssembly {
   void delete_configFiber();
   void allocate();
   void compute_MatrixC();
-  Eigen::VectorXcd inVect(const InciPtrs<T>& incident);
+  Eigen::VectorXcd inVect(const InciCPtrs<T>& incident);
   void distSolution(const Eigen::VectorXcd& solution);
 };
 
@@ -90,7 +99,7 @@ class ConfigAssembly {
 // Inline functions:
 
 template <typename T>
-void ConfigAssembly<T>::Solve(const std::vector<Incident<T>*>& incident) {
+void ConfigAssembly<T>::Solve(const InciCPtrs<T>& incident) {
   // Jacobi SVD:
   compute_MatrixC();
   auto svd = C_.jacobiSvd(Eigen::ComputeThinU | Eigen::ComputeThinV);
@@ -99,8 +108,7 @@ void ConfigAssembly<T>::Solve(const std::vector<Incident<T>*>& incident) {
 }
 
 template <typename T>
-Eigen::VectorXcd ConfigAssembly<T>::inVect(
-    const std::vector<Incident<T>*>& incident) {
+Eigen::VectorXcd ConfigAssembly<T>::inVect(const InciCPtrs<T>& incident) {
   // The effect vector of incident wave along all the interfaces inside the
   // assembly.
 
@@ -136,9 +144,8 @@ Inhomogeneity<T>* ConfigAssembly<T>::InWhich(const CS* objCS) const {
 }
 
 template <typename T>
-T ConfigAssembly<T>::Resultant(
-    const CS* objCS, const Inhomogeneity<T>* in,
-    const std::vector<Incident<T>*>& incident) const {
+T ConfigAssembly<T>::Resultant(const CS* objCS, const Inhomogeneity<T>* in,
+                               const InciCPtrs<T>& incident) const {
   T rst(objCS);
   if (in)
     rst = in->Inner(objCS);

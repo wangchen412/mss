@@ -64,16 +64,16 @@ class Fiber : public Inhomogeneity<T> {
   // collocation points.
   Eigen::MatrixXcd ModeMatrix(const Inhomogeneity<T>* source) const override;
 
-  Eigen::VectorXcd InciVect(const InciPtrs<T>& incident) const override;
-  Eigen::VectorXcd Solve(const InciPtrs<T>& incident) const override;
+  Eigen::VectorXcd InciVect(const InciCPtrs<T>& incident) const override;
+  Eigen::VectorXcd Solve(const InciCPtrs<T>& incident) const override;
 
   const ConfigFiber<T>* Config() const { return config_; }
-  const std::vector<CS*>& Node() const override { return node_; }
+  const CSCPtrs& Node() const override { return node_; }
   const Eigen::VectorXcd& ScatterCoeff() const override { return cSc_; }
 
  private:
   const ConfigFiber<T>* config_;
-  std::vector<CS*> node_;
+  CSCPtrs node_;
   Eigen::VectorXcd cSc_, cIn_;
 
   T scatterModeL(const CS* objCS, int n) const;
@@ -190,16 +190,15 @@ inline Eigen::MatrixXcd Fiber<T>::ModeMatrix(
   return M *= -1;
 }
 template <typename T>
-inline Eigen::VectorXcd Fiber<T>::InciVect(
-    const InciPtrs<T>& incident) const {
+inline Eigen::VectorXcd Fiber<T>::InciVect(const InciCPtrs<T>& inc) const {
   Eigen::VectorXcd rst(NoE());
   rst.setZero();
-  for (auto& i : incident) rst += i->EffectBV(Node());
+  for (auto& i : inc) rst += i->EffectBV(Node());
   return rst;
 }
 template <typename T>
-inline Eigen::VectorXcd Fiber<T>::Solve(const InciPtrs<T>& incident) const {
-  return config_->Solve(InciVect(incident));
+inline Eigen::VectorXcd Fiber<T>::Solve(const InciCPtrs<T>& inc) const {
+  return config_->Solve(InciVect(inc));
 }
 
 }  // namespace mss

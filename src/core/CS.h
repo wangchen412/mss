@@ -91,6 +91,9 @@ inline PosiVect CS::PositionIn(const CS* otherBasis) const {
   return in(otherBasis).Position();
 }
 
+typedef std::vector<CS*> CSPtrs;
+typedef std::vector<const CS*> CSCPtrs;
+
 }  // namespace mss
 
 #endif

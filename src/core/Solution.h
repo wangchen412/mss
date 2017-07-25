@@ -44,7 +44,7 @@ class Solution {
  protected:
   // bool solved_;
   const Matrix matrix_;
-  std::vector<Incident<T>*> incident_;
+  InciCPtrs<T> incident_;
 
   // Only the configuration of the "root" assembly is needed.
   // The instantiation of the "root" assembly is not necessary.

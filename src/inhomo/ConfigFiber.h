@@ -68,7 +68,7 @@ class ConfigFiber {
   const class Material& Material_m() const { return matrix_->Material(); }
   const double& KL_m() const { return matrix_->KL(); }
   const double& KT_m() const { return matrix_->KT(); }
-  const std::vector<CS*>& Node() const { return node_; }
+  const CSCPtrs& Node() const { return node_; }
 
   T ModeT(const CS* localCS, const CS* objCS, const EigenFunctor& f,
           const class Material& mat) const;
@@ -93,13 +93,19 @@ class ConfigFiber {
   const class Material material_;  // Material of the fiber.
   const double kl_, kt_;           // Wave numbers of the fiber.
   const class Matrix* matrix_;     // The matrix.
-  std::vector<CS*> node_;          // Collocation points.
+  CSCPtrs node_;                   // Collocation points.
   Eigen::MatrixXcd Q_;             // Transform matrix.
 
   void add_node();
   void delete_node();
   void compute_MatrixQ();
 };
+
+template <typename T>
+using ConfigFiberPtrs = std::vector<ConfigFiber<T>*>;
+
+template <typename T>
+using ConfigFiberCPtrs = std::vector<const ConfigFiber<T>*>;
 
 // ---------------------------------------------------------------------------
 // Inline functions:

@@ -44,7 +44,7 @@ class Incident {
   virtual T Effect(const CS* localCS) const = 0;
 
   // The effect vector along the boundary.
-  Eigen::VectorXcd EffectBV(const std::vector<CS*>& localCS) const {
+  Eigen::VectorXcd EffectBV(const CSCPtrs& localCS) const {
     Eigen::VectorXcd rst(localCS.size() * T::NoBV);
     for (size_t i = 0; i < localCS.size(); i++)
       rst.segment(i * T::NoBV, T::NoBV) = Effect(localCS[i]).BV();
@@ -61,6 +61,9 @@ class Incident {
 
 template <typename T>
 using InciPtrs = std::vector<Incident<T>*>;
+
+template <typename T>
+using InciCPtrs = std::vector<const Incident<T>*>;
 
 }  // namespace mss
 

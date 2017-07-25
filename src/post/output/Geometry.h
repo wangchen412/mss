@@ -36,6 +36,12 @@ class Geometry {
   virtual void Write() const = 0;
 };
 
+template <typename T>
+using GeoPtrs = std::vector<Geometry<T>*>;
+
+template <typename T>
+using GeoCPtrs = std::vector<const Geometry<T>*>;
+
 }  // namespace output
 
 }  // namespace mss

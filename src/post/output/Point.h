@@ -50,8 +50,9 @@ class Point : public Geometry<T> {
  private:
   CS localCS_;
   T state_;
-  const Solution<T>* solution_;
-  const Inhomogeneity<T>* in_;
+  const Solution<T>* solution_;  // The position in the global CS.
+  const Inhomogeneity<T>* in_;   // The pointer to the inhomogeneity in which
+                                 // the point is, if the point is in one.
   const std::string id_;
 };
 
