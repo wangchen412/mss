@@ -77,11 +77,11 @@ inline bool ApproxRV(const T& a, const T& b, const double& re = epsilon) {
 // Check if the elements of two vectors are approximately equal with relative
 // error.
 template <typename T>
-inline bool ApproxRV(const Eigen::Matrix<T, Eigen::Dynamic, 1>& a,
-                     const Eigen::Matrix<T, Eigen::Dynamic, 1>& b,
-                     const double& re = epsilon) {
+inline bool ApproxVectRV(const Eigen::Matrix<T, Eigen::Dynamic, 1>& a,
+                         const Eigen::Matrix<T, Eigen::Dynamic, 1>& b,
+                         const double& re = epsilon, int k = 0) {
   assert(a.size() == b.size());
-  for (long i = 0; i < a.size(); i++)
+  for (long i = k; i < a.size() - k; i++)
     if (!ApproxRV(a(i), b(i), re)) return false;
   return true;
 }

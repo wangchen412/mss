@@ -30,7 +30,7 @@ template <typename T>
 class Solution {
  public:
   Solution(const input::Solution& input)
-      : matrix_(input.matrix()), config_(input.config(), &matrix_) {
+      : matrix_(input.matrix()), config_("root", input.config(), &matrix_) {
     add_incident(input);
   }
 
@@ -40,6 +40,9 @@ class Solution {
   Inhomogeneity<T>* InWhich(const CS* objCS) const;
   T Resultant(const CS* objCS, const Inhomogeneity<T>* inhomo) const;
   T Resultant(const CS* objCS) const;
+
+  const ConfigAssembly<T>& Config() { return config_; }
+  const InciCPtrs<T>& Incident() { return incident_; }
 
  protected:
   // bool solved_;
@@ -53,6 +56,9 @@ class Solution {
   void add_incident(const input::Solution& input);
   void delete_incident();
 };
+
+typedef Solution<StateAP> SolutionAP;
+typedef Solution<StateIP> SolutionIP;
 
 // ---------------------------------------------------------------------------
 // Inline functions:
@@ -70,7 +76,7 @@ void Solution<T>::delete_incident() {
 
 template <typename T>
 Inhomogeneity<T>* Solution<T>::InWhich(const CS* objCS) const {
-  return config_->InWhich(objCS);
+  return config_.InWhich(objCS);
 }
 
 template <typename T>
@@ -80,7 +86,7 @@ T Solution<T>::Resultant(const CS* objCS, const Inhomogeneity<T>* in) const {
 
 template <typename T>
 T Solution<T>::Resultant(const CS* objCS) const {
-  return config_->Resultant(objCS, InWhich(objCS), incident_);
+  return config_.Resultant(objCS, InWhich(objCS), incident_);
 }
 
 }  // namespace mss

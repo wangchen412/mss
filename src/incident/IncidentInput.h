@@ -29,18 +29,7 @@ namespace mss {
 template <typename T>
 class IncidentInput {
  public:
-  IncidentInput(const Matrix& matrix) : matrix_(matrix) {
-    funcMap["PlaneP"] = [this](const input::IncidentPlane& input) {
-      return new IncidentPlaneP(matrix_, input);
-    };
-    funcMap["PlaneSV"] = [this](const input::IncidentPlane& input) {
-      return new IncidentPlaneSV(matrix_, input);
-    };
-    funcMap["PlaneSH"] = [this](const input::IncidentPlane& input) {
-      return new IncidentPlaneSH(matrix_, input);
-    };
-  }
-
+  IncidentInput(const Matrix& matrix);
   Incident<T>* operator()(const input::IncidentPlane& input) {
     return funcMap[input.type](input);
   }
@@ -50,6 +39,25 @@ class IncidentInput {
   std::map<std::string, funcType, ci_comp> funcMap;
   const Matrix& matrix_;
 };
+
+template <>
+IncidentInput<StateIP>::IncidentInput(const Matrix& matrix)
+    : matrix_(matrix) {
+  funcMap["PlaneP"] = [this](const input::IncidentPlane& input) {
+    return new IncidentPlaneP(matrix_, input);
+  };
+  funcMap["PlaneSV"] = [this](const input::IncidentPlane& input) {
+    return new IncidentPlaneSV(matrix_, input);
+  };
+}
+
+template <>
+IncidentInput<StateAP>::IncidentInput(const Matrix& matrix)
+    : matrix_(matrix) {
+  funcMap["PlaneSH"] = [this](const input::IncidentPlane& input) {
+    return new IncidentPlaneSH(matrix_, input);
+  };
+}
 
 }  // namespace mss
 

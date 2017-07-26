@@ -34,21 +34,27 @@ namespace test {
 
 class AssemblyTest : public testing::Test {
  protected:
-  input::Solution s1{testDataPath(__FILE__) + "Multiple.txt"};
-  input::Solution s2{testDataPath(__FILE__) + "Single.txt"};
+  input::Solution s1{testDataPath(__FILE__) + "assembly/Multiple.txt"};
   Matrix matrix1{s1};
-  Matrix matrix2{s2};
   ConfigAssembly<StateAP> c1{"c1", s1.config(), &matrix1};
-  ConfigAssembly<StateAP> c2{"c2", s2.config(), &matrix2};
+  IncidentPlaneSH inSH1{matrix1, s1.incident()[0]};
 };
 
-void AssemblyTest_ReadFile(const std::string& fn, Eigen::VectorXcd& sc) {
+class AssemblySingleTest : public testing::Test {
+ protected:
+  input::Solution s2{testDataPath(__FILE__) + "assembly/Single.txt"};
+  Matrix matrix2{s2};
+  ConfigAssembly<StateAP> c2{"c2", s2.config(), &matrix2};
+  IncidentPlaneSH inSH2{matrix2, s2.incident()[0]};
+};
+
+void AssemblyTest_ReadCoeff(const std::string& fn, Eigen::VectorXcd& sc) {
   std::ifstream file(testDataPath(__FILE__) + fn);
   for (int i = 0; i < sc.size(); i++) file >> sc(i);
   file.close();
 }
 
-TEST_F(AssemblyTest, Constructor) {
+TEST_F(AssemblyTest, DISABLED_Constructor) {
   EXPECT_EQ(c1.ID(), "c1");
   EXPECT_EQ(c1.Inhomo()[0]->Position(), PosiVect(0, 0));
   EXPECT_EQ(c1.Inhomo()[1]->Position(), PosiVect(18e-3, 18e-3));
@@ -56,7 +62,7 @@ TEST_F(AssemblyTest, Constructor) {
   EXPECT_EQ(c1.Inhomo()[3]->Position(), PosiVect(-18e-3, 18e-3));
   EXPECT_EQ(c1.Inhomo()[4]->Position(), PosiVect(18e-3, -18e-3));
 }
-TEST_F(AssemblyTest, InWhich) {
+TEST_F(AssemblyTest, DISABLED_InWhich) {
   CS p1(0, 0), p2(12e-3, 0), p3(17e-3, 17e-3), p4(-11e-3, -11e-3),
       p5(15e-3, -15e-3), p6(50e-3, 50e-3),
       p7(21e-3 - epsilon, 22e-3 - epsilon),
@@ -71,12 +77,25 @@ TEST_F(AssemblyTest, InWhich) {
   EXPECT_EQ(c1.InWhich(&p7), c1.Inhomo()[1]);
   EXPECT_EQ(c1.InWhich(&p8), nullptr);
 }
-TEST_F(AssemblyTest, SingleScattering) {
-  IncidentPlaneSH inSH(matrix2, s2.incident()[0]);
-  c2.Solve({&inSH});
-  EXPECT_EQ(c2.Inhomo()[0]->Solve({&inSH}), c2.Inhomo()[0]->ScatterCoeff());
+TEST_F(AssemblySingleTest, SingleScattering) {
+  c2.Solve({&inSH2});
+  Eigen::VectorXcd ref(61), wref(61);
+  AssemblyTest_ReadCoeff("assembly/Single_SH2.dat", ref);
+  AssemblyTest_ReadCoeff("assembly/Single_SH1.dat", wref);
 
-  Eigen::MatrixXcd a;
+  EXPECT_TRUE(ApproxVectRV(ref, c2.Inhomo()[0]->ScatterCoeff(), 1e-4));
+  EXPECT_FALSE(ApproxVectRV(wref, c2.Inhomo()[0]->ScatterCoeff(), 1e-4));
+}
+TEST_F(AssemblyTest, DISABLED_MultipleScattering) {
+  c1.Solve({&inSH1});
+
+  Eigen::VectorXcd ref(305);
+  AssemblyTest_ReadCoeff("assembly/Multiple_SH1.dat", ref);
+  const double err = 1e-4;
+
+  for (int i = 0; i < 5; i++)
+    EXPECT_TRUE(ApproxVectRV(Eigen::VectorXcd(ref.segment(61 * i, 61)),
+                             c1.Inhomo()[i]->ScatterCoeff(), err, 20));
 }
 
 }  // namespace test

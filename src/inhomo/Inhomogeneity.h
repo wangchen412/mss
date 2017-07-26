@@ -34,6 +34,9 @@ class Inhomogeneity {
       : localCS_(position, angle) {}
   virtual ~Inhomogeneity() {}
 
+  // TransMatrix.
+  virtual const Eigen::MatrixXcd& TransMatrix() const = 0;
+
   // Resultant states.
   virtual T Scatter(const CS* objCS) const = 0;
   virtual T Inner(const CS* objCS) const   = 0;
@@ -47,13 +50,12 @@ class Inhomogeneity {
   virtual T ScatterMode(const CS* objCS, const size_t& sn) const = 0;
   virtual T InnerMode(const CS* objCS, const size_t& sn) const   = 0;
 
+  Eigen::VectorXcd ScatterBV(const CSCPtrs& objCSs, const size_t& sn) const;
+  Eigen::MatrixXcd ModeMatrix(const Inhomogeneity* source) const;
+
   virtual size_t NoN() const = 0;
   virtual size_t NoC() const = 0;
   virtual size_t NoE() const = 0;
-
-  // The matrix composed of effects of modes (correspond to its unknown
-  // coefficients) of the source on this inhomogeneity's nodes.
-  virtual Eigen::MatrixXcd ModeMatrix(const Inhomogeneity* source) const = 0;
 
   virtual Eigen::VectorXcd InciVect(const InciCPtrs<T>& incident) const = 0;
 
@@ -80,6 +82,28 @@ using InhomoPtrs = std::vector<Inhomogeneity<T>*>;
 
 template <typename T>
 using InhomoCPtrs = std::vector<const Inhomogeneity<T>*>;
+
+// ---------------------------------------------------------------------------
+// Inline functions:
+
+template <typename T>
+Eigen::VectorXcd Inhomogeneity<T>::ScatterBV(const CSCPtrs& objCSs,
+                                             const size_t& sn) const {
+  Eigen::VectorXcd rst(objCSs.size() * T::NoBV);
+  for (size_t i = 0; i < objCSs.size(); i++)
+    rst.segment(i * T::NoBV, T::NoBV) = ScatterMode(objCSs[i], sn).BV();
+  return rst;
+}
+
+template <typename T>
+Eigen::MatrixXcd Inhomogeneity<T>::ModeMatrix(
+    const Inhomogeneity<T>* other) const {
+  if (this == other) return TransMatrix();
+  Eigen::MatrixXcd rst(other->NoE(), NoC());
+  for (size_t sn = 0; sn < NoC(); sn++)
+    rst.col(sn) = ScatterBV(other->Node(), sn);
+  return rst *= -1;
+}
 
 }  // namespace mss
 

@@ -38,6 +38,10 @@ class Fiber : public Inhomogeneity<T> {
 
   virtual ~Fiber() { delete_node(); }
 
+  const Eigen::MatrixXcd& TransMatrix() const override {
+    return config_->TransMatrix();
+  }
+
   size_t NoN() const override { return config_->NoN(); }
   size_t NoE() const override { return config_->NoE(); }
   size_t NoC() const override { return config_->NoC(); }
@@ -59,10 +63,6 @@ class Fiber : public Inhomogeneity<T> {
   // n starts at zero.
   T ScatterMode(const CS* objCS, const size_t& sn) const override;
   T InnerMode(const CS* objCS, const size_t& sn) const override;
-
-  // Return the effect of modes of other source inhomogeneity at the
-  // collocation points.
-  Eigen::MatrixXcd ModeMatrix(const Inhomogeneity<T>* source) const override;
 
   Eigen::VectorXcd InciVect(const InciCPtrs<T>& incident) const override;
   Eigen::VectorXcd Solve(const InciCPtrs<T>& incident) const override;
@@ -176,18 +176,6 @@ inline void Fiber<T>::add_node() {
 template <typename T>
 inline void Fiber<T>::delete_node() {
   for (auto& i : node_) delete i;
-}
-template <typename T>
-inline Eigen::MatrixXcd Fiber<T>::ModeMatrix(
-    const Inhomogeneity<T>* source) const {
-  if (source == this) return config_->TransMatrix();
-
-  Eigen::MatrixXcd M(this->NoE(), source->NoC());
-  for (size_t sn = 0; sn < source->NoC(); sn++)
-    for (size_t i = 0; i < this->NoN(); i++)
-      M.block<T::NoBV, 1>(T::NoBV * i, sn) =
-          source->ScatterMode(node_[i], sn).BV();
-  return M *= -1;
 }
 template <typename T>
 inline Eigen::VectorXcd Fiber<T>::InciVect(const InciCPtrs<T>& inc) const {

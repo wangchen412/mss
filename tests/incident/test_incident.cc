@@ -67,6 +67,7 @@ void IncidentTest_ReadFile(const Incident<T>* inc,
     ref.emplace_back(s);
     com.emplace_back(inc->Effect(r));
   }
+  file.close();
 }
 
 TEST_F(IncidentTest, Constructors) {

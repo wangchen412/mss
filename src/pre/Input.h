@@ -40,6 +40,7 @@ class Solution {
   const auto& frequency() const { return matrix().frequency; }
   const auto& configFiber() const { return configFiber_; }
   const auto& incident() const { return incident_; }
+  const auto& configAssem() const { return configAssembly_; }
   const auto& config() const { return *FindID(configAssembly_, solve_[0]); }
 
  private:

@@ -119,7 +119,6 @@ Eigen::VectorXcd ConfigAssembly<T>::inVect(const InciCPtrs<T>& incident) {
     rst.segment(u, i->NoE()) = i->InciVect(incident);
     u += i->NoE();
   }
-
   return rst;
 }
 
@@ -203,14 +202,14 @@ void ConfigAssembly<T>::allocate() {
 
 template <typename T>
 void ConfigAssembly<T>::compute_MatrixC() {
-  for (size_t u = 0; u < inhomo_.size(); u++) {
+  for (size_t v = 0; v < inhomo_.size(); v++) {
     int i = 0, j = 0;
-    for (size_t k = 0; k < u; k++) i += inhomo_[k]->NoE();
-    int Nu = inhomo_[u]->NoE();
-    for (size_t v = 0; v < inhomo_.size(); v++) {
-      int Nv                 = inhomo_[v]->NoC();
-      C_.block(i, j, Nu, Nv) = inhomo_[u]->ModeMatrix(inhomo_[v]);
-      j += Nv;
+    for (size_t k = 0; k < v; k++) j += inhomo_[k]->NoC();
+    int Nv = inhomo_[v]->NoC();
+    for (size_t u = 0; u < inhomo_.size(); u++) {
+      int Nu                 = inhomo_[u]->NoE();
+      C_.block(i, j, Nu, Nv) = inhomo_[v]->ModeMatrix(inhomo_[u]);
+      i += Nu;
     }
   }
 }

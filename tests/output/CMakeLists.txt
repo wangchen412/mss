@@ -17,8 +17,6 @@
 #
 # ----------------------------------------------------------------------
 
-add_subdirectory(core)
-add_subdirectory(input)
-add_subdirectory(incident)
-add_subdirectory(inhomo)
-# add_subdirectory(output)
+include(${CMAKE_CURRENT_SOURCE_DIR}/../AddTest.cmake)
+
+mss_add_test(test_point)
