@@ -18,22 +18,24 @@
 # ----------------------------------------------------------------------
 
 cmake_minimum_required(VERSION 3.7)
-set(CMAKE_CXX_COMPILER icpc)
-# set(CMAKE_VERBOSE_MAKEFILE ON)
-set(CMAKE_CXX_STANDARD 14)
 
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall")
-set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Wall")
+project(mss)
+
+set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_COMPILER icpc)
+set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
+
+find_package(Eigen3 REQUIRED)
+include_directories(${EIGEN3_INCLUDE_DIR})
+add_definitions(-D EIGEN_USE_MKL_ALL)
 
 # set(CMAKE_BUILD_TYPE Debug)
 set(CMAKE_BUILD_TYPE Release)
 
-project(mss)
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall -mkl=sequential")
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Wall -mkl=parallel")
 
 enable_testing()
 
-include_directories("~/Programming/eigen/")
-include_directories("~/.third_party/")
-link_directories("~/.third_party/")
 add_subdirectory(src)
 add_subdirectory(tests)
