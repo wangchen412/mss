@@ -78,11 +78,9 @@ class State {
   State operator-(const State& other) const { return State(*this) -= other; }
   State operator*(const dcomp& n) const { return State(*this) *= n; }
   State operator/(const dcomp& n) const { return State(*this) /= n; }
-  bool operator==(const State& other) const {
-    State tmp(in(other.basis_));
-    return (tmp.displacement_ == other.displacement_) &&
-           (tmp.stress_ == other.stress_);
-  }
+  bool operator==(const State& other) const { return isApprox(other); }
+  bool isApprox(const State& other, const double& re = epsilon) const;
+
   friend std::ostream& operator<<(std::ostream& os, const State& st) {
     return os << st.AngleGLB() << "\t" << st.displacement_ << "\t"
               << st.stress_;
@@ -149,6 +147,13 @@ inline State<T1, T2> State<T1, T2>::in(const mss::CS* otherBasis) const {
   if (otherBasis) d= otherBasis->AngleGLB();
   return State<T1, T2>(displacement_, stress_, otherBasis)
       .rotate(d - AngleGLB());
+}
+template <typename T1, typename T2>
+inline bool State<T1, T2>::isApprox(const State& other,
+                                    const double& re) const {
+  State tmp(in(other.basis_));
+  return (tmp.displacement_.isApprox(other.displacement_, re)) &&
+         (tmp.stress_.isApprox(other.stress_, re));
 }
 template <>
 auto StateIP::BV() const {

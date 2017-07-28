@@ -28,6 +28,7 @@
 #include <complex>
 #include <cstdlib>
 #include <iomanip>
+#include <iostream>
 #include <limits>
 #include <map>
 #include <string>
@@ -68,10 +69,15 @@ inline double Lp(std::initializer_list<T> l) {
   return pow(sum, 1.0 / p);
 }
 
+template <typename T>
+inline double RelativeDiff(const T& a, const T& b) {
+  return std::abs(a - b) / std::max(std::abs(a), std::abs(b));
+}
+
 // Check if the two values are approximately equal with relative error.
 template <typename T>
 inline bool ApproxRV(const T& a, const T& b, const double& re = epsilon) {
-  return std::abs(a - b) / std::max(std::abs(a), std::abs(b)) < re;
+  return RelativeDiff(a, b) < re;
 }
 
 // Check if the elements of two vectors are approximately equal with relative

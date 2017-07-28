@@ -17,16 +17,7 @@
 //
 // ----------------------------------------------------------------------
 
-#include <gmock/gmock.h>
-#include <gtest/gtest.h>
-#include <fstream>
-#include <iomanip>
-#include <iostream>
-#include <sstream>
-#include <string>
-#include "../../src/incident/IncidentInput.h"
-#include "../../src/inhomo/ConfigAssembly.h"
-#include "../../src/pre/Input.h"
+#include "../test.h"
 
 namespace mss {
 
@@ -54,7 +45,7 @@ void AssemblyTest_ReadCoeff(const std::string& fn, Eigen::VectorXcd& sc) {
   file.close();
 }
 
-TEST_F(AssemblyTest, DISABLED_Constructor) {
+TEST_F(AssemblyTest, Constructor) {
   EXPECT_EQ(c1.ID(), "c1");
   EXPECT_EQ(c1.Inhomo()[0]->Position(), PosiVect(0, 0));
   EXPECT_EQ(c1.Inhomo()[1]->Position(), PosiVect(18e-3, 18e-3));
@@ -62,7 +53,7 @@ TEST_F(AssemblyTest, DISABLED_Constructor) {
   EXPECT_EQ(c1.Inhomo()[3]->Position(), PosiVect(-18e-3, 18e-3));
   EXPECT_EQ(c1.Inhomo()[4]->Position(), PosiVect(18e-3, -18e-3));
 }
-TEST_F(AssemblyTest, DISABLED_InWhich) {
+TEST_F(AssemblyTest, InWhich) {
   CS p1(0, 0), p2(12e-3, 0), p3(17e-3, 17e-3), p4(-11e-3, -11e-3),
       p5(15e-3, -15e-3), p6(50e-3, 50e-3),
       p7(21e-3 - epsilon, 22e-3 - epsilon),
@@ -86,16 +77,16 @@ TEST_F(AssemblySingleTest, SingleScattering) {
   EXPECT_TRUE(ApproxVectRV(ref, c2.Inhomo()[0]->ScatterCoeff(), 1e-4));
   EXPECT_FALSE(ApproxVectRV(wref, c2.Inhomo()[0]->ScatterCoeff(), 1e-4));
 }
-TEST_F(AssemblyTest, DISABLED_MultipleScattering) {
+TEST_F(AssemblyTest, MultipleScattering) {
   c1.Solve({&inSH1});
-
   Eigen::VectorXcd ref(305);
   AssemblyTest_ReadCoeff("assembly/Multiple_SH1.dat", ref);
-  const double err = 1e-4;
 
-  for (int i = 0; i < 5; i++)
-    EXPECT_TRUE(ApproxVectRV(Eigen::VectorXcd(ref.segment(61 * i, 61)),
-                             c1.Inhomo()[i]->ScatterCoeff(), err, 20));
+  for (int i = 0; i < 5; i++) {
+    Eigen::VectorXcd rr = ref.segment(61 * i, 61),
+                     cc = c1.Inhomo()[i]->ScatterCoeff();
+    EXPECT_TRUE(ApproxVectRV(rr, cc, 1e-5, 10));
+  }
 }
 
 }  // namespace test

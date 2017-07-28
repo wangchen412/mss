@@ -19,8 +19,7 @@
 
 // Unit test of Matrix class.
 
-#include <gtest/gtest.h>
-#include "../../src/core/Matrix.h"
+#include "../test.h"
 
 namespace mss {
 

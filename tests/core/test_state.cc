@@ -17,11 +17,7 @@
 //
 // ----------------------------------------------------------------------
 
-#include <gtest/gtest.h>
-#include <fstream>
-#include <iostream>
-#include <string>
-#include "../../src/core/State.h"
+#include "../test.h"
 
 using namespace std;
 

@@ -19,8 +19,7 @@
 
 // Test Coordinate System Class
 
-#include <gtest/gtest.h>
-#include "../../src/core/CS.h"
+#include "../test.h"
 
 namespace mss {
 

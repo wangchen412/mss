@@ -45,6 +45,7 @@ struct Scalar {
   Scalar operator/(const T& n) const;
 
   bool operator==(const Scalar& other) const;
+  bool isApprox(const Scalar& other, const double& re = epsilon) const;
 
   Scalar& RotateInPlace(const double& angle);
   Scalar Rotate(const double& angle) const;
@@ -68,6 +69,7 @@ struct Vector {
   Vector operator/(const T& n) const;
 
   bool operator==(const Vector& other) const;
+  bool isApprox(const Vector& other, const double& re = epsilon) const;
 
   Vector& RotateInPlace(const double& angle);
   Vector Rotate(const double& angle) const;
@@ -98,6 +100,7 @@ struct Tensor {
   Tensor operator/(const T& n) const;
 
   bool operator==(const Tensor& other) const;
+  bool isApprox(const Tensor& other, const double& re = epsilon) const;
 
   Tensor& RotateInPlace(const double& angle);
   Tensor Rotate(const double& angle) const;
@@ -155,9 +158,14 @@ inline Scalar<T> Scalar<T>::operator/(const T& n) const {
 }
 template <typename T>
 inline bool Scalar<T>::operator==(const Scalar<T>& other) const {
+  return isApprox(other);
+}
+template <typename T>
+inline bool Scalar<T>::isApprox(const Scalar<T>& other,
+                                const double& re) const {
   if (x == other.x) return true;
   return std::abs(x - other.x) / std::max(std::abs(x), std::abs(other.x)) <
-         epsilon;
+         re;
 }
 template <typename T>
 inline std::ostream& operator<<(std::ostream& os, const Scalar<T>& s) {
@@ -220,10 +228,15 @@ inline Vector<T> Vector<T>::operator/(const T& n) const {
 }
 template <typename T>
 inline bool Vector<T>::operator==(const Vector<T>& other) const {
+  return isApprox(other);
+}
+template <typename T>
+inline bool Vector<T>::isApprox(const Vector<T>& other,
+                                const double& re) const {
   if (x == other.x && y == other.y) return true;
   return Lp<2>({x - other.x, y - other.y}) /
              std::max(Lp<2>({x, y}), Lp<2>({other.x, other.y})) <
-         epsilon;
+         re;
 }
 template <typename T>
 inline std::ostream& operator<<(std::ostream& os, const Vector<T>& v) {
@@ -339,11 +352,15 @@ inline Tensor<T> Tensor<T>::operator/(const T& n) const {
 }
 template <typename T>
 bool Tensor<T>::operator==(const Tensor<T>& other) const {
+  return isApprox(other);
+}
+template <typename T>
+bool Tensor<T>::isApprox(const Tensor<T>& other, const double& re) const {
   if (xx == other.xx && yy == other.yy && xy == other.xy) return true;
   return Lp<2>({xx - other.xx, yy - other.yy, xy - other.xy}) /
              std::max(Lp<2>({xx, yy, xy}),
                       Lp<2>({other.xx, other.yy, other.xy})) <
-         epsilon;
+         re;
 }
 template <typename T>
 inline std::ostream& operator<<(std::ostream& os, const Tensor<T>& t) {

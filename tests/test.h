@@ -17,10 +17,30 @@
 //
 // ----------------------------------------------------------------------
 
-#include "../test.h"
+#ifndef MSS_TEST_H
+#define MSS_TEST_H
+
+#include <gmock/gmock.h>
+#include <gtest/gtest.h>
+#include <fstream>
+#include <iomanip>
+#include <iostream>
+#include <sstream>
+#include <string>
+#include "../src/core/Solution.h"
+#include "../src/post/output/Point.h"
 
 namespace mss {
 
-namespace test {}
+namespace test {
+
+// Return test data path.
+inline std::string testDataPath(std::string path) {
+  return path.substr(0, path.rfind("/")) + std::string("/data/");
+}
+
+}  // namespace test
 
 }  // namespace mss
+
+#endif

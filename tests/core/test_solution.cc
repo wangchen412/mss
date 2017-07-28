@@ -17,14 +17,7 @@
 //
 // ----------------------------------------------------------------------
 
-#include <gmock/gmock.h>
-#include <gtest/gtest.h>
-#include <fstream>
-#include <iomanip>
-#include <iostream>
-#include <sstream>
-#include <string>
-#include "../../src/core/Solution.h"
+#include "../test.h"
 
 namespace mss {
 
@@ -78,16 +71,14 @@ TEST_F(SolutionSingleTest, Coefficient) {
   EXPECT_TRUE(
       ApproxVectRV(ref, s.Config().Inhomo()[0]->ScatterCoeff(), 1e-4));
 }
-TEST_F(SolutionSingleTest, DISABLED_SampleLine) {
+TEST_F(SolutionSingleTest, SampleLine) {
   s.Solve();
-  std::vector<StateAP> ref, ref2, com, com2;
+  std::vector<StateAP> ref, com;
   SolutionTest_ReadSample(s, "/solution/SampleLine_SH1.dat", ref, com,
                           sampleCS_);
   EXPECT_EQ(ref.size(), 1000);
-  //  EXPECT_THAT(ref, testing::ContainerEq(com));
-  //  EXPECT_THAT(ref2, testing::ContainerEq(com2));
-  //  for (int i = 0; i < 1000; i++)
-  //    EXPECT_EQ(ref2[i], com2[i]);
+  const double re = 1e-4;
+  for (size_t i = 0; i < 1000; i++) EXPECT_TRUE(ref[i].isApprox(com[i], re));
 }
 
 }  // namespace test

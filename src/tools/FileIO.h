@@ -151,11 +151,6 @@ class separator {
   size_t n_;
 };
 
-// Return test data path.
-inline std::string testDataPath(std::string path) {
-  return path.substr(0, path.rfind("/")) + std::string("/data/");
-}
-
 }  // namespace mss
 
 #endif

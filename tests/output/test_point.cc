@@ -17,16 +17,7 @@
 //
 // ----------------------------------------------------------------------
 
-#include <gmock/gmock.h>
-#include <gtest/gtest.h>
-#include <fstream>
-#include <iomanip>
-#include <iostream>
-#include <sstream>
-#include <string>
-#include "../../src/core/Solution.h"
-#include "../../src/post/output/Point.h"
-#include "../../src/pre/Input.h"
+#include "../test.h"
 
 namespace mss {
 

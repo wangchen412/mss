@@ -128,9 +128,10 @@ StateIP ConfigFiber<StateIP>::ModeL(const CS* localCS, const CS* objCS,
   /// Return the effect of the longitude mode in in-plane problems.
 
   // Position in the local CS, which is seen as a polar CS:
-  CS cs(objCS->in(localCS));
-  PosiVect p      = cs.Position().Polar();
-  const double& r = p.x;
+  const PosiVect pc = objCS->PositionIn(localCS);
+  const PosiVect p  = pc.Polar();
+  const double& r   = p.x;
+  const CS cs(pc, p.y, localCS);
 
   // Displacement in the local CS:
   dcomp ur = f.dr(p);
@@ -152,9 +153,10 @@ StateIP ConfigFiber<StateIP>::ModeT(const CS* localCS, const CS* objCS,
   /// Return the effect of the transverse mode in in-plane problems.
 
   // Position in the local CS, which is seen as a polar CS:
-  CS cs(objCS->in(localCS));
-  PosiVect p      = cs.Position().Polar();
-  const double& r = p.x;
+  const PosiVect pc = objCS->PositionIn(localCS);
+  const PosiVect p  = pc.Polar();
+  const double& r   = p.x;
+  const CS cs(pc, p.y, localCS);
 
   // Displacement in the local CS:
   dcomp ur = f.dt(r) / r;
@@ -176,15 +178,17 @@ StateAP ConfigFiber<StateAP>::ModeT(const CS* localCS, const CS* objCS,
   /// Return the effect of the transverse mode in antiplane problems.
 
   // Position in the local CS, which is seen as a polar CS:
-  CS cs(objCS->in(localCS));
-  PosiVect p = cs.Position().Polar();
+  const PosiVect pc = objCS->PositionIn(localCS);
+  const PosiVect p  = pc.Polar();
+  const double& r   = p.x;
+  const CS cs(pc, p.y, localCS);
 
   // Displacement in the local CS:
   DispAP w = f(p);
 
   // Stress in the local CS:
   dcomp gzr  = f.dr(p);
-  dcomp gzt  = f.dt(p);
+  dcomp gzt  = f.dt(p) / r;
   StressAP t = m.C(gzr, gzt);
 
   // Normalized state in the objective CS.

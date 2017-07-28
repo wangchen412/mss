@@ -17,16 +17,7 @@
 //
 // ----------------------------------------------------------------------
 
-#include <gmock/gmock.h>
-#include <gtest/gtest.h>
-#include <fstream>
-#include <iomanip>
-#include <iostream>
-#include <sstream>
-#include <string>
-#include "../../src/incident/IncidentInput.h"
-#include "../../src/inhomo/ConfigFiber.h"
-#include "../../src/inhomo/Fiber.h"
+#include "../test.h"
 
 namespace mss {
 
@@ -161,13 +152,39 @@ TEST_F(FiberTest, Solve) {
   FiberTest_ReadCoeff("fiber/Coeff_SH1.dat", sc, in);
   EXPECT_TRUE(ApproxVectRV(sc, f3.Solve({&inSH}), 1e-4));
 }
-TEST_F(FiberTest, DISABLED_Scatter) {
+TEST_F(FiberTest, Modes) {
+  for (int n = -30; n <= 30; n++) {
+    // Specific point:
+    double x = 23e-3, y = 12e-3;
+    CS p(x, y);
+    // The center of the fiber f3 is at the origin. So the r and theta:
+    double r = sqrt(x * x + y * y);
+    double t = atan(y / x);
+    // The wave number of the matrix:
+    double km = matrix2.KT();
+    // State:
+    dcomp w   = Hn(n, km * r) * exp(ii * double(n) * t);
+    dcomp tzr = matrix2.Material().Mu() * km * 0.5 *
+                (Hn(n - 1, km * r) - Hn(n + 1, km * r)) *
+                exp(ii * double(n) * t);
+    dcomp tzt = matrix2.Material().Mu() * ii * double(n) * w / r;
+    Vector<dcomp> tt(tzr, tzt);
+    // Rotate CS:
+    tt.RotateInPlace(-t);
+    // Normalizer:
+    dcomp norm = Hn(n, km * f3.Radius());
+    // Result:
+    StateAP st(w / norm, tt / norm);
+    EXPECT_EQ(f3.ScatterMode(&p, 30 + n), st);
+  }
+}
+TEST_F(FiberTest, Scatter) {
   f3.SetCoeff(f3.Solve({&inSH}));
   std::vector<StateAP> ref, com;
   FiberTest_ReadSample(f3, "fiber/Line_sc_SH1.dat", ref, com, sampleCS_);
-
-  EXPECT_EQ(ref.size(), 1000);
-  EXPECT_THAT(ref, testing::Eq(com));
+  EXPECT_EQ(ref.size(), 100);
+  const double re = 1e-5;
+  for (size_t i = 0; i < 100; i++) EXPECT_TRUE(ref[i].isApprox(com[i], re));
 }
 
 }  // namespace test

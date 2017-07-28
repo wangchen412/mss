@@ -19,14 +19,7 @@
 
 // Test plane incident wave classes.
 
-#include <gmock/gmock.h>
-#include <gtest/gtest.h>
-#include <fstream>
-#include <iomanip>
-#include <iostream>
-#include <sstream>
-#include <string>
-#include "../../src/incident/IncidentInput.h"
+#include "../test.h"
 
 namespace mss {
 

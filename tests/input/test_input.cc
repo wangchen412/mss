@@ -19,14 +19,7 @@
 
 // Test input classes.
 
-#include <gmock/gmock.h>
-#include <gtest/gtest.h>
-#include <fstream>
-#include <iomanip>
-#include <iostream>
-#include <sstream>
-#include <string>
-#include "../../src/pre/Input.h"
+#include "../test.h"
 
 namespace mss {
 
