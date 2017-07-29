@@ -21,7 +21,7 @@
 #define MSS_CONFIGFIBER_H
 
 #include "../core/Matrix.h"
-#include "../core/State.h"
+#include "../core/Modes.h"
 #include "../incident/Incident.h"
 #include "../pre/Input.h"
 
@@ -70,11 +70,6 @@ class ConfigFiber {
   const double& KT_m() const { return matrix_->KT(); }
   const CSCPtrs& Node() const { return node_; }
 
-  T ModeT(const CS* localCS, const CS* objCS, const EigenFunctor& f,
-          const class Material& mat) const;
-  T ModeL(const CS* localCS, const CS* objCS, const EigenFunctor& f,
-          const class Material& mat) const;
-
   // Functions for the factor T_n: B_n = T_n A_n.
   // tL is for longitude modes and tT is for transverse modes.
   dcomp TL(int n) const;  // TODO: T-matrix for in-plane problem.
@@ -122,86 +117,13 @@ inline void ConfigFiber<T>::delete_node() {
   for (auto i : node_) delete i;
 }
 template <>
-StateIP ConfigFiber<StateIP>::ModeL(const CS* localCS, const CS* objCS,
-                                    const EigenFunctor& f,
-                                    const class Material& m) const {
-  /// Return the effect of the longitude mode in in-plane problems.
-
-  // Position in the local CS, which is seen as a polar CS:
-  const PosiVect pc = objCS->PositionIn(localCS);
-  const PosiVect p  = pc.Polar();
-  const double& r   = p.x;
-  const CS cs(pc, p.y, localCS);
-
-  // Displacement in the local CS:
-  dcomp ur = f.dr(p);
-  dcomp ut = f.dt(p) / r;
-
-  // Stress in the local CS:
-  dcomp grr  = f.ddr(p);
-  dcomp gtt  = ur / r + f.ddt(p) / r / r;
-  dcomp grt  = 2.0 * (f.drdt(r) / r - ut / r);
-  StressIP t = m.C(grr, gtt, grt);
-
-  // Normalized state in the objective CS.
-  return StateIP(ur, ut, t, &cs).in(objCS) / f(CharLength());
-}
-template <>
-StateIP ConfigFiber<StateIP>::ModeT(const CS* localCS, const CS* objCS,
-                                    const EigenFunctor& f,
-                                    const class Material& m) const {
-  /// Return the effect of the transverse mode in in-plane problems.
-
-  // Position in the local CS, which is seen as a polar CS:
-  const PosiVect pc = objCS->PositionIn(localCS);
-  const PosiVect p  = pc.Polar();
-  const double& r   = p.x;
-  const CS cs(pc, p.y, localCS);
-
-  // Displacement in the local CS:
-  dcomp ur = f.dt(r) / r;
-  dcomp ut = -f.dr(r);
-
-  // Stress in the local CS:
-  dcomp grr  = f.drdt(r) / r;
-  dcomp gtt  = ur / r - f.drdt(r) / r;
-  dcomp grt  = f.ddt(r) / r / r - f.ddr(r) - ut / r;
-  StressIP t = m.C(grr, gtt, grt);
-
-  // Normalized state in the objective CS.
-  return StateIP(ur, ut, t, &cs).in(objCS) / f(CharLength());
-}
-template <>
-StateAP ConfigFiber<StateAP>::ModeT(const CS* localCS, const CS* objCS,
-                                    const EigenFunctor& f,
-                                    const class Material& m) const {
-  /// Return the effect of the transverse mode in antiplane problems.
-
-  // Position in the local CS, which is seen as a polar CS:
-  const PosiVect pc = objCS->PositionIn(localCS);
-  const PosiVect p  = pc.Polar();
-  const double& r   = p.x;
-  const CS cs(pc, p.y, localCS);
-
-  // Displacement in the local CS:
-  DispAP w = f(p);
-
-  // Stress in the local CS:
-  dcomp gzr  = f.dr(p);
-  dcomp gzt  = f.dt(p) / r;
-  StressAP t = m.C(gzr, gzt);
-
-  // Normalized state in the objective CS.
-  return StateAP(w, t, &cs).in(objCS) / f(CharLength());
-}
-template <>
 dcomp ConfigFiber<StateAP>::TT(int n) const {
   BesselFunctor Jf(Jn, n, KT()), Jm(Jn, n, KT_m()), Hm(Hn, n, KT_m());
   dcomp mJf = Jf.dr(R_) * Material().Mu();
   dcomp mJm = Jm.dr(R_) * Matrix()->Material().Mu();
   dcomp mHm = Hm.dr(R_) * Matrix()->Material().Mu();
 
-  return (mJm - mHm * (Jm(R_) / Hm(R_))) / (mJm - mJf * (Jm(R_) / Jf(R_)));
+  return (mJm * Hm(R_) - mHm * Jm(R_)) / (mJm * Jf(R_) - mJf * Jm(R_));
 }
 template <>
 void ConfigFiber<StateAP>::compute_MatrixQ() {
@@ -209,8 +131,8 @@ void ConfigFiber<StateAP>::compute_MatrixQ() {
     dcomp tn = TT(n);
     EigenFunctor J(Jn, n, KT()), H(Hn, n, KT_m());
     for (size_t i = 0; i < P_; i++) {
-      StateAP s = ModeT(nullptr, node_[i], J, Material()) * tn -
-                  ModeT(nullptr, node_[i], H, Material_m());
+      StateAP s = ModeT<StateAP>(nullptr, node_[i], J, Material()) * tn -
+                  ModeT<StateAP>(nullptr, node_[i], H, Material_m());
       Q_(i * 2, n + N_)     = s.Displacement().x;
       Q_(i * 2 + 1, n + N_) = s.Stress().x;
     }

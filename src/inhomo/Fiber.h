@@ -145,27 +145,25 @@ inline StateAP Fiber<StateAP>::InnerMode(const CS* objCS,
 }
 template <typename T>
 inline T Fiber<T>::scatterModeL(const CS* objCS, int n) const {
-  return config_->ModeL(this->LocalCS(), objCS,
-                        EigenFunctor(Hn, n, config_->KL_m()),
-                        config_->Material_m());
+  return ModeL<T>(this->LocalCS(), objCS,
+                  EigenFunctor(Hn, n, config_->KL_m()),
+                  config_->Material_m());
 }
 template <typename T>
 inline T Fiber<T>::innerModeL(const CS* objCS, int n) const {
-  return config_->ModeL(this->LocalCS(), objCS,
-                        EigenFunctor(Jn, n, config_->KL()),
-                        config_->Material());
+  return ModeL<T>(this->LocalCS(), objCS, EigenFunctor(Jn, n, config_->KL()),
+                  config_->Material());
 }
 template <typename T>
 inline T Fiber<T>::scatterModeT(const CS* objCS, int n) const {
-  return config_->ModeT(this->LocalCS(), objCS,
-                        EigenFunctor(Hn, n, config_->KT_m()),
-                        config_->Material_m());
+  return ModeT<T>(this->LocalCS(), objCS,
+                  EigenFunctor(Hn, n, config_->KT_m()),
+                  config_->Material_m());
 }
 template <typename T>
 inline T Fiber<T>::innerModeT(const CS* objCS, int n) const {
-  return config_->ModeT(this->LocalCS(), objCS,
-                        EigenFunctor(Jn, n, config_->KT()),
-                        config_->Material());
+  return ModeT<T>(this->LocalCS(), objCS, EigenFunctor(Jn, n, config_->KT()),
+                  config_->Material());
 }
 template <typename T>
 inline void Fiber<T>::add_node() {

@@ -64,7 +64,7 @@ TEST_F(SolutionSingleTest, Constructor) {
   EXPECT_EQ(s.Incident()[0]->Phase(), 3.4);
   EXPECT_EQ(s.Incident()[1]->Phase(), 4.3);
 }
-TEST_F(SolutionSingleTest, Coefficient) {
+TEST_F(SolutionSingleTest, DISABLED_Coefficient) {
   s.Solve();
   Eigen::VectorXcd ref(61);
   SolutionTest_ReadCoeff("/solution/Single_SH1.dat", ref);

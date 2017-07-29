@@ -20,7 +20,7 @@
 #ifndef MSS_FUNCTORS_H
 #define MSS_FUNCTORS_H
 
-#include "Tensor.h"
+#include "State.h"
 
 namespace mss {
 
@@ -31,23 +31,24 @@ class BesselFunctor {
   /// The functor for the Bessel functions: Bessel(n, k * r).
 
  public:
-  BesselFunctor(BesselFunc f, int n, const double& k) : f(f), n(n), k(k) {}
+  BesselFunctor(BesselFunc f, int n, const double& k)
+      : f(f), n(n), k(k), norm(f(n, k)) {}
+
+  dcomp operator()(const double& r) const { return f(n, k * r) / norm; }
+  dcomp dr(const double& r) const { return k * d(k * r) / norm; }
+  dcomp ddr(const double& r) const { return k * k * dd(k * r) / norm; }
+
+ private:
+  BesselFunc f;
+  int n;
+  double k;
+  dcomp norm;
 
   // The derivatives for dBessel(x) / dx:
   dcomp d(const double& x) const { return 0.5 * (f(n - 1, x) - f(n + 1, x)); }
   dcomp dd(const double& x) const {
     return 0.25 * (f(n - 2, x) - 2.0 * f(n, x) + f(n + 2, x));
   }
-
-  // dBessel(k*r) / dr:
-  dcomp operator()(const double& r) const { return f(n, k * r); }
-  dcomp dr(const double& r) const { return k * d(k * r); }
-  dcomp ddr(const double& r) const { return k * k * dd(k * r); }
-
- private:
-  BesselFunc f;
-  int n;
-  double k;
 };
 
 class ExpFunctor {

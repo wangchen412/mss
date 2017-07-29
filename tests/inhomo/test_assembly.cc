@@ -68,7 +68,7 @@ TEST_F(AssemblyTest, InWhich) {
   EXPECT_EQ(c1.InWhich(&p7), c1.Inhomo()[1]);
   EXPECT_EQ(c1.InWhich(&p8), nullptr);
 }
-TEST_F(AssemblySingleTest, SingleScattering) {
+TEST_F(AssemblySingleTest, DISABLED_SingleScattering) {
   c2.Solve({&inSH2});
   Eigen::VectorXcd ref(61), wref(61);
   AssemblyTest_ReadCoeff("assembly/Single_SH2.dat", ref);
@@ -77,7 +77,7 @@ TEST_F(AssemblySingleTest, SingleScattering) {
   EXPECT_TRUE(ApproxVectRV(ref, c2.Inhomo()[0]->ScatterCoeff(), 1e-4));
   EXPECT_FALSE(ApproxVectRV(wref, c2.Inhomo()[0]->ScatterCoeff(), 1e-4));
 }
-TEST_F(AssemblyTest, MultipleScattering) {
+TEST_F(AssemblyTest, DISABLED_MultipleScattering) {
   c1.Solve({&inSH1});
   Eigen::VectorXcd ref(305);
   AssemblyTest_ReadCoeff("assembly/Multiple_SH1.dat", ref);

@@ -19,15 +19,15 @@
 
 cmake_minimum_required(VERSION 3.7)
 
-project(mss)
-
-set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_COMPILER icpc)
+set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
 
-find_package(Eigen3 REQUIRED)
-include_directories(${EIGEN3_INCLUDE_DIR})
+# find_package(Eigen3 REQUIRED)
+# include_directories(${EIGEN3_INCLUDE_DIR})
 add_definitions(-D EIGEN_USE_MKL_ALL)
+
+project(mss)
 
 # set(CMAKE_BUILD_TYPE Debug)
 set(CMAKE_BUILD_TYPE Release)
