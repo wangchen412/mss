@@ -28,16 +28,15 @@ namespace test {
 typedef input::Solution* CreateInputFunc();
 
 input::Solution* ReadInput() {
-  return new input::Solution(testDataPath(__FILE__) + "input.txt");
+  return new input::Solution(Test::DataPath(__FILE__, "input.txt"));
 }
 
 input::Solution* ReadWritten() {
-  input::Solution s(testDataPath(__FILE__) + "input.txt");
-  std::ofstream file(testDataPath(__FILE__) + "output.txt");
+  input::Solution s(Test::DataPath(__FILE__, "input.txt"));
+  std::ofstream file(Test::DataPath(__FILE__, "output.txt"));
   s.Print(file);
   file.close();
-  return new input::Solution(testDataPath(__FILE__) +
-                             std::string("output.txt"));
+  return new input::Solution(Test::DataPath(__FILE__, "output.txt"));
 }
 
 class InputTest : public testing::TestWithParam<CreateInputFunc*> {

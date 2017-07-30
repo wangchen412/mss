@@ -25,15 +25,10 @@ namespace mss {
 
 namespace test {
 
-class CSTest : public testing::Test {
+class CSTest : public Test {
  protected:
-  CSTest() : a(), b(3, 4, t), c(-1, -2, -t, &b), d(4, -5, -pi / 2, &a) {}
-
-  const double at34 = atan(0.75);
-  const double at54 = atan(1.25);
-  const double t    = pi - at34;
-
-  CS a, b, c, d;
+  const double at34 = atan(0.75), at54 = atan(1.25), t = pi - at34;
+  CS a{}, b{3, 4, t}, c{-1, -2, -t, &b}, d{4, -5, -pi / 2, &a};
 };
 
 TEST_F(CSTest, Constructors) {

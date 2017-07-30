@@ -25,32 +25,18 @@ namespace mss {
 
 namespace test {
 
-class VectorTest : public testing::Test {
+class VectorTest : public Test {
  protected:
-  VectorTest()
-      : a(),
-        b(1.2),
-        c(0, 3.4),
-        d(1.2, 3.4),
-        aa(),
-        bb(1.2 + 3.4 * ii),
-        cc(0, 5.6 - 7.8 * ii),
-        dd(1.2 + 3.4 * ii, 5.6 - 7.8 * ii) {}
-
-  Vector<double> a, b, c, d;
-  Vector<dcomp> aa, bb, cc, dd;
+  Vector<double> a{}, b{1.2}, c{0, 3.4}, d{1.2, 3.4};
+  Vector<dcomp> aa{}, bb{1.2 + 3.4 * ii}, cc{0, 5.6 - 7.8 * ii};
+  Vector<dcomp> dd{1.2 + 3.4 * ii, 5.6 - 7.8 * ii};
 };
+
 class TensorTest : public testing::Test {
  protected:
-  TensorTest()
-      : a(),
-        b(1.2 + 3.4 * ii),
-        c(1.2 + 3.4 * ii, 5.6 - 7.8 * ii),
-        d(1.2 + 3.4 * ii, 5.6 - 7.8 * ii, 9.0 + 1.2 * ii),
-        e(0, 5.6 - 7.8 * ii, 9.0 + 1.2 * ii),
-        f(0, 0, 9.0 + 1.2 * ii) {}
-
-  Tensor<dcomp> a, b, c, d, e, f;
+  Tensor<dcomp> a{}, b{1.2 + 3.4 * ii}, c{1.2 + 3.4 * ii, 5.6 - 7.8 * ii};
+  Tensor<dcomp> d{1.2 + 3.4 * ii, 5.6 - 7.8 * ii, 9.0 + 1.2 * ii};
+  Tensor<dcomp> e{0, 5.6 - 7.8 * ii, 9.0 + 1.2 * ii}, f{0, 0, 9.0 + 1.2 * ii};
 };
 
 TEST(MathTest, ConstantsTest) {

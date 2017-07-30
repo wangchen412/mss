@@ -25,10 +25,11 @@ namespace mss {
 
 namespace test {
 
-class StateTest : public testing::Test {
+class StateTest : public Test {
  protected:
   StateTest()
-      : cs1(3, 4, t),
+      : Test(__FILE__, "state"),
+        cs1(3, 4, t),
         cs2(-1, -2, -t, &cs1),
         cs3(-1, -10, -pi / 2, &cs2),
         a(),
@@ -115,8 +116,7 @@ TEST_F(StateTest, in) {
   EXPECT_EQ(dd.in(&cs3), bb.in(&cs3));
 }
 TEST_F(StateTest, IO) {
-  string src(__FILE__);
-  string fn = src.replace(src.end() - 13, src.end(), "data/state/TestIO.txt");
+  std::string fn = path("TestIO.txt");
   ofstream outFile(fn);
   outFile.precision(16);
   outFile << a << " " << b << " " << c << " " << d << " " << aa << " " << bb

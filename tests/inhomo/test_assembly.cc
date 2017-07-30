@@ -23,35 +23,25 @@ namespace mss {
 
 namespace test {
 
-class AssemblyTest : public testing::Test {
+class AssemblyTest : public Test {
  protected:
-  input::Solution s1{testDataPath(__FILE__) + "assembly/Multiple.txt"};
-  Matrix matrix1{s1};
-  ConfigAssembly<StateAP> c1{"c1", s1.config(), &matrix1};
-  IncidentPlaneSH inSH1{matrix1, s1.incident()[0]};
-};
+  AssemblyTest() : Test(__FILE__, "assembly") {}
 
-class AssemblySingleTest : public testing::Test {
- protected:
-  input::Solution s2{testDataPath(__FILE__) + "assembly/Single.txt"};
-  Matrix matrix2{s2};
-  ConfigAssembly<StateAP> c2{"c2", s2.config(), &matrix2};
-  IncidentPlaneSH inSH2{matrix2, s2.incident()[0]};
+  input::Solution s{path("input.txt")};
+  Matrix matrix{s};
+  ConfigAssembly<StateAP> c{"Test", s.config(), &matrix};
+  IncidentPlaneSH inSH1{matrix, s.incident()[0]};
+  IncidentPlaneSH inSH2{matrix, s.incident()[1]};
+  InciCPtrs<StateAP> incident{&inSH1, &inSH2};
 };
-
-void AssemblyTest_ReadCoeff(const std::string& fn, Eigen::VectorXcd& sc) {
-  std::ifstream file(testDataPath(__FILE__) + fn);
-  for (int i = 0; i < sc.size(); i++) file >> sc(i);
-  file.close();
-}
 
 TEST_F(AssemblyTest, Constructor) {
-  EXPECT_EQ(c1.ID(), "c1");
-  EXPECT_EQ(c1.Inhomo()[0]->Position(), PosiVect(0, 0));
-  EXPECT_EQ(c1.Inhomo()[1]->Position(), PosiVect(18e-3, 18e-3));
-  EXPECT_EQ(c1.Inhomo()[2]->Position(), PosiVect(-18e-3, -18e-3));
-  EXPECT_EQ(c1.Inhomo()[3]->Position(), PosiVect(-18e-3, 18e-3));
-  EXPECT_EQ(c1.Inhomo()[4]->Position(), PosiVect(18e-3, -18e-3));
+  EXPECT_EQ(c.ID(), "Test");
+  EXPECT_EQ(c.Inhomo()[0]->Position(), PosiVect(0, 0));
+  EXPECT_EQ(c.Inhomo()[1]->Position(), PosiVect(18e-3, 18e-3));
+  EXPECT_EQ(c.Inhomo()[2]->Position(), PosiVect(-18e-3, -18e-3));
+  EXPECT_EQ(c.Inhomo()[3]->Position(), PosiVect(-18e-3, 18e-3));
+  EXPECT_EQ(c.Inhomo()[4]->Position(), PosiVect(18e-3, -18e-3));
 }
 TEST_F(AssemblyTest, InWhich) {
   CS p1(0, 0), p2(12e-3, 0), p3(17e-3, 17e-3), p4(-11e-3, -11e-3),
@@ -59,34 +49,39 @@ TEST_F(AssemblyTest, InWhich) {
       p7(21e-3 - epsilon, 22e-3 - epsilon),
       p8(21e-3 + epsilon, 22e-3 + epsilon);
 
-  EXPECT_EQ(c1.InWhich(&p1), c1.Inhomo()[0]);
-  EXPECT_EQ(c1.InWhich(&p2), nullptr);
-  EXPECT_EQ(c1.InWhich(&p3), c1.Inhomo()[1]);
-  EXPECT_EQ(c1.InWhich(&p4), nullptr);
-  EXPECT_EQ(c1.InWhich(&p5), c1.Inhomo()[4]);
-  EXPECT_EQ(c1.InWhich(&p6), nullptr);
-  EXPECT_EQ(c1.InWhich(&p7), c1.Inhomo()[1]);
-  EXPECT_EQ(c1.InWhich(&p8), nullptr);
+  EXPECT_EQ(c.InWhich(&p1), c.Inhomo()[0]);
+  EXPECT_EQ(c.InWhich(&p2), nullptr);
+  EXPECT_EQ(c.InWhich(&p3), c.Inhomo()[1]);
+  EXPECT_EQ(c.InWhich(&p4), nullptr);
+  EXPECT_EQ(c.InWhich(&p5), c.Inhomo()[4]);
+  EXPECT_EQ(c.InWhich(&p6), nullptr);
+  EXPECT_EQ(c.InWhich(&p7), c.Inhomo()[1]);
+  EXPECT_EQ(c.InWhich(&p8), nullptr);
 }
-TEST_F(AssemblySingleTest, DISABLED_SingleScattering) {
-  c2.Solve({&inSH2});
-  Eigen::VectorXcd ref(61), wref(61);
-  AssemblyTest_ReadCoeff("assembly/Single_SH2.dat", ref);
-  AssemblyTest_ReadCoeff("assembly/Single_SH1.dat", wref);
-
-  EXPECT_TRUE(ApproxVectRV(ref, c2.Inhomo()[0]->ScatterCoeff(), 1e-4));
-  EXPECT_FALSE(ApproxVectRV(wref, c2.Inhomo()[0]->ScatterCoeff(), 1e-4));
-}
-TEST_F(AssemblyTest, DISABLED_MultipleScattering) {
-  c1.Solve({&inSH1});
+TEST_F(AssemblyTest, DISABLED_Solve) {
+  c.Solve(incident);
   Eigen::VectorXcd ref(305);
-  AssemblyTest_ReadCoeff("assembly/Multiple_SH1.dat", ref);
+  ReadCoeff("Coeff_SH.dat", ref);
 
   for (int i = 0; i < 5; i++) {
     Eigen::VectorXcd rr = ref.segment(61 * i, 61),
-                     cc = c1.Inhomo()[i]->ScatterCoeff();
+                     cc = c.Inhomo()[i]->ScatterCoeff();
     EXPECT_TRUE(ApproxVectRV(rr, cc, 1e-5, 10));
   }
+}
+TEST_F(AssemblyTest, Scatter) {
+  std::vector<StateAP> ref, com;
+  ReadSample("Area_SH.dat", ref);
+  //EXPECT_EQ(ref.size(), 100);
+
+  c.Solve(incident);
+  for (auto& i : SamplePts(0)) com.emplace_back(c.Resultant(i, incident));
+  //EXPECT_EQ(com.size(), 100);
+
+  std::cout << ref[0] << std::endl << com[0] << std::endl;;
+
+  EXPECT_TRUE(ref[0].isApprox(com[0], 1e-5));
+//  for (size_t i = 0; i < 100; i++) EXPECT_TRUE(ref[i].isApprox(com[i], 1e-5));
 }
 
 }  // namespace test

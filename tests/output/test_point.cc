@@ -23,11 +23,13 @@ namespace mss {
 
 namespace test {
 
-// class PointTest : public testing::Test {
-// protected:
-//   input::Solution s1{testDataPath(__FILE__) + "Single.txt"};
-//   Matrix matrix1{s1};
-// };
+class PointTest : public testing::Test {
+protected:
+  input::Solution s1{testDataPath(__FILE__) + "input.txt"};
+  
+
+};
+
 }
 
 }  // namespace mss

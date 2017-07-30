@@ -23,62 +23,57 @@ namespace mss {
 
 namespace test {
 
-class SolutionSingleTest : public testing::Test {
+class SolutionTest : public Test {
  protected:
-  ~SolutionSingleTest() {
-    for (auto& i : sampleCS_) delete i;
-  }
-  input::Solution in{testDataPath(__FILE__) + "/solution/Single.txt"};
-  Solution<StateAP> s{in};
-  CSCPtrs sampleCS_;
+  SolutionTest() : Test(__FILE__, "solution") {}
+
+  input::Solution inS{path("Single.txt")};
+  Solution<StateAP> s{inS};
 };
 
-template <typename T>
-void SolutionTest_ReadSample(const Solution<T>& s, const std::string& fn,
-                             std::vector<T>& ref, std::vector<T>& com,
-                             CSCPtrs& sampleCS) {
-  std::ifstream file(testDataPath(__FILE__) + fn);
-  std::string ts;
-  while (std::getline(file, ts)) {
-    std::stringstream tss(ts);
-    PosiVect r;
-    T st;
-    tss >> r >> st;
-    sampleCS.push_back(new CS(r));
-    ref.emplace_back(st);
-    com.emplace_back(s.Resultant(sampleCS.back()));
-  }
-  file.close();
-}
-
-void SolutionTest_ReadCoeff(const std::string& fn, Eigen::VectorXcd& sc) {
-  std::ifstream file(testDataPath(__FILE__) + fn);
-  for (int i = 0; i < sc.size(); i++) file >> sc(i);
-  file.close();
-}
-
-TEST_F(SolutionSingleTest, Constructor) {
+TEST_F(SolutionTest, Constructor) {
   EXPECT_EQ(s.Incident().size(), 2);
   EXPECT_EQ(s.Incident()[0]->Amplitude(), 2.3e-6);
   EXPECT_EQ(s.Incident()[1]->Amplitude(), 3.2e-6);
   EXPECT_EQ(s.Incident()[0]->Phase(), 3.4);
   EXPECT_EQ(s.Incident()[1]->Phase(), 4.3);
 }
-TEST_F(SolutionSingleTest, DISABLED_Coefficient) {
+TEST_F(SolutionTest, DISABLED_Coefficient) {
   s.Solve();
+
   Eigen::VectorXcd ref(61);
-  SolutionTest_ReadCoeff("/solution/Single_SH1.dat", ref);
+  ReadCoeff("Single_SH1.dat", ref);
+
   EXPECT_TRUE(
       ApproxVectRV(ref, s.Config().Inhomo()[0]->ScatterCoeff(), 1e-4));
 }
-TEST_F(SolutionSingleTest, SampleLine) {
+TEST_F(SolutionTest, SampleLine) {
   s.Solve();
+
   std::vector<StateAP> ref, com;
-  SolutionTest_ReadSample(s, "/solution/SampleLine_SH1.dat", ref, com,
-                          sampleCS_);
-  EXPECT_EQ(ref.size(), 1000);
+  ReadSample("SampleLine_SH1.dat", ref);
+
+  EXPECT_EQ(ref.size(), 100);
+  for (auto& i : SamplePts(0)) com.emplace_back(s.Resultant(i));
+  EXPECT_EQ(com.size(), 100);
+
   const double re = 1e-4;
-  for (size_t i = 0; i < 1000; i++) EXPECT_TRUE(ref[i].isApprox(com[i], re));
+  for (size_t i = 0; i < 100; i++) EXPECT_TRUE(ref[i].isApprox(com[i], re));
+}
+TEST_F(SolutionTest, MsSampleLine) {
+  input::Solution inM{path("Multiple.txt")};
+  Solution<StateAP> ss{inM};
+  ss.Solve();
+
+  std::vector<StateAP> ref, com;
+  ReadSample("SampleLine_SH2.dat", ref);
+
+  EXPECT_EQ(ref.size(), 100);
+  for (auto& i : SamplePts(0)) com.emplace_back(s.Resultant(i));
+  EXPECT_EQ(com.size(), 100);
+
+  const double re = 1e-4;
+  for (size_t i = 0; i < 100; i++) EXPECT_TRUE(ref[i].isApprox(com[i], re));
 }
 
 }  // namespace test

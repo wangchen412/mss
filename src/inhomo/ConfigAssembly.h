@@ -64,6 +64,7 @@ class ConfigAssembly {
   Inhomogeneity<T>* InWhich(const CS* objCS) const;
   T Resultant(const CS* objCS, const Inhomogeneity<T>* inhomo,
               const InciCPtrs<T>& incident) const;
+  T Resultant(const CS* objCS, const InciCPtrs<T>& incident) const;
 
   void PrintCoeff(std::ostream& os) const;
 
@@ -153,6 +154,12 @@ T ConfigAssembly<T>::Resultant(const CS* objCS, const Inhomogeneity<T>* in,
     for (auto& i : inhomo_) rst += i->Scatter(objCS);
   }
   return rst;
+}
+
+template <typename T>
+T ConfigAssembly<T>::Resultant(const CS* objCS,
+                               const InciCPtrs<T>& incident) const {
+  return Resultant(objCS, InWhich(objCS), incident);
 }
 
 template <typename T>

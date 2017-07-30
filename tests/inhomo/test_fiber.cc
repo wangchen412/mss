@@ -23,19 +23,16 @@ namespace mss {
 
 namespace test {
 
-class FiberTest : public testing::Test {
+class FiberTest : public Test {
  protected:
-  ~FiberTest() {
-    for (auto& i : sampleCS_) delete i;
-  }
-  CSCPtrs sampleCS_;
+  FiberTest() : Test(__FILE__, "fiber") {}
 
   const double omega = 1.25664e6;
   Material rubber    = {1300, 1.41908e9, 0.832e9};
   Material lead      = {11400, 36.32496e9, 8.43e9};
   Matrix matrix      = {rubber, omega};
 
-  input::Solution s2{testDataPath(__FILE__) + "fiber/input.txt"};
+  input::Solution s2{path("input.txt")};
   Matrix matrix2{s2};
 
   ConfigFiber<StateIP> c1 = {"c1", 30, 300, 1e-3, lead, &matrix};
@@ -47,31 +44,6 @@ class FiberTest : public testing::Test {
   Fiber<StateAP> f2 = {&c2, {1, 2}};
   Fiber<StateAP> f3 = {&c3};
 };
-
-void FiberTest_ReadCoeff(const std::string& fn, Eigen::VectorXcd& sc,
-                         Eigen::VectorXcd& in) {
-  std::ifstream file(testDataPath(__FILE__) + fn);
-  for (int i = 0; i < sc.size(); i++) file >> sc(i);
-  for (int i = 0; i < in.size(); i++) file >> in(i);
-  file.close();
-}
-
-template <typename T>
-void FiberTest_ReadSample(const Fiber<T>& f, const std::string& fn,
-                          std::vector<T>& ref, std::vector<T>& com,
-                          CSCPtrs& sampleCS) {
-  std::ifstream file(testDataPath(__FILE__) + fn);
-  std::string ts;
-  while (std::getline(file, ts)) {
-    std::stringstream tss(ts);
-    PosiVect r;
-    T st;
-    tss >> r >> st;
-    sampleCS.push_back(new CS(r));
-    ref.emplace_back(st);
-    com.emplace_back(f.Scatter(sampleCS.back()));
-  }
-}
 
 TEST_F(FiberTest, ConfigCtor) {
   EXPECT_EQ(c1.TransMatrix().rows(), 1200);
@@ -140,17 +112,18 @@ TEST_F(FiberTest, DISABLED_TT) {
   // Compare with the results computed by previous version of mss.
   // The acceptable relative error is set as 1e-9.
 
-  Eigen::VectorXcd sc(61), in(61);
-  FiberTest_ReadCoeff("fiber/Coeff_SH1.dat", sc, in);
-  for (int i = 0; i < 61; i++) sc(i) *= f3.Config()->TT(i - 30);
-  EXPECT_TRUE(ApproxVectRV(sc, in, 1e-9));
+  Eigen::VectorXcd ref(122);
+  ReadCoeff("Coeff_SH1.dat", ref);
+  for (int i = 61; i < 122; i++) ref(i) *= f3.Config()->TT(i - 30);
+  EXPECT_TRUE(ApproxVectRV(Eigen::VectorXcd(ref.segment(0, 61)),
+                           Eigen::VectorXcd(ref.segment(61, 61)), 1e-9));
 }
 TEST_F(FiberTest, DISABLED_Solve) {
   // The acceptable relative error is set as 1e-4.
 
-  Eigen::VectorXcd sc(61), in(61);
-  FiberTest_ReadCoeff("fiber/Coeff_SH1.dat", sc, in);
-  EXPECT_TRUE(ApproxVectRV(sc, f3.Solve({&inSH}), 1e-4));
+  Eigen::VectorXcd ref(61);
+  ReadCoeff("Coeff_SH1.dat", ref);
+  EXPECT_TRUE(ApproxVectRV(ref, f3.Solve({&inSH}), 1e-4));
 }
 TEST_F(FiberTest, Modes) {
   for (int n = -30; n <= 30; n++) {
@@ -179,12 +152,15 @@ TEST_F(FiberTest, Modes) {
   }
 }
 TEST_F(FiberTest, Scatter) {
-  f3.SetCoeff(f3.Solve({&inSH}));
   std::vector<StateAP> ref, com;
-  FiberTest_ReadSample(f3, "fiber/Line_sc_SH1.dat", ref, com, sampleCS_);
+  ReadSample("Line_sc_SH1.dat", ref);
   EXPECT_EQ(ref.size(), 100);
-  const double re = 1e-5;
-  for (size_t i = 0; i < 100; i++) EXPECT_TRUE(ref[i].isApprox(com[i], re));
+
+  f3.SetCoeff(f3.Solve({&inSH}));
+  for (auto& i : SamplePts(0)) com.emplace_back(f3.Scatter(i));
+  EXPECT_EQ(com.size(), 100);
+
+  for (size_t i = 0; i < 100; i++) EXPECT_TRUE(ref[i].isApprox(com[i], 1e-5));
 }
 
 }  // namespace test

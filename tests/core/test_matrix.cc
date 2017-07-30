@@ -25,16 +25,11 @@ namespace mss {
 
 namespace test {
 
-class MatrixTest : public testing::Test {
+class MatrixTest : public Test {
  protected:
-  MatrixTest()
-      : rubber(1300, 1.41908e9, 0.832e9),
-        lead(11400, 36.32496e9, 8.43e9),
-        a(rubber, pi / 2),
-        b(lead, pi) {}
-
-  const Material rubber, lead;
-  Matrix a, b;
+  const Material rubber{1300, 1.41908e9, 0.832e9},
+      lead{11400, 36.32496e9, 8.43e9};
+  Matrix a{rubber, pi / 2}, b{lead, pi};
 };
 
 TEST_F(MatrixTest, Constructors) {
