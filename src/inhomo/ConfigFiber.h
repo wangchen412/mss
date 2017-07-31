@@ -53,7 +53,6 @@ class ConfigFiber {
   virtual ~ConfigFiber() { delete_node(); }
 
   const Eigen::MatrixXcd& TransMatrix() const { return Q_; }
-  const double& CharLength() const { return R_; }
   size_t NoN() const { return P_; }
   size_t NoE() const { return P_ * T::NoBV; }
   size_t NoC() const { return NoC_; }
@@ -118,7 +117,8 @@ inline void ConfigFiber<T>::delete_node() {
 }
 template <>
 dcomp ConfigFiber<StateAP>::TT(int n) const {
-  BesselFunctor Jf(Jn, n, KT()), Jm(Jn, n, KT_m()), Hm(Hn, n, KT_m());
+  BesselFunctor Jf(Jn, n, KT(), R_), Jm(Jn, n, KT_m(), R_);
+  BesselFunctor Hm(Hn, n, KT_m(), R_);
   dcomp mJf = Jf.dr(R_) * Material().Mu();
   dcomp mJm = Jm.dr(R_) * Matrix()->Material().Mu();
   dcomp mHm = Hm.dr(R_) * Matrix()->Material().Mu();
@@ -129,10 +129,11 @@ template <>
 void ConfigFiber<StateAP>::compute_MatrixQ() {
   for (int n = -N_; n <= N_; n++) {
     dcomp tn = TT(n);
-    EigenFunctor J(Jn, n, KT()), H(Hn, n, KT_m());
+    EigenFunctor J(Jn, n, KT(), R_), H(Hn, n, KT_m(), R_);
     for (size_t i = 0; i < P_; i++) {
       StateAP s = ModeT<StateAP>(nullptr, node_[i], J, Material()) * tn -
                   ModeT<StateAP>(nullptr, node_[i], H, Material_m());
+      // Q_.block<2, 1>(2 * i, n + N_) = s.BV();
       Q_(i * 2, n + N_)     = s.Displacement().x;
       Q_(i * 2 + 1, n + N_) = s.Stress().x;
     }

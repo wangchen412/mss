@@ -31,18 +31,18 @@ class BesselFunctor {
   /// The functor for the Bessel functions: Bessel(n, k * r).
 
  public:
-  BesselFunctor(BesselFunc f, int n, const double& k)
-      : f(f), n(n), k(k), norm(f(n, k)) {}
+  BesselFunctor(const BesselFunc f, int n, const double& k, const double& R)
+      : f(f), n(n), k(k), norm(f(n, k * R)) {}
 
   dcomp operator()(const double& r) const { return f(n, k * r) / norm; }
   dcomp dr(const double& r) const { return k * d(k * r) / norm; }
   dcomp ddr(const double& r) const { return k * k * dd(k * r) / norm; }
 
  private:
-  BesselFunc f;
-  int n;
-  double k;
-  dcomp norm;
+  const BesselFunc f;
+  const int n;
+  const double k;
+  const dcomp norm;
 
   // The derivatives for dBessel(x) / dx:
   dcomp d(const double& x) const { return 0.5 * (f(n - 1, x) - f(n + 1, x)); }
@@ -70,7 +70,8 @@ class EigenFunctor {
   /// CS. Eigenfunction: Bessel(n, k * r) * exp(ii * n * t).
 
  public:
-  EigenFunctor(BesselFunc f, int n, const double& k) : f(f, n, k), g(n) {}
+  EigenFunctor(const BesselFunc f, int n, const double& k, const double& R)
+      : f(f, n, k, R), g(n) {}
 
   dcomp operator()(const PosiVect& p) const { return f(p.x) * g(p.y); }
   dcomp dr(const PosiVect& p) const { return f.dr(p.x) * g(p.y); }
@@ -80,8 +81,8 @@ class EigenFunctor {
   dcomp drdt(const PosiVect& p) const { return f.dr(p.x) * g.dt(p.y); }
 
  private:
-  BesselFunctor f;
-  ExpFunctor g;
+  const BesselFunctor f;
+  const ExpFunctor g;
 };
 
 }  // namespace mss

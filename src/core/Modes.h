@@ -59,8 +59,7 @@ inline StateIP ModeL<StateIP>(const CS* localCS, const CS* objCS,
 
 template <>
 inline StateIP ModeT<StateIP>(const CS* localCS, const CS* objCS,
-                              const EigenFunctor& f,
-                              const class Material& m) {
+                              const EigenFunctor& f, const class Material& m) {
   /// Return the effect of the transverse mode in in-plane problems.
 
   // Position in the local CS, which is seen as a polar CS:

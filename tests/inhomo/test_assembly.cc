@@ -25,7 +25,10 @@ namespace test {
 
 class AssemblyTest : public Test {
  protected:
-  AssemblyTest() : Test(__FILE__, "assembly") {}
+  AssemblyTest() : Test(__FILE__, "assembly") {
+    for (auto& i : c.Inhomo())
+      fiberPtrs.push_back(dynamic_cast<Fiber<StateAP>*>(i));
+  }
 
   input::Solution s{path("input.txt")};
   Matrix matrix{s};
@@ -33,6 +36,7 @@ class AssemblyTest : public Test {
   IncidentPlaneSH inSH1{matrix, s.incident()[0]};
   IncidentPlaneSH inSH2{matrix, s.incident()[1]};
   InciCPtrs<StateAP> incident{&inSH1, &inSH2};
+  std::vector<const Fiber<StateAP>*> fiberPtrs;
 };
 
 TEST_F(AssemblyTest, Constructor) {
@@ -42,6 +46,30 @@ TEST_F(AssemblyTest, Constructor) {
   EXPECT_EQ(c.Inhomo()[2]->Position(), PosiVect(-18e-3, -18e-3));
   EXPECT_EQ(c.Inhomo()[3]->Position(), PosiVect(-18e-3, 18e-3));
   EXPECT_EQ(c.Inhomo()[4]->Position(), PosiVect(18e-3, -18e-3));
+
+  EXPECT_EQ(fiberPtrs[0]->Config()->ID(), "b-s");
+  EXPECT_EQ(fiberPtrs[1]->Config()->ID(), "s-h");
+  EXPECT_EQ(fiberPtrs[2]->Config()->ID(), "m-l");
+  EXPECT_EQ(fiberPtrs[3]->Config()->ID(), "m-l");
+  EXPECT_EQ(fiberPtrs[4]->Config()->ID(), "b-s");
+
+  EXPECT_EQ(fiberPtrs[0]->Config()->Material().Mu(), 8.43e9);
+  EXPECT_EQ(fiberPtrs[1]->Config()->Material().Mu(), 80.0698e9);
+  EXPECT_EQ(fiberPtrs[2]->Config()->Material().Mu(), 28.65845e9);
+  EXPECT_EQ(fiberPtrs[3]->Config()->Material().Mu(), 28.65845e9);
+  EXPECT_EQ(fiberPtrs[4]->Config()->Material().Mu(), 8.43e9);
+
+  EXPECT_EQ(fiberPtrs[0]->Config()->Material_m().Mu(), 0.832e9);
+  EXPECT_EQ(fiberPtrs[1]->Config()->Material_m().Mu(), 0.832e9);
+  EXPECT_EQ(fiberPtrs[2]->Config()->Material_m().Mu(), 0.832e9);
+  EXPECT_EQ(fiberPtrs[3]->Config()->Material_m().Mu(), 0.832e9);
+  EXPECT_EQ(fiberPtrs[4]->Config()->Material_m().Mu(), 0.832e9);
+
+  EXPECT_EQ(fiberPtrs[0]->Config()->Radius(), 10e-3);
+  EXPECT_EQ(fiberPtrs[1]->Config()->Radius(), 5e-3);
+  EXPECT_EQ(fiberPtrs[2]->Config()->Radius(), 8e-3);
+  EXPECT_EQ(fiberPtrs[3]->Config()->Radius(), 8e-3);
+  EXPECT_EQ(fiberPtrs[4]->Config()->Radius(), 10e-3);
 }
 TEST_F(AssemblyTest, InWhich) {
   CS p1(0, 0), p2(12e-3, 0), p3(17e-3, 17e-3), p4(-11e-3, -11e-3),
@@ -58,7 +86,7 @@ TEST_F(AssemblyTest, InWhich) {
   EXPECT_EQ(c.InWhich(&p7), c.Inhomo()[1]);
   EXPECT_EQ(c.InWhich(&p8), nullptr);
 }
-TEST_F(AssemblyTest, DISABLED_Solve) {
+TEST_F(AssemblyTest, Solve) {
   c.Solve(incident);
   Eigen::VectorXcd ref(305);
   ReadCoeff("Coeff_SH.dat", ref);
@@ -71,17 +99,14 @@ TEST_F(AssemblyTest, DISABLED_Solve) {
 }
 TEST_F(AssemblyTest, Scatter) {
   std::vector<StateAP> ref, com;
-  ReadSample("Area_SH.dat", ref);
-  //EXPECT_EQ(ref.size(), 100);
+  ReadSample("line_1.dat", ref);
+  EXPECT_EQ(ref.size(), 100);
 
   c.Solve(incident);
   for (auto& i : SamplePts(0)) com.emplace_back(c.Resultant(i, incident));
-  //EXPECT_EQ(com.size(), 100);
+  EXPECT_EQ(com.size(), 100);
 
-  std::cout << ref[0] << std::endl << com[0] << std::endl;;
-
-  EXPECT_TRUE(ref[0].isApprox(com[0], 1e-5));
-//  for (size_t i = 0; i < 100; i++) EXPECT_TRUE(ref[i].isApprox(com[i], 1e-5));
+  for (size_t i = 0; i < 100; i++) EXPECT_TRUE(ref[i].isApprox(com[i], 1e-5));
 }
 
 }  // namespace test

@@ -108,17 +108,17 @@ TEST_F(FiberTest, Contain) {
   EXPECT_FALSE(f2.Contain(&(cs01 += s)));
   EXPECT_TRUE(f2.Contain(&(cs02 += s)));
 }
-TEST_F(FiberTest, DISABLED_TT) {
+TEST_F(FiberTest, TT) {
   // Compare with the results computed by previous version of mss.
   // The acceptable relative error is set as 1e-9.
 
   Eigen::VectorXcd ref(122);
   ReadCoeff("Coeff_SH1.dat", ref);
-  for (int i = 61; i < 122; i++) ref(i) *= f3.Config()->TT(i - 30);
+  for (int i = 0; i < 61; i++) ref(i) *= f3.Config()->TT(i - 30);
   EXPECT_TRUE(ApproxVectRV(Eigen::VectorXcd(ref.segment(0, 61)),
                            Eigen::VectorXcd(ref.segment(61, 61)), 1e-9));
 }
-TEST_F(FiberTest, DISABLED_Solve) {
+TEST_F(FiberTest, Solve) {
   // The acceptable relative error is set as 1e-4.
 
   Eigen::VectorXcd ref(61);
@@ -145,7 +145,7 @@ TEST_F(FiberTest, Modes) {
     // Rotate CS:
     tt.RotateInPlace(-t);
     // Normalizer:
-    dcomp norm = Hn(n, km);
+    dcomp norm = Hn(n, km * 10e-3);
     // Result:
     StateAP st(w / norm, tt / norm);
     EXPECT_EQ(f3.ScatterMode(&p, 30 + n), st);

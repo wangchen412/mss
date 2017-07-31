@@ -45,7 +45,7 @@ class Fiber : public Inhomogeneity<T> {
   size_t NoN() const override { return config_->NoN(); }
   size_t NoE() const override { return config_->NoE(); }
   size_t NoC() const override { return config_->NoC(); }
-  const double& Radius() { return config_->Radius(); }
+  const double& Radius() const { return config_->Radius(); }
 
   void SetCoeff(const Eigen::VectorXcd& solution) override;
   void PrintCoeff(std::ostream& os) const override;
@@ -146,23 +146,25 @@ inline StateAP Fiber<StateAP>::InnerMode(const CS* objCS,
 template <typename T>
 inline T Fiber<T>::scatterModeL(const CS* objCS, int n) const {
   return ModeL<T>(this->LocalCS(), objCS,
-                  EigenFunctor(Hn, n, config_->KL_m()),
+                  EigenFunctor(Hn, n, config_->KL_m(), Radius()),
                   config_->Material_m());
 }
 template <typename T>
 inline T Fiber<T>::innerModeL(const CS* objCS, int n) const {
-  return ModeL<T>(this->LocalCS(), objCS, EigenFunctor(Jn, n, config_->KL()),
+  return ModeL<T>(this->LocalCS(), objCS,
+                  EigenFunctor(Jn, n, config_->KL(), Radius()),
                   config_->Material());
 }
 template <typename T>
 inline T Fiber<T>::scatterModeT(const CS* objCS, int n) const {
   return ModeT<T>(this->LocalCS(), objCS,
-                  EigenFunctor(Hn, n, config_->KT_m()),
+                  EigenFunctor(Hn, n, config_->KT_m(), Radius()),
                   config_->Material_m());
 }
 template <typename T>
 inline T Fiber<T>::innerModeT(const CS* objCS, int n) const {
-  return ModeT<T>(this->LocalCS(), objCS, EigenFunctor(Jn, n, config_->KT()),
+  return ModeT<T>(this->LocalCS(), objCS,
+                  EigenFunctor(Jn, n, config_->KT(), Radius()),
                   config_->Material());
 }
 template <typename T>
