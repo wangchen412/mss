@@ -43,6 +43,8 @@ inline StateIP ModeL<StateIP>(const CS* localCS, const CS* objCS,
   const double& r   = p.x;
   const CS cs(pc, p.y, localCS);
 
+  // TODO when r < epsilon
+
   // Displacement in the local CS:
   dcomp ur = f.dr(p);
   dcomp ut = f.dt(p) / r;
@@ -59,7 +61,8 @@ inline StateIP ModeL<StateIP>(const CS* localCS, const CS* objCS,
 
 template <>
 inline StateIP ModeT<StateIP>(const CS* localCS, const CS* objCS,
-                              const EigenFunctor& f, const class Material& m) {
+                              const EigenFunctor& f,
+                              const class Material& m) {
   /// Return the effect of the transverse mode in in-plane problems.
 
   // Position in the local CS, which is seen as a polar CS:
@@ -67,6 +70,8 @@ inline StateIP ModeT<StateIP>(const CS* localCS, const CS* objCS,
   const PosiVect p  = pc.Polar();
   const double& r   = p.x;
   const CS cs(pc, p.y, localCS);
+
+  // TODO when r < epsilon
 
   // Displacement in the local CS:
   dcomp ur = f.dt(r) / r;
@@ -98,8 +103,11 @@ inline StateAP ModeT<StateAP>(const CS* localCS, const CS* objCS,
   DispAP w = f(p);
 
   // Stress in the local CS:
-  dcomp gzr  = f.dr(p);
-  dcomp gzt  = f.dt(p) / r;
+  dcomp gzr = f.dr(p), gzt;
+  if (r > epsilon)
+    gzt = f.dt(p) / r;
+  else
+    gzt = std::abs(f.N()) == 1 ? 0.5 * ii * f.K() * exp(f.N() * p.y * ii) : 0;
   StressAP t = m.C(gzr, gzt);
 
   // Normalized state in the objective CS.

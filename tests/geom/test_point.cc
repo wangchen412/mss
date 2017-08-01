@@ -44,6 +44,11 @@ TEST_F(PointTest, Constructor) {
 TEST_F(PointTest, Computation) {
   s.Solve();
   post::PointAP p3(&s, {1, 1.03}, 1.5707963267948966);
+  post::PointAP p4(&s, {0, 0});
+  post::PointAP p5(&s, {18e-3, 18e-3});
+  post::PointAP p6(&s, {-18e-3, -18e-3});
+  post::PointAP p7(&s, {-18e-3, 18e-3});
+  post::PointAP p8(&s, {18e-3, -18e-3});
 
   dcomp w    = {1.6587125982302423e-06, -1.7477625866189296e-06};
   dcomp tzx  = {1775443.2580089821, 1989770.6209655141};

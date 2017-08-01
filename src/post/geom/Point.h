@@ -38,7 +38,8 @@ class Point : public Geometry<T> {
   virtual ~Point() {}
 
   friend std::ostream& operator<<(std::ostream& os, const Point<T>& pt) {
-    return os << setMaxPrecision << pt.localCS_ << "\t" << pt.state_;
+    return os << setMaxPrecision << pt.localCS_ << "\t" << pt.state_
+              << std::endl;
   }
 
   const CS* LocalCS() const { return &localCS_; }
@@ -66,7 +67,7 @@ typedef Point<StateAP> PointAP;
 
 template <typename T>
 std::ostream& Point<T>::Print(std::ostream& os) const {
-  return os << *this << std::endl;
+  return os << *this;
 }
 
 }  // namespace post

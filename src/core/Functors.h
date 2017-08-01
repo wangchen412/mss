@@ -71,7 +71,7 @@ class EigenFunctor {
 
  public:
   EigenFunctor(const BesselFunc f, int n, const double& k, const double& R)
-      : f(f, n, k, R), g(n) {}
+      : f(f, n, k, R), g(n), n(n), k(k) {}
 
   dcomp operator()(const PosiVect& p) const { return f(p.x) * g(p.y); }
   dcomp dr(const PosiVect& p) const { return f.dr(p.x) * g(p.y); }
@@ -80,9 +80,15 @@ class EigenFunctor {
   dcomp ddt(const PosiVect& p) const { return f(p.x) * g.ddt(p.y); }
   dcomp drdt(const PosiVect& p) const { return f.dr(p.x) * g.dt(p.y); }
 
+  int N() const { return n; }
+  const double& K() const { return k; }
+
  private:
   const BesselFunctor f;
   const ExpFunctor g;
+
+  const int n;
+  const double k;
 };
 
 }  // namespace mss
