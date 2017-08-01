@@ -29,36 +29,32 @@ namespace post {
 template <typename T>
 class Point : public Geometry<T> {
  public:
-  Point(const PosiVect& position, const Solution<T>* solution,
+  Point(const Solution<T>* solution, const PosiVect& position,
         const double& angle = 0, const std::string& id = "1")
-      : localCS_(position, angle),
-        solution_(solution),
-        in_(solution_->InWhich(&localCS_)),
-        state_(solution_->Resultant(&localCS_, in_)),
-        id_(id) {}
-
+      : Geometry<T>(solution, "Point_" + id),
+        localCS_(position, angle),
+        in_(solution->InWhich(&localCS_)),
+        state_(solution->Resultant(&localCS_, in_)) {}
   virtual ~Point() {}
 
   friend std::ostream& operator<<(std::ostream& os, const Point<T>& pt) {
-    return os << pt.localCS_ << "\t" << pt.state_;
+    return os << setMaxPrecision << pt.localCS_ << "\t" << pt.state_;
   }
 
   const CS* LocalCS() const { return &localCS_; }
   const T& State() const { return state_; }
-  void Write() const;
+
+  std::ostream& Print(std::ostream& os) const override;
 
  private:
-  CS localCS_;
-  const Solution<T>* solution_;  // The position in the global CS.
-  const Inhomogeneity<T>* in_;   // The pointer to the inhomogeneity in which
-                                 // the point is, if the point is in one.
+  const CS localCS_;
+  const Inhomogeneity<T>* in_;  // The pointer to the inhomogeneity in which
+                                // the point is, if the point is in one.
   const T state_;
-  const std::string id_;
 };
 
 template <typename T>
 using PtPtrs = std::vector<Point<T>*>;
-
 template <typename T>
 using PtCPtrs = std::vector<const Point<T>*>;
 
@@ -69,12 +65,8 @@ typedef Point<StateAP> PointAP;
 // Inline functions:
 
 template <typename T>
-void Point<T>::Write() const {
-  std::string fileName = std::string("Point_") + id_ + std::string(".dat");
-  std::ofstream file(fileName);
-  file.precision(17);
-  file << *this << std::endl;
-  file.close();
+std::ostream& Point<T>::Print(std::ostream& os) const {
+  return os << *this << std::endl;
 }
 
 }  // namespace post

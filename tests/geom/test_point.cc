@@ -18,29 +18,41 @@
 // ----------------------------------------------------------------------
 
 #include "../test.h"
+#include "../../src/post/geom/Point.h"
 
 namespace mss {
 
 namespace test {
 
 class PointTest : public Test {
-protected:
+ protected:
   PointTest() : Test(__FILE__) {}
 
   SolutionAP s{path("input.txt")};
-  post::PointAP p1{{1.2, 4.2}, &s}, p2{{5.6, 3.9}, &s, pi/3, "120"};
+  post::PointAP p1{&s, {}}, p2{&s, {1, 2}, pi / 3, "p2"};
 };
 
 TEST_F(PointTest, Constructor) {
-  EXPECT_EQ(p1.LocalCS()->PositionGLB(), PosiVect(1.2, 4.2));
+  EXPECT_EQ(p1.LocalCS()->PositionGLB(), PosiVect(0, 0));
   EXPECT_EQ(p1.LocalCS()->AngleGLB(), 0);
   EXPECT_EQ(p1.LocalCS()->Basis(), nullptr);
 
-  EXPECT_EQ(p2.LocalCS()->PositionGLB(), PosiVect(5.6, 3.9));
-  EXPECT_EQ(p2.LocalCS()->AngleGLB(), pi/3);
+  EXPECT_EQ(p2.LocalCS()->PositionGLB(), PosiVect(1, 2));
+  EXPECT_EQ(p2.LocalCS()->AngleGLB(), pi / 3);
   EXPECT_EQ(p2.LocalCS()->Basis(), nullptr);
 }
+TEST_F(PointTest, Computation) {
+  s.Solve();
+  post::PointAP p3(&s, {1, 1.03}, 1.5707963267948966);
 
+  dcomp w    = {1.6587125982302423e-06, -1.7477625866189296e-06};
+  dcomp tzx  = {1775443.2580089821, 1989770.6209655141};
+  dcomp tzy  = {2696226.105811324, -846321.05973796837};
+  StateAP st = {w, tzx, tzy, p3.LocalCS()};
+
+  EXPECT_TRUE(st.isApprox(p3.State(), 1e-6));
 }
+
+}  // namespace test
 
 }  // namespace mss

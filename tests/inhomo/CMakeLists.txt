@@ -19,5 +19,5 @@
 
 include(${CMAKE_MODULE_PATH}/AddTest.cmake)
 
-mss_add_test(test_fiber)
-mss_add_test(test_assembly)
+mss_add_test(fiber)
+mss_add_test(assembly)

@@ -21,6 +21,6 @@ add_subdirectory(core)
 add_subdirectory(input)
 add_subdirectory(incident)
 add_subdirectory(inhomo)
-add_subdirectory(check)
+# add_subdirectory(check)
 add_subdirectory(geom)
 

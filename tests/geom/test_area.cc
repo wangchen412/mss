@@ -17,35 +17,42 @@
 //
 // ----------------------------------------------------------------------
 
-#ifndef MSS_LINE_H
-#define MSS_LINE_H
-
-#include "PointSet.h"
+#include "../test.h"
+#include "../../src/post/geom/Area.h"
 
 namespace mss {
 
-namespace post {
+namespace test {
 
-template <typename T>
-class Line : public PointSet<T> {
-  using PointSet<T>::point_;
+class AreaTest : public Test {
+ protected:
+  AreaTest() : Test(__FILE__) {}
 
- public:
-  Line(const Solution<T>* solution, const PosiVect& p1, const PosiVect& p2,
-       const size_t& N, const std::string& id = "1")
-      : PointSet<T>(solution, "Line_" + id) {
-    // Add points:
-    PosiVect d = (p2 - p1) / N;
-    for (size_t i = 0; i < N; i++)
-      point_.push_back(new Point<T>(solution, p1 + d * i));
-  }
+  SolutionAP s{path("input.txt")};
+  post::AreaAP a1{&s, {1, 2}, {3, 4}, 10, 10};
 };
 
-typedef Line<StateIP> LineIP;
-typedef Line<StateAP> LineAP;
+TEST_F(AreaTest, Constructor) {
+  EXPECT_EQ(a1.Points().size(), 100);
+}
+TEST_F(AreaTest, Computation) {
+  std::vector<StateAP> ref, com;
+  ReadSample("Area_r1.dat", ref);
+  EXPECT_EQ(ref.size(), 100);
 
-}  // namespace post
+  s.Solve();
+  post::AreaAP t1(&s, {-50e-3, 50e-3}, {50e-3, -50e-3}, 10, 10);
+  std::string fn("Area_t1.dat");
+  std::ofstream file(path(fn));
+  t1.Print(file);
+  file.close();
+  ReadSample(fn, com);
+  EXPECT_EQ(com.size(), 100);
+  std::remove(path(fn).c_str());
+
+  for (size_t i = 0; i < 100; i++) EXPECT_TRUE(ref[i].isApprox(com[i], 1e-5));
+}
+
+}  // namespace test
 
 }  // namespace mss
-
-#endif

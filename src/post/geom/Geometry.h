@@ -32,8 +32,15 @@ namespace post {
 template <typename T>
 class Geometry {
  public:
+  Geometry(const Solution<T>* solution, const std::string& id)
+      : solution_(solution), id_(id) {}
   virtual ~Geometry() {}
-  virtual void Write() const = 0;
+  virtual std::ostream& Print(std::ostream& os) const = 0;
+  void Write() const;
+
+ protected:
+  const Solution<T>* solution_;
+  const std::string id_;
 };
 
 template <typename T>
@@ -41,6 +48,16 @@ using GeoPtrs = std::vector<Geometry<T>*>;
 
 template <typename T>
 using GeoCPtrs = std::vector<const Geometry<T>*>;
+
+// ---------------------------------------------------------------------------
+// Inline functions:
+
+template <typename T>
+void Geometry<T>::Write() const {
+  std::ofstream file(this->id_ + ".dat");
+  Print(file);
+  file.close();
+}
 
 }  // namespace post
 

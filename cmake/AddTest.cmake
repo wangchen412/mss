@@ -20,7 +20,7 @@
 set(mss mss_core mss_input)
 
 function(mss_add_test test_name)
-  add_executable(${test_name} ${test_name}.cc)
-  target_link_libraries(${test_name} ${mss} gtest gtest_main)
-  add_test(NAME ${test_name} COMMAND ${test_name})
+  add_executable(test_${test_name} test_${test_name}.cc)
+  target_link_libraries(test_${test_name} ${mss} gtest gtest_main)
+  add_test(NAME test_${test_name} COMMAND test_${test_name})
 endfunction()

@@ -19,4 +19,7 @@
 
 include(${CMAKE_MODULE_PATH}/AddTest.cmake)
 
-mss_add_test(test_point)
+mss_add_test(point)
+mss_add_test(line)
+mss_add_test(circle)
+mss_add_test(area)

@@ -20,50 +20,31 @@
 #ifndef MSS_AREA_H
 #define MSS_AREA_H
 
-#include "Point.h"
+#include "PointSet.h"
 
 namespace mss {
 
 namespace post {
 
 template <typename T>
-class Area : public Geometry<T> {
+class Area : public PointSet<T> {
+  using PointSet<T>::point_;
+
  public:
-  Area(const PosiVect& p1, const PosiVect& p2, const size_t& Nx,
-       const size_t& Ny, const Solution<T>* solution,
-       const std::string& id = "1")
-      : solution_(solution), id_(id) {
+  Area(const Solution<T>* solution, const PosiVect& p1, const PosiVect& p2,
+       const size_t& Nx, const size_t& Ny, const std::string& id = "1")
+      : PointSet<T>(solution, "Area_" + id) {
     // Add points:
-    PosiVect dx((p2 - p1).x, 0);
-    PosiVect dy(0, (p2 - p1).y);
+    PosiVect dx((p2 - p1).x / Nx, 0);
+    PosiVect dy(0, (p2 - p1).y / Ny);
     for (size_t j = 0; j < Ny; j++)
       for (size_t i = 0; i < Nx; i++)
-        point_.push_back(new Point<T>(p1 + dx * i + dy * j, solution_));
+        point_.push_back(new Point<T>(solution, p1 + dx * i + dy * j));
   }
-  virtual ~Area() {
-    // Delete points:
-    for (auto& i : point_) delete i;
-  }
-
-  void Write() const;
-
- private:
-  std::vector<Point<T>*> point_;
-  const Solution<T>* solution_;
-  const std::string id_;
 };
 
-// ---------------------------------------------------------------------------
-// Inline functions:
-
-template <typename T>
-void Area<T>::Write() const {
-  std::string fileName = std::string("area_") + id_ + std::string(".dat");
-  std::ofstream file(fileName);
-  file.precision(17);
-  for (auto& i : point_) file << *i << std::endl;
-  file.close();
-}
+typedef Area<StateIP> AreaIP;
+typedef Area<StateAP> AreaAP;
 
 }  // namespace post
 

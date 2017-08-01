@@ -19,8 +19,8 @@
 
 include(${CMAKE_MODULE_PATH}/AddTest.cmake)
 
-mss_add_test(test_math)
-mss_add_test(test_cs)
-mss_add_test(test_state)
-mss_add_test(test_matrix)
-mss_add_test(test_solution)
+mss_add_test(math)
+mss_add_test(cs)
+mss_add_test(state)
+mss_add_test(matrix)
+mss_add_test(solution)

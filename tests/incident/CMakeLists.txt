@@ -19,4 +19,4 @@
 
 include(${CMAKE_MODULE_PATH}/AddTest.cmake)
 
-mss_add_test(test_incident)
+mss_add_test(incident)

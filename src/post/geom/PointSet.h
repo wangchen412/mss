@@ -17,32 +17,34 @@
 //
 // ----------------------------------------------------------------------
 
-#ifndef MSS_LINE_H
-#define MSS_LINE_H
+#ifndef MSS_POINTSET_H
+#define MSS_POINTSET_H
 
-#include "PointSet.h"
+#include "Point.h"
 
 namespace mss {
 
 namespace post {
 
 template <typename T>
-class Line : public PointSet<T> {
-  using PointSet<T>::point_;
-
+class PointSet : public Geometry<T> {
  public:
-  Line(const Solution<T>* solution, const PosiVect& p1, const PosiVect& p2,
-       const size_t& N, const std::string& id = "1")
-      : PointSet<T>(solution, "Line_" + id) {
-    // Add points:
-    PosiVect d = (p2 - p1) / N;
-    for (size_t i = 0; i < N; i++)
-      point_.push_back(new Point<T>(solution, p1 + d * i));
+  PointSet(const Solution<T>* solution, const std::string& id)
+      : Geometry<T>(solution, id) {}
+  virtual ~PointSet() {
+    for (auto& i : point_) delete i;
+    point_.clear();
   }
-};
 
-typedef Line<StateIP> LineIP;
-typedef Line<StateAP> LineAP;
+  const PtCPtrs<T>& Points() const { return point_; }
+  std::ostream& Print(std::ostream& os) const override {
+    for (auto& i : point_) i->Print(os);
+    return os;
+  }
+
+ protected:
+  PtCPtrs<T> point_;
+};
 
 }  // namespace post
 
