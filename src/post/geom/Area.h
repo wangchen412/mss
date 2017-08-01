@@ -17,42 +17,39 @@
 //
 // ----------------------------------------------------------------------
 
-#ifndef MSS_POINT_H
-#define MSS_POINT_H
+#ifndef MSS_AREA_H
+#define MSS_AREA_H
 
-#include "Geometry.h"
+#include "Point.h"
 
 namespace mss {
 
-namespace output {
+namespace post {
 
 template <typename T>
-class Point : public Geometry<T> {
+class Area : public Geometry<T> {
  public:
-  Point(const PosiVect& position, const Solution<T>* solution,
-        const double& angle = 0, const std::string& id = "1")
-      : localCS_(position, angle),
-        state_(&localCS_),
-        solution_(solution),
-        in_(solution_->InWhich(localCS_)),
-        id_(id) {
-    state_ = solution_->Resultant(&localCS_, in_);
+  Area(const PosiVect& p1, const PosiVect& p2, const size_t& Nx,
+       const size_t& Ny, const Solution<T>* solution,
+       const std::string& id = "1")
+      : solution_(solution), id_(id) {
+    // Add points:
+    PosiVect dx((p2 - p1).x, 0);
+    PosiVect dy(0, (p2 - p1).y);
+    for (size_t j = 0; j < Ny; j++)
+      for (size_t i = 0; i < Nx; i++)
+        point_.push_back(new Point<T>(p1 + dx * i + dy * j, solution_));
   }
-
-  virtual ~Point() {}
-
-  friend std::ostream& operator<<(std::ostream& os, const Point<T>& pt) {
-    return os << pt.localCS_ << "\t" << pt.state_;
+  virtual ~Area() {
+    // Delete points:
+    for (auto& i : point_) delete i;
   }
 
   void Write() const;
 
  private:
-  CS localCS_;
-  T state_;
-  const Solution<T>* solution_;  // The position in the global CS.
-  const Inhomogeneity<T>* in_;   // The pointer to the inhomogeneity in which
-                                 // the point is, if the point is in one.
+  std::vector<Point<T>*> point_;
+  const Solution<T>* solution_;
   const std::string id_;
 };
 
@@ -60,15 +57,15 @@ class Point : public Geometry<T> {
 // Inline functions:
 
 template <typename T>
-void Point<T>::Write() const {
-  std::string fileName = std::string("point_") + id_ + std::string(".dat");
+void Area<T>::Write() const {
+  std::string fileName = std::string("area_") + id_ + std::string(".dat");
   std::ofstream file(fileName);
   file.precision(17);
-  file << *this << std::endl;
+  for (auto& i : point_) file << *i << std::endl;
   file.close();
 }
 
-}  // namespace output
+}  // namespace post
 
 }  // namespace mss
 

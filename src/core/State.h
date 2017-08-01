@@ -64,6 +64,11 @@ class State {
     stress_ -= other.stress_;
     return *this;
   }
+  State& operator/=(const State& norm) {
+    displacement_ /= norm.displacement_;
+    stress_ /= norm.stress_;
+    return *this;
+  }
   State& operator*=(const dcomp& n) {
     displacement_ *= n;
     stress_ *= n;

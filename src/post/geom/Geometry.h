@@ -17,19 +17,33 @@
 //
 // ----------------------------------------------------------------------
 
-#include "../test.h"
+#ifndef MSS_GEOMETRY_H
+#define MSS_GEOMETRY_H
+
+#include "../../core/Solution.h"
+#include "../../core/State.h"
+#include "../../inhomo/Inhomogeneity.h"
+#include "../../tools/FileIO.h"
 
 namespace mss {
 
-namespace test {
+namespace post {
 
-class PointTest : public testing::Test {
-protected:
-  input::Solution s1{testDataPath(__FILE__) + "input.txt"};
-  
-
+template <typename T>
+class Geometry {
+ public:
+  virtual ~Geometry() {}
+  virtual void Write() const = 0;
 };
 
-}
+template <typename T>
+using GeoPtrs = std::vector<Geometry<T>*>;
+
+template <typename T>
+using GeoCPtrs = std::vector<const Geometry<T>*>;
+
+}  // namespace post
 
 }  // namespace mss
+
+#endif

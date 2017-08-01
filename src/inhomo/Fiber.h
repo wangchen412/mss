@@ -29,7 +29,7 @@ template <typename T>
 class Fiber : public Inhomogeneity<T> {
  public:
   Fiber(const ConfigFiber<T>* config, const PosiVect& position = 0)
-      : Inhomogeneity<T>(position),
+      : Inhomogeneity<T>(position, fiber),
         config_(config),
         cSc_(NoC()),
         cIn_(NoC()) {

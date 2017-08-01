@@ -17,35 +17,39 @@
 //
 // ----------------------------------------------------------------------
 
-#ifndef MSS_LINE_H
-#define MSS_LINE_H
+#ifndef MSS_CIRCLE_H
+#define MSS_CIRCLE_H
 
 #include "Point.h"
 
 namespace mss {
 
-namespace output {
+namespace post {
 
 template <typename T>
-class Line : public Geometry<T> {
+class Circle : public Geometry<T> {
  public:
-  Line(const PosiVect& p1, const PosiVect& p2, const size_t& N,
-       const Solution<T>* solution, const std::string& id = "1")
+  Circle(const PosiVect& center, const double& R, const size_t& N,
+         const Solution<T>* solution, const std::string& id = "1")
       : solution_(solution), id_(id) {
     // Add points:
-    PosiVect d = (p2 - p1) / N;
     for (size_t i = 0; i < N; i++)
-      point_.push_back(new Point<T>(p1 + d * i, solution_));
+      point_.push_back(
+          new Point<T>(center + PosiVect(R, i * pi2 / N).Cartesian(),
+                       solution, i * pi2 / N));
   }
-  virtual ~Line() {
+  virtual ~Circle() {
     // Delete points:
     for (auto& i : point_) delete i;
   }
 
+  const PtCPtrs<T>& Points() const { return point_; }
+
+  std::ostream& Print(std::ostream& os) const;
   void Write() const;
 
  private:
-  std::vector<Point<T>*> point_;
+  PtCPtrs<T> point_;
   const Solution<T>* solution_;
   const std::string id_;
 };
@@ -54,15 +58,21 @@ class Line : public Geometry<T> {
 // Inline functions:
 
 template <typename T>
-void Line<T>::Write() const {
-  std::string fileName = std::string("line_") + id_ + std::string(".dat");
+inline std::ostream& Circle<T>::Print(std::ostream& os) const {
+  for (auto& i : point_) os << *i << std::endl;
+  return os;
+}
+
+template <typename T>
+inline void Circle<T>::Write() const {
+  std::string fileName = std::string("Circle_") + id_ + std::string(".dat");
   std::ofstream file(fileName);
   file.precision(17);
-  for (auto& i : point_) file << *i << std::endl;
+  Print(file);
   file.close();
 }
 
-}  // namespace output
+}  // namespace post
 
 }  // namespace mss
 

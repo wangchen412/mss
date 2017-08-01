@@ -28,7 +28,7 @@
 #include <sstream>
 #include <string>
 #include "../src/core/Solution.h"
-#include "../src/post/output/Point.h"
+#include "../src/post/check/Continuity.h"
 
 namespace mss {
 

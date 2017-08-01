@@ -41,13 +41,15 @@ class Solution {
   T Resultant(const CS* objCS, const Inhomogeneity<T>* inhomo) const;
   T Resultant(const CS* objCS) const;
 
-  const ConfigAssembly<T>& Config() { return config_; }
-  const InciCPtrs<T>& Incident() { return incident_; }
+  const ConfigAssembly<T>& Config() const { return config_; }
+  const InciCPtrs<T>& Incident() const { return incident_; }
+  const InhomoCPtrs<T>& Inhomo() const { return Config().Inhomo(); }
 
  protected:
   // bool solved_;
   const Matrix matrix_;
   InciCPtrs<T> incident_;
+  T inciNorm_;  // The normalization factor of the incidents.
 
   // Only the configuration of the "root" assembly is needed.
   // The instantiation of the "root" assembly is not necessary.
@@ -81,7 +83,7 @@ Inhomogeneity<T>* Solution<T>::InWhich(const CS* objCS) const {
 
 template <typename T>
 T Solution<T>::Resultant(const CS* objCS, const Inhomogeneity<T>* in) const {
-  return config_->Resultant(objCS, in, incident_);
+  return config_.Resultant(objCS, in, incident_);
 }
 
 template <typename T>

@@ -17,33 +17,30 @@
 //
 // ----------------------------------------------------------------------
 
-#ifndef MSS_GEOMETRY_H
-#define MSS_GEOMETRY_H
-
-#include "../../core/Solution.h"
-#include "../../core/State.h"
-#include "../../inhomo/Inhomogeneity.h"
-#include "../../tools/FileIO.h"
+#include "../test.h"
 
 namespace mss {
 
-namespace output {
+namespace test {
 
-template <typename T>
-class Geometry {
- public:
-  virtual ~Geometry() = 0;
-  virtual void Write() const = 0;
+class PointTest : public Test {
+protected:
+  PointTest() : Test(__FILE__) {}
+
+  SolutionAP s{path("input.txt")};
+  post::PointAP p1{{1.2, 4.2}, &s}, p2{{5.6, 3.9}, &s, pi/3, "120"};
 };
 
-template <typename T>
-using GeoPtrs = std::vector<Geometry<T>*>;
+TEST_F(PointTest, Constructor) {
+  EXPECT_EQ(p1.LocalCS()->PositionGLB(), PosiVect(1.2, 4.2));
+  EXPECT_EQ(p1.LocalCS()->AngleGLB(), 0);
+  EXPECT_EQ(p1.LocalCS()->Basis(), nullptr);
 
-template <typename T>
-using GeoCPtrs = std::vector<const Geometry<T>*>;
+  EXPECT_EQ(p2.LocalCS()->PositionGLB(), PosiVect(5.6, 3.9));
+  EXPECT_EQ(p2.LocalCS()->AngleGLB(), pi/3);
+  EXPECT_EQ(p2.LocalCS()->Basis(), nullptr);
+}
 
-}  // namespace output
+}
 
 }  // namespace mss
-
-#endif

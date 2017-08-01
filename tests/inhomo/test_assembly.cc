@@ -27,7 +27,7 @@ class AssemblyTest : public Test {
  protected:
   AssemblyTest() : Test(__FILE__, "assembly") {
     for (auto& i : c.Inhomo())
-      fiberPtrs.push_back(dynamic_cast<Fiber<StateAP>*>(i));
+      fiberPtrs.push_back(dynamic_cast<const Fiber<StateAP>*>(i));
   }
 
   input::Solution s{path("input.txt")};

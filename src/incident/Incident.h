@@ -33,9 +33,16 @@ class Incident {
  public:
   Incident(const Matrix& matrix, const double& amplitude = 1,
            const double& phase = 0)
-      : amp_(amplitude), phase_(phase), m(matrix.Material()) {}
+      : amp_(amplitude),
+        phase_(phase),
+        m(matrix.Material()),
+        kl_(matrix.KL()),
+        kt_(matrix.KT()) {}
 
   virtual ~Incident() {}
+
+  // The normalization factor.
+  T Norm() const;
 
   // The effect on the position in global CS.
   virtual T Effect(const PosiVect& position) const = 0;
@@ -57,6 +64,9 @@ class Incident {
  protected:
   double amp_, phase_;
   const Material& m;
+
+ private:
+  const double kl_, kt_;
 };
 
 template <typename T>
@@ -64,6 +74,18 @@ using InciPtrs = std::vector<Incident<T>*>;
 
 template <typename T>
 using InciCPtrs = std::vector<const Incident<T>*>;
+
+// ---------------------------------------------------------------------------
+// Inline functions:
+
+template <>
+StateIP Incident<StateIP>::Norm() const {
+  return StateIP(1, 1, m.C(kl_, kl_, kl_)) * amp_;
+}
+template <>
+StateAP Incident<StateAP>::Norm() const {
+  return StateAP(1, m.C(kt_, kt_)) * amp_;
+}
 
 }  // namespace mss
 

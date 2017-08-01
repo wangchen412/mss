@@ -46,13 +46,32 @@ struct ci_comp {
   }
 };
 
+inline std::string mss_msg(std::initializer_list<std::string> msg) {
+  std::string rst("[mss]: ");
+  for (auto& i : msg) rst += i;
+  return rst;
+}
+
+inline std::string error_msg(std::initializer_list<std::string> msg) {
+  std::string rst(mss_msg({"Error. "}));
+  for (auto& i : msg) rst += i;
+  return rst;
+}
+
+inline void print_msg(std::initializer_list<std::string> msg) {
+  std::cout << mss_msg(msg) << std::endl;
+}
+
+inline void print_error_msg(std::initializer_list<std::string> msg) {
+  std::cout << error_msg(msg) << std::endl;
+}
+
 // Find the element of which the ID matches "name" in the std::vector "vec".
 template <typename T>
 const T* FindID(const std::vector<T>& vec, const std::string& name) {
   for (const auto& t : vec)
     if (iequals(name, t.ID)) return &t;
-
-  std::cout << "[mss]: Error. ID: " << name << " not found." << std::endl;
+  print_error_msg({"ID: ", name, " not found."});
   exit(EXIT_FAILURE);
 }
 
@@ -60,8 +79,7 @@ template <typename T>
 const T* FindPtrID(const std::vector<T*>& vec, const std::string& name) {
   for (const auto& t : vec)
     if (iequals(name, t->ID())) return t;
-
-  std::cout << "[mss]: Error. ID: " << name << " not found." << std::endl;
+  print_error_msg({"ID: ", name, " not found."});
   exit(EXIT_FAILURE);
 }
 
@@ -111,8 +129,7 @@ inline bool skipUntil(std::ifstream& inputFile, const std::string& obj,
       skip(inputFile, n, last);
       return true;
     }
-  std::cout << obj << "\t"
-            << "not found" << std::endl;
+  print_error_msg({obj, " not found"});
   return false;
 }
 

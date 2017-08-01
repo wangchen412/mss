@@ -17,30 +17,27 @@
 //
 // ----------------------------------------------------------------------
 
-#ifndef MSS_AREA_H
-#define MSS_AREA_H
+#ifndef MSS_LINE_H
+#define MSS_LINE_H
 
 #include "Point.h"
 
 namespace mss {
 
-namespace output {
+namespace post {
 
 template <typename T>
-class Area : public Geometry<T> {
+class Line : public Geometry<T> {
  public:
-  Area(const PosiVect& p1, const PosiVect& p2, const size_t& Nx,
-       const size_t& Ny, const Solution<T>* solution,
-       const std::string& id = "1")
+  Line(const PosiVect& p1, const PosiVect& p2, const size_t& N,
+       const Solution<T>* solution, const std::string& id = "1")
       : solution_(solution), id_(id) {
     // Add points:
-    PosiVect dx((p2 - p1).x, 0);
-    PosiVect dy(0, (p2 - p1).y);
-    for (size_t j = 0; j < Ny; j++)
-      for (size_t i = 0; i < Nx; i++)
-        point_.push_back(new Point<T>(p1 + dx * i + dy * j, solution_));
+    PosiVect d = (p2 - p1) / N;
+    for (size_t i = 0; i < N; i++)
+      point_.push_back(new Point<T>(p1 + d * i, solution_));
   }
-  virtual ~Area() {
+  virtual ~Line() {
     // Delete points:
     for (auto& i : point_) delete i;
   }
@@ -57,15 +54,15 @@ class Area : public Geometry<T> {
 // Inline functions:
 
 template <typename T>
-void Area<T>::Write() const {
-  std::string fileName = std::string("area_") + id_ + std::string(".dat");
+void Line<T>::Write() const {
+  std::string fileName = std::string("line_") + id_ + std::string(".dat");
   std::ofstream file(fileName);
   file.precision(17);
   for (auto& i : point_) file << *i << std::endl;
   file.close();
 }
 
-}  // namespace output
+}  // namespace post
 
 }  // namespace mss
 

@@ -68,11 +68,12 @@ class ConfigAssembly {
 
   void PrintCoeff(std::ostream& os) const;
 
-  const auto& Inhomo() const { return inhomo_; }
+  const InhomoCPtrs<T>& Inhomo() const { return inhomoC_; }
 
  protected:
   const std::string ID_;
   InhomoPtrs<T> inhomo_;
+  InhomoCPtrs<T> inhomoC_;
   ConfigFiberCPtrs<T> configFiber_;
   ConfigAssemCPtrs<T> configAssembly_;
 
@@ -170,6 +171,7 @@ void ConfigAssembly<T>::PrintCoeff(std::ostream& os) const {
 template <typename T>
 void ConfigAssembly<T>::add_inhomo() {
   add_fiber();
+  for (auto& i : inhomo_) inhomoC_.push_back(i);
 }
 
 template <typename T>

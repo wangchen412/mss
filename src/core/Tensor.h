@@ -36,11 +36,13 @@ struct Scalar {
 
   Scalar& operator+=(const Scalar& other);
   Scalar& operator-=(const Scalar& other);
+  Scalar& operator/=(const Scalar& norm);
   Scalar& operator*=(const T& n);
   Scalar& operator/=(const T& n);
 
   Scalar operator+(const Scalar& other) const;
   Scalar operator-(const Scalar& other) const;
+  Scalar operator/(const Scalar& norm) const;
   Scalar operator*(const T& n) const;
   Scalar operator/(const T& n) const;
 
@@ -60,11 +62,13 @@ struct Vector {
 
   Vector& operator+=(const Vector& other);
   Vector& operator-=(const Vector& other);
+  Vector& operator/=(const Vector& norm);
   Vector& operator*=(const T& n);
   Vector& operator/=(const T& n);
 
   Vector operator+(const Vector& other) const;
   Vector operator-(const Vector& other) const;
+  Vector operator/(const Vector& norm) const;
   Vector operator*(const T& n) const;
   Vector operator/(const T& n) const;
 
@@ -91,11 +95,13 @@ struct Tensor {
 
   Tensor& operator+=(const Tensor& other);
   Tensor& operator-=(const Tensor& other);
+  Tensor& operator/=(const Tensor& norm);
   Tensor& operator*=(const T& n);
   Tensor& operator/=(const T& n);
 
   Tensor operator+(const Tensor& other) const;
   Tensor operator-(const Tensor& other) const;
+  Tensor operator/(const Tensor& norm) const;
   Tensor operator*(const T& n) const;
   Tensor operator/(const T& n) const;
 
@@ -131,6 +137,11 @@ inline Scalar<T>& Scalar<T>::operator-=(const Scalar<T>& other) {
   return *this;
 }
 template <typename T>
+inline Scalar<T>& Scalar<T>::operator/=(const Scalar<T>& norm) {
+  x /= std::abs(norm.x);
+  return *this;
+}
+template <typename T>
 inline Scalar<T>& Scalar<T>::operator*=(const T& n) {
   x *= n;
   return *this;
@@ -147,6 +158,10 @@ inline Scalar<T> Scalar<T>::operator+(const Scalar<T>& other) const {
 template <typename T>
 inline Scalar<T> Scalar<T>::operator-(const Scalar<T>& other) const {
   return Scalar<T>(*this) -= other;
+}
+template <typename T>
+inline Scalar<T> Scalar<T>::operator/(const Scalar<T>& norm) const {
+  return Scalar<T>(*this) /= norm;
 }
 template <typename T>
 inline Scalar<T> Scalar<T>::operator*(const T& n) const {
@@ -199,6 +214,12 @@ inline Vector<T>& Vector<T>::operator-=(const Vector<T>& other) {
   return *this;
 }
 template <typename T>
+inline Vector<T>& Vector<T>::operator/=(const Vector<T>& norm) {
+  x /= std::abs(norm.x);
+  y /= std::abs(norm.y);
+  return *this;
+}
+template <typename T>
 inline Vector<T>& Vector<T>::operator*=(const T& n) {
   x *= n;
   y *= n;
@@ -217,6 +238,10 @@ inline Vector<T> Vector<T>::operator+(const Vector<T>& other) const {
 template <typename T>
 inline Vector<T> Vector<T>::operator-(const Vector<T>& other) const {
   return Vector<T>(*this) -= other;
+}
+template <typename T>
+inline Vector<T> Vector<T>::operator/(const Vector<T>& norm) const {
+  return Vector<T>(*this) /= norm;
 }
 template <typename T>
 inline Vector<T> Vector<T>::operator*(const T& n) const {
@@ -321,6 +346,13 @@ inline Tensor<T>& Tensor<T>::operator-=(const Tensor<T>& other) {
   return *this;
 }
 template <typename T>
+inline Tensor<T>& Tensor<T>::operator/=(const Tensor<T>& norm) {
+  xx -= std::abs(norm.xx);
+  yy -= std::abs(norm.yy);
+  xy -= std::abs(norm.xy);
+  return *this;
+}
+template <typename T>
 inline Tensor<T>& Tensor<T>::operator*=(const T& n) {
   xx *= n;
   yy *= n;
@@ -341,6 +373,10 @@ inline Tensor<T> Tensor<T>::operator+(const Tensor<T>& other) const {
 template <typename T>
 inline Tensor<T> Tensor<T>::operator-(const Tensor<T>& other) const {
   return Tensor<T>(*this) -= other;
+}
+template <typename T>
+inline Tensor<T> Tensor<T>::operator/(const Tensor<T>& norm) const {
+  return Tensor<T>(*this) /= norm;
 }
 template <typename T>
 inline Tensor<T> Tensor<T>::operator*(const T& n) const {

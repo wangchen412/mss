@@ -21,6 +21,20 @@
 
 namespace mss {
 
-namespace test {}
+namespace test {
+
+class ContinuityTest : public Test {
+protected:
+  ContinuityTest() : Test(__FILE__) {}
+
+  SolutionAP s{path("input.txt")};
+  post::CC_Solution<StateAP> cc{&s};
+};
+
+TEST_F(ContinuityTest, Constructor) {
+  EXPECT_EQ(1, 1);
+}
+
+}  // namespace test
 
 }  // namespace mss

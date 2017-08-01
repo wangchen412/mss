@@ -27,11 +27,14 @@
 
 namespace mss {
 
+enum InhomoType { fiber, assembly };
+
 template <typename T>
 class Inhomogeneity {
  public:
-  explicit Inhomogeneity(const PosiVect& position, const double& angle = 0)
-      : localCS_(position, angle) {}
+  explicit Inhomogeneity(const PosiVect& position, InhomoType type,
+                         const double& angle = 0)
+      : localCS_(position, angle), type_(type) {}
   virtual ~Inhomogeneity() {}
 
   // TransMatrix.
@@ -71,10 +74,12 @@ class Inhomogeneity {
   const CS* LocalCS() const { return &localCS_; }
   const CS* Basis() const { return localCS_.Basis(); }
   const PosiVect& Position() const { return localCS_.Position(); }
-  const PosiVect& PositionGLB() const { return localCS_.PositionGLB(); }
+  PosiVect PositionGLB() const { return localCS_.PositionGLB(); }
+  const InhomoType& Type() const { return type_; }
 
- private:
+ protected:
   const CS localCS_;
+  InhomoType type_;
 };
 
 template <typename T>
