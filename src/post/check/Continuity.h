@@ -28,19 +28,18 @@ namespace mss {
 namespace post {
 
 template <typename T>
-class ContinuityCheck {
+class ContCheck {
  public:
-  ContinuityCheck(const Solution<T>* solution, const size_t& NoP,
-                  const double& gap, const double& tolerance)
+  ContCheck(const Solution<T>* solution, const size_t& NoP, const double& gap,
+            const double& tolerance)
       : sol_(solution),
         P_(NoP),
         gap_(gap / 2),
         tol_(tolerance),
-        norm_(),
         mis_(T::NoBV, NoP) {
     for (auto& i : solution->Incident()) norm_ += i->Norm();
   }
-  virtual ~ContinuityCheck() {}
+  virtual ~ContCheck() {}
 
   void ComputeMismatch();
 
@@ -59,19 +58,24 @@ class ContinuityCheck {
 
   // Two sets of states of the points along the interface, one set in each
   // side. The points should have the same sequence.
+  virtual void add_state() = 0;
   std::vector<const T*> inner_, outer_;
   Eigen::MatrixXcd mis_;
 };
 
 // Continuity Check class for Fiber.
 template <typename T>
-class CC_Fiber : public ContinuityCheck<T> {
+class CC_Fiber : public ContCheck<T> {
+  using cc = ContCheck<T>;
+
  public:
   CC_Fiber(const Solution<T>* solution, const Fiber<T>* fiber,
-           const size_t& NoP, const double& gap = epsilon,
-           const double& tolerance = 1e-4)
-      : ContinuityCheck<T>(solution, NoP, gap, tolerance), f_(fiber) {
-    compute();
+           const size_t& NoP = 42, const double& gap = epsilon,
+           const double& tolerance = 1e-6)
+      : ContCheck<T>(solution, NoP, gap, tolerance), f_(fiber) {
+    add_circ();
+    add_state();
+    cc::ComputeMismatch();
   }
 
   ~CC_Fiber() {
@@ -81,7 +85,8 @@ class CC_Fiber : public ContinuityCheck<T> {
  private:
   const Fiber<T>* f_;
   std::vector<post::Circle<T>*> circ_;
-  void compute();
+  void add_circ();
+  void add_state() override;
 };
 
 // Continuity Check class for Solution.
@@ -89,18 +94,8 @@ template <typename T>
 class CC_Solution {
  public:
   CC_Solution(const Solution<T>* solution, const size_t& NoP = 42,
-              const double& gap = epsilon, const double& tolerance = 1e-4) {
-    for (auto& i : solution->Inhomo()) switch (i->Type()) {
-        case fiber:
-          check_.push_back(new CC_Fiber<T>(solution,
-                                           dynamic_cast<const Fiber<T>*>(i),
-                                           NoP, gap, tolerance));
-          if (check_.back()->NC()) nc_.push_back(check_.back());
-          break;
-        default:
-          std::cout << "[mss]: Continuity Check input error." << std::endl;
-          exit(EXIT_FAILURE);
-      }
+              const double& gap = epsilon, const double& tolerance = 1e-6) {
+    add_cc(solution, NoP, gap, tolerance);
   }
   ~CC_Solution() {
     for (auto& i : check_) delete i;
@@ -112,34 +107,69 @@ class CC_Solution {
   void Write() const;
 
  private:
-  std::vector<ContinuityCheck<T>*> check_;
-  std::vector<const ContinuityCheck<T>*> nc_;
+  std::vector<ContCheck<T>*> check_;
+  std::vector<const ContCheck<T>*> nc_;
+  void add_cc(const Solution<T>*, const size_t&, const double&,
+              const double&);
 };
 
 // ---------------------------------------------------------------------------
 // Inline functions:
 
+// ----------------------------------------
+// ContCheck methods:
 template <typename T>
-inline void ContinuityCheck<T>::ComputeMismatch() {
-  for (int i = 0; i < inner_.size(); i++)
+inline void ContCheck<T>::ComputeMismatch() {
+  for (size_t i = 0; i < inner_.size(); i++)
     mis_.col(i) = ((*inner_[i] - *outer_[i]) / norm_).BV();
 }
-
 template <typename T>
-inline std::ostream& ContinuityCheck<T>::Print(std::ostream& os) const {
-  return os << separator("-") << mis_.transpose() << separator("-");
+inline std::ostream& ContCheck<T>::Print(std::ostream& os) const {
+  return os << separator("-") << mis_.transpose() << std::endl;
 }
 
+// ----------------------------------------
+// CC_Fiber methods:
 template <typename T>
-inline void CC_Fiber<T>::compute() {
-  circ_.push_back(new post::Circle<T>(
-      f_->PositionGLB(), f_->Radius() - this->gap_, this->P_, this->sol_));
-  circ_.push_back(new post::Circle<T>(
-      f_->PositionGLB(), f_->Radius() + this->gap_, this->P_, this->sol_));
-  for (auto& i : circ_[0]->Points()) this->inner_.push_back(&i->State());
-  for (auto& i : circ_[1]->Points()) this->outer_.push_back(&i->State());
+inline void CC_Fiber<T>::add_circ() {
+  circ_.push_back(new post::Circle<T>(cc::sol_, f_->PositionGLB(),
+                                      f_->Radius() - cc::gap_, cc::P_));
+  circ_.push_back(new post::Circle<T>(cc::sol_, f_->PositionGLB(),
+                                      f_->Radius() + cc::gap_, cc::P_));
+}
+template <typename T>
+inline void CC_Fiber<T>::add_state() {
+  for (auto& i : circ_[0]->Points()) {
+    if (i->In() != f_)
+      exit_error_msg({"Continuity check error, inside points out."});
+    this->inner_.push_back(&i->State());
+  }
+  for (auto& i : circ_[1]->Points()) {
+    if (i->In() != nullptr)
+      exit_error_msg({"Continuity check error, outside points in."});
+    this->outer_.push_back(&i->State());
+  }
 }
 
+// ----------------------------------------
+// CC_Solution methods:
+template <typename T>
+inline void CC_Solution<T>::add_cc(const Solution<T>* solution,
+                                   const size_t& NoP, const double& gap,
+                                   const double& tol) {
+  for (auto& i : solution->Inhomo()) {
+    switch (i->Type()) {
+      case fiber:
+        check_.push_back(new CC_Fiber<T>(
+            solution, dynamic_cast<const Fiber<T>*>(i), NoP, gap, tol));
+        if (check_.back()->NC()) nc_.push_back(check_.back());
+        break;
+
+      default:
+        exit_error_msg({"Continuity Check input error."});
+    }
+  }
+}
 template <typename T>
 inline std::string CC_Solution<T>::WriteAll() const {
   std::string fn = NewFileName("Continuity_ALL", ".dat");
@@ -163,7 +193,7 @@ inline void CC_Solution<T>::Write() const {
     print_msg({"Continuity of all interfaces checked."});
   else {
     print_error_msg({"One / some of the interfaces discontinuous."});
-    print_error_msg({"The mismatch data is written in ", WriteNC()});
+    exit_error_msg({"The mismatch data is written in ", WriteNC()});
   }
 }
 

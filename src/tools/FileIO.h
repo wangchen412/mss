@@ -66,6 +66,11 @@ inline void print_error_msg(std::initializer_list<std::string> msg) {
   std::cout << error_msg(msg) << std::endl;
 }
 
+inline void exit_error_msg(std::initializer_list<std::string> msg) {
+  print_error_msg(msg);
+  exit(EXIT_FAILURE);
+}
+
 // Find the element of which the ID matches "name" in the std::vector "vec".
 template <typename T>
 const T* FindID(const std::vector<T>& vec, const std::string& name) {

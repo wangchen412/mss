@@ -79,6 +79,7 @@ class State {
   }
   State operator+(const State& other) const { return State(*this) += other; }
   State operator-(const State& other) const { return State(*this) -= other; }
+  State operator/(const State& norm) const { return State(*this) /= norm; }
   State operator*(const dcomp& n) const { return State(*this) *= n; }
   State operator/(const dcomp& n) const { return State(*this) /= n; }
   bool operator==(const State& other) const { return isApprox(other); }

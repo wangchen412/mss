@@ -17,6 +17,7 @@
 //
 // ----------------------------------------------------------------------
 
+#include "../../src/post/check/Continuity.h"
 #include "../test.h"
 
 namespace mss {
@@ -24,15 +25,22 @@ namespace mss {
 namespace test {
 
 class ContinuityTest : public Test {
-protected:
-  ContinuityTest() : Test(__FILE__) {}
+ protected:
+  ContinuityTest() : Test(__FILE__) { s.Solve(); }
 
   SolutionAP s{path("input.txt")};
-  post::CC_Solution<StateAP> cc{&s};
 };
 
-TEST_F(ContinuityTest, Constructor) {
-  EXPECT_EQ(1, 1);
+TEST_F(ContinuityTest, FiberCheck) {
+  for (auto& i : s.Inhomo()) {
+    post::CC_Fiber<StateAP> cf(&s, dynamic_cast<const Fiber<StateAP>*>(i));
+    EXPECT_FALSE(cf.NC());
+  }
+}
+
+TEST_F(ContinuityTest, SolutionCheck) {
+  post::CC_Solution<StateAP> cc{&s};
+  EXPECT_TRUE(cc.isCont());
 }
 
 }  // namespace test

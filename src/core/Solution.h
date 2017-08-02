@@ -44,6 +44,9 @@ class Solution {
   const ConfigAssembly<T>& Config() const { return config_; }
   const InciCPtrs<T>& Incident() const { return incident_; }
   const InhomoCPtrs<T>& Inhomo() const { return Config().Inhomo(); }
+  const Inhomogeneity<T>* Inhomo(const size_t& sn) const {
+    return Config().Inhomo(sn);
+  }
 
  protected:
   // bool solved_;

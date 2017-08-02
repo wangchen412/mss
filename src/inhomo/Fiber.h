@@ -165,14 +165,9 @@ inline T Fiber<T>::scatterModeT(const CS* objCS, int n) const {
 }
 template <typename T>
 inline T Fiber<T>::innerModeT(const CS* objCS, int n) const {
-  // if (objCS->PositionIn(LocalCS()).Length() > epsilon)
   return ModeT<T>(LocalCS(), objCS,
                   EigenFunctor(Jn, n, config_->KT(), Radius()),
                   config_->Material());
-  // else
-  //   return LimModeT<T>(LocalCS(), objCS,
-  //                      EigenFunctor(Jn, n, config_->KT(), Radius()),
-  //                      config_->Material());
 }
 template <typename T>
 inline void Fiber<T>::add_node() {

@@ -109,34 +109,6 @@ inline StateAP ModeT<StateAP>(const CS* localCS, const CS* objCS,
   return StateAP(w, t, &cs).in(objCS);
 }
 
-// template <>
-// inline StateAP LimModeT<StateAP>(const CS* localCS, const CS* objCS,
-//                                  const EigenFunctor& f,
-//                                  const class Material& m) {
-//   /// Return the effect of the transverse mode when the objCS is very close
-//   to
-//   /// the localCS in antiplane problems.
-
-//   // Position in the local CS, which is seen as a polar CS:
-//   const PosiVect pc = objCS->PositionIn(localCS);
-//   const PosiVect p  = pc.Polar();
-//   const double& r   = p.x;
-//   const CS cs(pc, p.y, localCS);
-
-//   // Displacement in the local CS:
-//   DispAP w = f(p);
-
-//   // Stress in the local CS:
-//   dcomp gzr = f.dr(p);
-//   dcomp gzt = abs(f.N()) == 1
-//                   ? 0.5 * ii * f.K() * exp(f.N() * p.y * ii) / f.Norm()
-//                   : 0;
-//   StressAP t = m.C(gzr, gzt);
-
-//   // Normalized state in the objective CS.
-//   return StateAP(w, t, &cs).in(objCS);
-// }
-
 }  // namespace mss
 
 #endif

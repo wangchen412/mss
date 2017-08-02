@@ -44,6 +44,7 @@ class Point : public Geometry<T> {
 
   const CS* LocalCS() const { return &localCS_; }
   const T& State() const { return state_; }
+  const Inhomogeneity<T>* In() const { return in_; }
 
   std::ostream& Print(std::ostream& os) const override;
 

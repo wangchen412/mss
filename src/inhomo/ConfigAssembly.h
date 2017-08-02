@@ -69,6 +69,9 @@ class ConfigAssembly {
   void PrintCoeff(std::ostream& os) const;
 
   const InhomoCPtrs<T>& Inhomo() const { return inhomoC_; }
+  const Inhomogeneity<T>* Inhomo(const size_t& sn) const {
+    return inhomoC_[sn];
+  }
 
  protected:
   const std::string ID_;
