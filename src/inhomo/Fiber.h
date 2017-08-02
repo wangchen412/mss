@@ -27,6 +27,8 @@ namespace mss {
 
 template <typename T>
 class Fiber : public Inhomogeneity<T> {
+  using Inhomogeneity<T>::LocalCS;
+
  public:
   Fiber(const ConfigFiber<T>* config, const PosiVect& position = 0)
       : Inhomogeneity<T>(position, fiber),
@@ -91,7 +93,7 @@ class Fiber : public Inhomogeneity<T> {
 
 template <typename T>
 inline bool Fiber<T>::Contain(const CS* objCS) const {
-  return objCS->PositionIn(this->LocalCS()).Length() < config_->Radius();
+  return objCS->PositionIn(LocalCS()).Length() < config_->Radius();
 }
 template <typename T>
 inline T Fiber<T>::Scatter(const CS* objCS) const {
@@ -145,33 +147,37 @@ inline StateAP Fiber<StateAP>::InnerMode(const CS* objCS,
 }
 template <typename T>
 inline T Fiber<T>::scatterModeL(const CS* objCS, int n) const {
-  return ModeL<T>(this->LocalCS(), objCS,
+  return ModeL<T>(LocalCS(), objCS,
                   EigenFunctor(Hn, n, config_->KL_m(), Radius()),
                   config_->Material_m());
 }
 template <typename T>
 inline T Fiber<T>::innerModeL(const CS* objCS, int n) const {
-  return ModeL<T>(this->LocalCS(), objCS,
+  return ModeL<T>(LocalCS(), objCS,
                   EigenFunctor(Jn, n, config_->KL(), Radius()),
                   config_->Material());
 }
 template <typename T>
 inline T Fiber<T>::scatterModeT(const CS* objCS, int n) const {
-  return ModeT<T>(this->LocalCS(), objCS,
+  return ModeT<T>(LocalCS(), objCS,
                   EigenFunctor(Hn, n, config_->KT_m(), Radius()),
                   config_->Material_m());
 }
 template <typename T>
 inline T Fiber<T>::innerModeT(const CS* objCS, int n) const {
-  return ModeT<T>(this->LocalCS(), objCS,
+  // if (objCS->PositionIn(LocalCS()).Length() > epsilon)
+  return ModeT<T>(LocalCS(), objCS,
                   EigenFunctor(Jn, n, config_->KT(), Radius()),
                   config_->Material());
+  // else
+  //   return LimModeT<T>(LocalCS(), objCS,
+  //                      EigenFunctor(Jn, n, config_->KT(), Radius()),
+  //                      config_->Material());
 }
 template <typename T>
 inline void Fiber<T>::add_node() {
   node_.reserve(config_->NoN());
-  for (auto& i : config_->Node())
-    node_.push_back(new CS(*i, this->LocalCS()));
+  for (auto& i : config_->Node()) node_.push_back(new CS(*i, LocalCS()));
 }
 template <typename T>
 inline void Fiber<T>::delete_node() {

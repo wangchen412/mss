@@ -27,10 +27,14 @@
 namespace mss {
 
 template <typename T>
-inline T ModeL(const CS*, const CS*, const EigenFunctor&, const Material& m);
+inline T ModeL(const CS*, const CS*, const EigenFunctor&, const Material&);
+template <typename T>
+inline T ModeT(const CS*, const CS*, const EigenFunctor&, const Material&);
 
 template <typename T>
-inline T ModeT(const CS*, const CS*, const EigenFunctor&, const Material& m);
+inline T LimModeL(const CS*, const CS*, const EigenFunctor&, const Material&);
+template <typename T>
+inline T LimModeT(const CS*, const CS*, const EigenFunctor&, const Material&);
 
 template <>
 inline StateIP ModeL<StateIP>(const CS* localCS, const CS* objCS,
@@ -43,22 +47,19 @@ inline StateIP ModeL<StateIP>(const CS* localCS, const CS* objCS,
   const double& r   = p.x;
   const CS cs(pc, p.y, localCS);
 
-  // TODO when r < epsilon
-
   // Displacement in the local CS:
   dcomp ur = f.dr(p);
-  dcomp ut = f.dt(p) / r;
+  dcomp ut = f.dt_r(p);
 
   // Stress in the local CS:
   dcomp grr  = f.ddr(p);
-  dcomp gtt  = ur / r + f.ddt(p) / r / r;
-  dcomp grt  = 2.0 * (f.drdt(r) / r - ut / r);
+  dcomp gtt  = f.dr_r(p) + f.ddt_rr(p);
+  dcomp grt  = 2.0 * (f.drdt_r(r) - f.dt_rr(p));
   StressIP t = m.C(grr, gtt, grt);
 
   // Normalized state in the objective CS.
   return StateIP(ur, ut, t, &cs).in(objCS);
 }
-
 template <>
 inline StateIP ModeT<StateIP>(const CS* localCS, const CS* objCS,
                               const EigenFunctor& f,
@@ -71,22 +72,19 @@ inline StateIP ModeT<StateIP>(const CS* localCS, const CS* objCS,
   const double& r   = p.x;
   const CS cs(pc, p.y, localCS);
 
-  // TODO when r < epsilon
-
   // Displacement in the local CS:
-  dcomp ur = f.dt(r) / r;
+  dcomp ur = f.dt_r(r);
   dcomp ut = -f.dr(r);
 
   // Stress in the local CS:
-  dcomp grr  = f.drdt(r) / r;
-  dcomp gtt  = ur / r - f.drdt(r) / r;
-  dcomp grt  = f.ddt(r) / r / r - f.ddr(r) - ut / r;
+  dcomp grr  = f.drdt_r(r);
+  dcomp gtt  = f.dt_rr(r) - f.drdt_r(r);
+  dcomp grt  = f.ddt_rr(r) - f.ddr(r) + f.dr_r(r);
   StressIP t = m.C(grr, gtt, grt);
 
   // Normalized state in the objective CS.
   return StateIP(ur, ut, t, &cs).in(objCS);
 }
-
 template <>
 inline StateAP ModeT<StateAP>(const CS* localCS, const CS* objCS,
                               const EigenFunctor& f,
@@ -103,16 +101,41 @@ inline StateAP ModeT<StateAP>(const CS* localCS, const CS* objCS,
   DispAP w = f(p);
 
   // Stress in the local CS:
-  dcomp gzr = f.dr(p), gzt;
-  if (r > epsilon)
-    gzt = f.dt(p) / r;
-  else
-    gzt = std::abs(f.N()) == 1 ? 0.5 * ii * f.K() * exp(f.N() * p.y * ii) : 0;
+  dcomp gzr  = f.dr(p);
+  dcomp gzt  = f.dt_r(p);
   StressAP t = m.C(gzr, gzt);
 
   // Normalized state in the objective CS.
   return StateAP(w, t, &cs).in(objCS);
 }
+
+// template <>
+// inline StateAP LimModeT<StateAP>(const CS* localCS, const CS* objCS,
+//                                  const EigenFunctor& f,
+//                                  const class Material& m) {
+//   /// Return the effect of the transverse mode when the objCS is very close
+//   to
+//   /// the localCS in antiplane problems.
+
+//   // Position in the local CS, which is seen as a polar CS:
+//   const PosiVect pc = objCS->PositionIn(localCS);
+//   const PosiVect p  = pc.Polar();
+//   const double& r   = p.x;
+//   const CS cs(pc, p.y, localCS);
+
+//   // Displacement in the local CS:
+//   DispAP w = f(p);
+
+//   // Stress in the local CS:
+//   dcomp gzr = f.dr(p);
+//   dcomp gzt = abs(f.N()) == 1
+//                   ? 0.5 * ii * f.K() * exp(f.N() * p.y * ii) / f.Norm()
+//                   : 0;
+//   StressAP t = m.C(gzr, gzt);
+
+//   // Normalized state in the objective CS.
+//   return StateAP(w, t, &cs).in(objCS);
+// }
 
 }  // namespace mss
 
