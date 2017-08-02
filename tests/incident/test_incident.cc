@@ -35,8 +35,8 @@ class IncidentTest : public Test {
 
   // Read and compute sample points.
   template <typename T>
-  void RnC(const Incident<T>* inc, const std::string& fn,
-                std::vector<T>& ref, std::vector<T>& com) {
+  void RnC(const Incident<T>* inc, const std::string& fn, std::vector<T>& ref,
+           std::vector<T>& com) {
     ReadSample(fn, ref);
     for (auto& i : SamplePtsBack()) com.emplace_back(inc->Effect(i));
   }

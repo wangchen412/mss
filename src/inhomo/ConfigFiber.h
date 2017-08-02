@@ -127,15 +127,17 @@ dcomp ConfigFiber<StateAP>::TT(int n) const {
 }
 template <>
 void ConfigFiber<StateAP>::compute_MatrixQ() {
+#ifdef NDEBUG
+#pragma omp parallel for
+#endif
+
   for (int n = -N_; n <= N_; n++) {
     dcomp tn = TT(n);
     EigenFunctor J(Jn, n, KT(), R_), H(Hn, n, KT_m(), R_);
     for (size_t i = 0; i < P_; i++) {
       StateAP s = ModeT<StateAP>(nullptr, node_[i], J, Material()) * tn -
                   ModeT<StateAP>(nullptr, node_[i], H, Material_m());
-      // Q_.block<2, 1>(2 * i, n + N_) = s.BV();
-      Q_(i * 2, n + N_)     = s.Displacement().x;
-      Q_(i * 2 + 1, n + N_) = s.Stress().x;
+      Q_.block<2, 1>(2 * i, n + N_) = s.BV();
     }
   }
 }

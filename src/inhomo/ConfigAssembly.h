@@ -214,6 +214,10 @@ void ConfigAssembly<T>::allocate() {
 
 template <typename T>
 void ConfigAssembly<T>::compute_MatrixC() {
+#ifdef NDEBUG
+#pragma omp parallel for
+#endif
+
   for (size_t v = 0; v < inhomo_.size(); v++) {
     int i = 0, j = 0;
     for (size_t k = 0; k < v; k++) j += inhomo_[k]->NoC();
