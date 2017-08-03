@@ -18,7 +18,7 @@
 // ----------------------------------------------------------------------
 
 #include "../test.h"
-#include "../../src/post/geom/Line.h"
+#include "../../src/post/geometry/Line.h"
 
 namespace mss {
 

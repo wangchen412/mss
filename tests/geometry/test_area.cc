@@ -17,7 +17,7 @@
 //
 // ----------------------------------------------------------------------
 
-#include "../../src/post/geom/Area.h"
+#include "../../src/post/geometry/Area.h"
 #include "../test.h"
 
 namespace mss {

@@ -21,7 +21,7 @@
 #define MSS_CONTINUITY_H
 
 #include "../../core/Solution.h"
-#include "../geom/Circle.h"
+#include "../geometry/Circle.h"
 
 namespace mss {
 

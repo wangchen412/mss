@@ -30,8 +30,10 @@ template <typename T>
 class Solution {
  public:
   Solution(const input::Solution& input)
-      : matrix_(input.matrix()), config_("root", input.config(), &matrix_) {
-    add_incident(input);
+      : matrix_(input.matrix()),
+        config_("root", input.config(), &matrix_),
+        input_(input) {
+    add_incident();
   }
 
   virtual ~Solution() { delete_incident(); }
@@ -47,6 +49,8 @@ class Solution {
   const Inhomogeneity<T>* Inhomo(const size_t& sn) const {
     return Config().Inhomo(sn);
   }
+  const input::Solution& Input() const { return input_; }
+  const std::string& InputFN() const { return input_.FN(); }
 
  protected:
   // bool solved_;
@@ -57,8 +61,9 @@ class Solution {
   // Only the configuration of the "root" assembly is needed.
   // The instantiation of the "root" assembly is not necessary.
   ConfigAssembly<T> config_;
+  input::Solution input_;
 
-  void add_incident(const input::Solution& input);
+  void add_incident();
   void delete_incident();
 };
 
@@ -69,9 +74,9 @@ typedef Solution<StateIP> SolutionIP;
 // Inline functions:
 
 template <typename T>
-void Solution<T>::add_incident(const input::Solution& input) {
+void Solution<T>::add_incident() {
   IncidentInput<T> f(matrix_);
-  for (auto& i : input.incident()) incident_.push_back(f(i));
+  for (auto& i : input_.incident()) incident_.push_back(f(i));
 }
 
 template <typename T>

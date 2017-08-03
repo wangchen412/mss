@@ -17,30 +17,23 @@
 //
 // ----------------------------------------------------------------------
 
-#include "../../src/post/check/Continuity.h"
+#include "../../src/post/Output.h"
 #include "../test.h"
 
 namespace mss {
 
 namespace test {
 
-class ContinuityTest : public Test {
+class OutputTest : public Test {
  protected:
-  ContinuityTest() { s.Solve(); }
+  OutputTest() { s.Solve(); }
 
   SolutionAP s{path("input.txt")};
 };
 
-TEST_F(ContinuityTest, FiberCheck) {
-  for (auto& i : s.Inhomo()) {
-    post::CC_Fiber<StateAP> cf(&s, dynamic_cast<const Fiber<StateAP>*>(i));
-    EXPECT_FALSE(cf.NC());
-  }
-}
-
-TEST_F(ContinuityTest, SolutionCheck) {
-  post::CC_Solution<StateAP> cc{&s};
-  EXPECT_TRUE(cc.isCont());
+TEST_F(OutputTest, Constructor) {
+  post::OutputAP ou(&s);
+  EXPECT_EQ(ou.Geo().size(), 4);
 }
 
 }  // namespace test

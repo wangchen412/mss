@@ -34,6 +34,7 @@ class Solution {
   Solution(const std::string& file);
 
   std::ostream& Print(std::ostream& os) const;
+  const std::string& FN() const { return fn_; }
 
   const auto& material() const { return material_; }
   const auto& matrix() const { return matrix_[0]; }

@@ -18,7 +18,7 @@
 // ----------------------------------------------------------------------
 
 #include "../test.h"
-#include "../../src/post/geom/Circle.h"
+#include "../../src/post/geometry/Circle.h"
 
 namespace mss {
 

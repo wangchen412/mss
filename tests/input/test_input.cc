@@ -41,6 +41,7 @@ input::Solution* ReadWritten() {
 
 class InputTest : public testing::TestWithParam<CreateInputFunc*> {
  public:
+  // TODO delete generated file.
   virtual ~InputTest() { delete s_; }
   virtual void SetUp() { s_ = (*GetParam())(); }
   virtual void TearDown() {

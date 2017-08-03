@@ -23,7 +23,7 @@ namespace mss {
 
 namespace input {
 
-Solution::Solution(const std::string& file) : fn_(file) {
+Solution::Solution(const std::string& fn) : fn_(fn) {
   add_keyword();
   add(material_, matrix_, incident_, configFiber_, configAssembly_, solve_);
   link();
