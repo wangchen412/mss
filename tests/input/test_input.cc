@@ -41,12 +41,12 @@ input::Solution* ReadWritten() {
 
 class InputTest : public testing::TestWithParam<CreateInputFunc*> {
  public:
-  // TODO delete generated file.
   virtual ~InputTest() { delete s_; }
   virtual void SetUp() { s_ = (*GetParam())(); }
   virtual void TearDown() {
     delete s_;
     s_ = nullptr;
+    std::remove(test::Test::DataPath(__FILE__, "output.txt").c_str());
   }
 
  protected:

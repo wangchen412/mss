@@ -28,8 +28,7 @@ namespace test {
 class StateTest : public Test {
  protected:
   StateTest()
-      : Test(__FILE__, "state"),
-        cs1(3, 4, t),
+      : cs1(3, 4, t),
         cs2(-1, -2, -t, &cs1),
         cs3(-1, -10, -pi / 2, &cs2),
         a(),
@@ -137,6 +136,8 @@ TEST_F(StateTest, IO) {
   EXPECT_EQ(bb, rbb);
   EXPECT_EQ(cc, rcc);
   EXPECT_EQ(dd, rdd);
+
+  std::remove(fn.c_str());
 }
 
 }  // namespace test

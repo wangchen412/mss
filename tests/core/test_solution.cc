@@ -25,7 +25,7 @@ namespace test {
 
 class SolutionTest : public Test {
  protected:
-  SolutionTest() : Test(__FILE__, "solution") {}
+  SolutionTest() : Test(__FILE__) {}
 
   input::Solution inS{path("Single.txt")};
   Solution<StateAP> s{inS};
