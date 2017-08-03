@@ -33,13 +33,23 @@ class Circle : public PointSet<T> {
  public:
   Circle(const Solution<T>* solution, const PosiVect& center, const double& R,
          const size_t& N, const std::string& id = "1")
-      : PointSet<T>(solution, "Circle_" + id) {
+      : PointSet<T>(solution, "Circle_" + id), center_(center), R_(R) {
     // Add points:
     for (size_t i = 0; i < N; i++)
       point_.push_back(new Point<T>(
           solution, center + PosiVect(R, i * pi2 / N).Cartesian(),
           i * pi2 / N));
   }
+
+  std::string Shape() const override { return "Circle"; }
+  std::ostream& PrintParam(std::ostream& os) const override {
+    return os << center_ << "\t\t" << R_ << "\t\t" << point_.size()
+              << std::endl;
+  }
+
+ private:
+  const PosiVect center_;
+  const double R_;
 };
 
 typedef Circle<StateIP> CircleIP;

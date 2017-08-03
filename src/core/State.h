@@ -112,6 +112,7 @@ class State {
   // the normal vector.
   auto BV() const;
   static const size_t NoBV;  // Number of boundary values.
+  static const std::string Type;
 
  private:
   T1 displacement_;
@@ -124,9 +125,15 @@ typedef State<DispAP, StressAP> StateAP;
 typedef State<DispIP, StressIP> StateIP;
 
 template <>
-size_t const StateAP::NoBV = 2;
+const size_t StateAP::NoBV = 2;
 template <>
-size_t const StateIP::NoBV = 4;
+const size_t StateIP::NoBV = 4;
+
+template <>
+const std::string StateAP::Type = "Antiplane";
+template <>
+const std::string StateIP::Type = "In-plane";
+
 
 // ---------------------------------------------------------------------------
 // Inline functions:

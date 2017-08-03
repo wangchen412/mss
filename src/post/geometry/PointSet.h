@@ -37,14 +37,37 @@ class PointSet : public Geometry<T> {
   }
 
   const PtCPtrs<T>& Points() const { return point_; }
-  std::ostream& Print(std::ostream& os) const override {
-    for (auto& i : point_) i->Print(os);
-    return os;
-  }
+  std::ostream& Print(std::ostream& os) const override;
+  virtual std::ostream& PrintParam(std::ostream& os) const = 0;
+
+  virtual std::string Shape() const  = 0;
+
+  std::ostream& PrintHd(std::ostream& os) const;
 
  protected:
   PtCPtrs<T> point_;
 };
+
+// ---------------------------------------------------------------------------
+// Inline functions:
+
+template <typename T>
+std::ostream& PointSet<T>::Print(std::ostream& os) const {
+  PrintHd(os);
+  for (auto& i : point_) i->Print(os);
+  return os;
+}
+
+template <typename T>
+std::ostream& PointSet<T>::PrintHd(std::ostream& os) const {
+  os << separator("=");
+  os << "Shape:\t" << Shape() << std::endl;
+  os << "Type:\t" << T::Type << std::endl;
+  os << "Parameters:\t";
+  PrintParam(os);
+  os << separator("-");
+  return os;
+}
 
 }  // namespace post
 

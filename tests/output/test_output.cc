@@ -26,14 +26,57 @@ namespace test {
 
 class OutputTest : public Test {
  protected:
-  OutputTest() { s.Solve(); }
-
+  ~OutputTest() {
+    std::remove("Point_1.dat");
+    std::remove("Line_1.dat");
+    std::remove("Circle_1.dat");
+    std::remove("Area_1.dat");
+  }
   SolutionAP s{path("input.txt")};
+  post::OutputAP o1{&s};
+
+  template <typename T>
+  void extract_state(const post::Geometry<T>* p,
+                     std::vector<StateAP>& c) const {
+    const post::PointSet<T>* sp = dynamic_cast<const post::PointSet<T>*>(p);
+    for (auto& i : sp->Points()) c.push_back(i->State());
+  }
 };
 
 TEST_F(OutputTest, Constructor) {
-  post::OutputAP ou(&s);
-  EXPECT_EQ(ou.Geo().size(), 4);
+  EXPECT_EQ(o1.Geo().size(), 4);
+  EXPECT_EQ(o1.Geo(0)->ID(), "Point_1");
+  EXPECT_EQ(o1.Geo(1)->ID(), "Line_1");
+  EXPECT_EQ(o1.Geo(2)->ID(), "Circle_1");
+  EXPECT_EQ(o1.Geo(3)->ID(), "Area_1");
+}
+
+TEST_F(OutputTest, Write) {
+  s.Solve();
+  post::OutputAP o2(&s);
+  o2.Write();
+  std::ifstream f1("Line_1.dat"), f2("Circle_1.dat"), f3("Area_1.dat");
+  std::vector<StateAP> r1, r2, r3;
+  ReadSample(f1, r1, 5);
+  ReadSample(f2, r2, 5);
+  ReadSample(f3, r3, 5);
+
+  ASSERT_EQ(r1.size(), 100);
+  ASSERT_EQ(r2.size(), 100);
+  ASSERT_EQ(r3.size(), 100);
+
+  std::vector<StateAP> c1, c2, c3;
+  extract_state(o2.Geo(1), c1);
+  extract_state(o2.Geo(2), c2);
+  extract_state(o2.Geo(3), c3);
+
+  ASSERT_EQ(c1.size(), 100);
+  ASSERT_EQ(c2.size(), 100);
+  ASSERT_EQ(c3.size(), 100);
+
+  EXPECT_THAT(r1, testing::Eq(c1));
+  EXPECT_THAT(r2, testing::Eq(c2));
+  EXPECT_THAT(r3, testing::Eq(c3));
 }
 
 }  // namespace test

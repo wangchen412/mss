@@ -33,12 +33,20 @@ class Line : public PointSet<T> {
  public:
   Line(const Solution<T>* solution, const PosiVect& p1, const PosiVect& p2,
        const size_t& N, const std::string& id = "1")
-      : PointSet<T>(solution, "Line_" + id) {
+      : PointSet<T>(solution, "Line_" + id), p1_(p1), p2_(p2) {
     // Add points:
     PosiVect d = (p2 - p1) / N;
     for (size_t i = 0; i < N; i++)
       point_.push_back(new Point<T>(solution, p1 + d * i));
   }
+
+  std::string Shape() const override { return "Line"; }
+  std::ostream& PrintParam(std::ostream& os) const override {
+    return os << p1_ << "\t\t" << p2_ << "\t\t" << point_.size() << std::endl;
+  }
+
+ private:
+  const PosiVect p1_, p2_;
 };
 
 typedef Line<StateIP> LineIP;

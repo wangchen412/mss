@@ -38,6 +38,8 @@ class Geometry {
   virtual std::ostream& Print(std::ostream& os) const = 0;
   void Write() const;
 
+  const std::string& ID() const { return id_; }
+
  protected:
   const Solution<T>* solution_;
   const std::string id_;

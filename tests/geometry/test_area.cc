@@ -46,7 +46,7 @@ TEST_F(AreaTest, Computation) {
   std::ofstream file(path(fn));
   t1.Print(file);
   file.close();
-  ReadSample(fn, com);
+  ReadSample(fn, com, 5);
   EXPECT_EQ(com.size(), 100);
   std::remove(path(fn).c_str());
 

@@ -47,7 +47,9 @@ class Test : public testing::Test {
 
   // Read sample points and states from data file.
   template <typename T>
-  void ReadSample(const std::string& fn, std::vector<T>& ref);
+  void ReadSample(const std::string& fn, std::vector<T>& ref, int s = 0);
+  template <typename T>
+  void ReadSample(std::ifstream& file, std::vector<T>& ref, int s = 0);
 
   // Read computed coefficients from data file.
   void ReadCoeff(const std::string& fn, Eigen::VectorXcd& ref);
@@ -67,9 +69,18 @@ class Test : public testing::Test {
 };
 
 template <typename T>
-inline void Test::ReadSample(const std::string& fn, std::vector<T>& ref) {
-  sp_.push_back(new CSCPtrs);
+inline void Test::ReadSample(const std::string& fn, std::vector<T>& ref,
+                             int s) {
   std::ifstream file(path(fn));
+  skip(file, s);
+  ReadSample(file, ref);
+}
+
+template <typename T>
+inline void Test::ReadSample(std::ifstream& file, std::vector<T>& ref,
+                             int s) {
+  skip(file, s);
+  sp_.push_back(new CSCPtrs);
   std::string ts;
   while (std::getline(file, ts)) {
     std::stringstream tss(ts);
