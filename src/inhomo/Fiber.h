@@ -86,7 +86,7 @@ class Fiber : public Inhomogeneity<T> {
   void add_node();
   void delete_node();
   int od(const size_t& sn) const { return sn - config_->TopOrder(); }
-};  // namespace mss
+};
 
 // ---------------------------------------------------------------------------
 // Inline functions:

@@ -41,7 +41,11 @@ class ConfigAssembly {
  public:
   ConfigAssembly(const std::string& ID, const input::ConfigAssembly& input,
                  const Matrix* matrix)
-      : ID_(ID), matrix_(matrix), input_(input) {
+      : ID_(ID),
+        matrix_(matrix),
+        width_(input.width),
+        height_(input.height),
+        input_(input) {
     add_inhomo();
     allocate();
   }
@@ -229,6 +233,32 @@ void ConfigAssembly<T>::compute_MatrixC() {
     }
   }
 }
+
+// template <typename T>
+// void ConfigAssembly<T>::add_node() {
+//   add_rect({0, height_}, {width_, 0});
+// }
+
+// template <typename T>
+// void ConfigAssembly<T>::add_rect(const PosiVect& p1, const PosiVect& p2) {
+//   // The contour should be counter-clock wise.
+
+//   add_line({p1.x, p1.y}, {p1.x, p2.y});
+//   add_line({p1.x, p2.y}, {p2.x, p2.y});
+//   add_line({p2.x, p2.y}, {p2.x, p1.y});
+//   add_line({p2.x, p1.y}, {p1.x, p1.y});
+// }
+
+// template <typename T>
+// void ConfigAssembly<T>::add_line(const PosiVect& p1, const PosiVect& p2) {
+//   // The contour is counter-clock wise. So the angle of the local CS
+//   // equals the vector angle minus pi/2.
+
+//   size_t N   = (p2 - p1).Length() * input_.pointDensity;
+//   PosiVect d = (p2 - p1) / N;
+//   double ang = d.Angle() - pi_2;
+//   for (size_t i = 0; i < N; i++) node_.push_back(new CS(p1 + d * i, ang));
+// }
 
 }  // namespace mss
 

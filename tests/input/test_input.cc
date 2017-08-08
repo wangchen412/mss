@@ -28,15 +28,18 @@ namespace test {
 typedef input::Solution* CreateInputFunc();
 
 input::Solution* ReadInput() {
-  return new input::Solution(Test::DataPath(__FILE__, "input.txt"));
+  std::string path(__FILE__);
+  std::string fn = path.substr(0, path.rfind("/")) + "/../data/input.txt";
+  return new input::Solution(fn);
 }
 
 input::Solution* ReadWritten() {
-  input::Solution s(Test::DataPath(__FILE__, "input.txt"));
-  std::ofstream file(Test::DataPath(__FILE__, "output.txt"));
-  s.Print(file);
-  file.close();
-  return new input::Solution(Test::DataPath(__FILE__, "output.txt"));
+  input::Solution* tmp = ReadInput();
+  std::ofstream out("InputTest.txt");
+  tmp->Print(out);
+  out.close();
+  delete tmp;
+  return new input::Solution("InputTest.txt");
 }
 
 class InputTest : public testing::TestWithParam<CreateInputFunc*> {
@@ -46,7 +49,7 @@ class InputTest : public testing::TestWithParam<CreateInputFunc*> {
   virtual void TearDown() {
     delete s_;
     s_ = nullptr;
-    std::remove(test::Test::DataPath(__FILE__, "output.txt").c_str());
+    std::remove("InputTest.txt");
   }
 
  protected:
@@ -56,13 +59,15 @@ class InputTest : public testing::TestWithParam<CreateInputFunc*> {
 TEST_P(InputTest, Constructors) {
   EXPECT_EQ(s_->material().size(), 4);
   EXPECT_EQ(s_->material()[2].lambda, 68.5472e9);
-  EXPECT_EQ(s_->frequency(), 1.23);
+  EXPECT_EQ(s_->frequency(), 1.25664e6);
   EXPECT_EQ(s_->matrix().material->ID, "rubber");
   EXPECT_EQ(s_->incident().size(), 2);
   EXPECT_EQ(s_->configFiber().size(), 3);
   EXPECT_EQ(s_->configFiber()[2].material->lambda, 68.5472e9);
   EXPECT_EQ(s_->config().fiber.size(), 5);
   EXPECT_EQ(s_->config().fiber[2].config->radius, 8e-3);
+  EXPECT_EQ(s_->config().width, 80e-3);
+  EXPECT_EQ(s_->config().height, 60e-3);
 }
 
 INSTANTIATE_TEST_CASE_P(ioCtorsTest, InputTest,

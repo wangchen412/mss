@@ -44,8 +44,10 @@ void Solution::link() {
     i.P = std::max(size_t(matrix().kt * i.radius * matrix().delta), P_MIN);
   }
   for (auto& i : configAssembly_) {
-    i.configFiber = &configFiber_;
+    i.configFiber  = &configFiber_;
+    i.pointDensity = matrix().kt * matrix().delta;
     for (auto& j : i.fiber) j.config= FindID(configFiber_, j.configID);
+    i.nsolve = iequals(solve_[0], i.ID) ? false : true;
   }
 }
 

@@ -108,9 +108,10 @@ inline void Solution::add_entry(std::ifstream& file,
                                 std::vector<ConfigAssembly>& vec) {
   std::string tmp;
   skip(file, 2, &tmp);
-  while (iequals(tmp, "ID")) {
+  while (iequals(tmp.substr(0, 2), "ID")) {
     ConfigAssembly rst;
-    getline(file, rst.ID);
+    getline(file, tmp);
+    std::stringstream(tmp) >> rst.ID >> rst.width >> rst.height;
     add_header<Fiber>(file);
     add_entry(file, rst.fiber);
     vec.push_back(rst);

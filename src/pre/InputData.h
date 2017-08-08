@@ -63,8 +63,11 @@ struct Fiber {
 // };
 struct ConfigAssembly {
   std::string ID;
+  double pointDensity;  // Point density.
+  double width, height;
   std::vector<Fiber> fiber;
   const std::vector<ConfigFiber>* configFiber;
+  bool nsolve;
   // std::vector<ConfigAssembly> a;   // TODO
   // std::vector<Assembly> assembly;  // TODO
 };
@@ -112,7 +115,9 @@ inline std::ostream& operator<<(std::ostream& os, const Fiber& f) {
 }
 
 inline std::ostream& operator<<(std::ostream& os, const ConfigAssembly& c) {
-  os << separator("=", 45) << "ID" << std::endl << c.ID << std::endl;
+  os << separator("=", 45);
+  os << "ID              Width           Height" << std::endl;
+  os << c.ID << "\t\t" << c.width << "\t\t" << c.height << std::endl;
   os << separator("-", 45) << "[Fibers]" << std::endl << separator("-", 45);
   os << "X               Y               Configuration" << std::endl;
   for (const auto& i : c.fiber) os << i << std::endl;
