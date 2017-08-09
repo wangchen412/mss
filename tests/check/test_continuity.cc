@@ -32,7 +32,7 @@ class ContinuityTest : public Test {
 };
 
 TEST_F(ContinuityTest, FiberCheck) {
-  for (auto& i : s.Inhomo()) {
+  for (auto& i : s.inhomo()) {
     post::CC_Fiber<StateAP> cf(&s, dynamic_cast<const Fiber<StateAP>*>(i));
     EXPECT_FALSE(cf.NC());
   }

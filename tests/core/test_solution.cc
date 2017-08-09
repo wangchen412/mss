@@ -43,8 +43,7 @@ TEST_F(SolutionTest, Coefficient) {
   ReadCoeff("Single_SH1.dat", ref);
 
   s.Solve();
-  EXPECT_TRUE(
-      ApproxVectRV(ref, s.Config().Inhomo()[0]->ScatterCoeff(), 1e-4));
+  EXPECT_TRUE(ApproxVectRv(ref, s.Config().inhomo(0)->ScatterCoeff(), 1e-4));
 }
 TEST_F(SolutionTest, SampleLine) {
   std::vector<StateAP> ref, com;

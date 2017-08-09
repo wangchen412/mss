@@ -52,9 +52,9 @@ class Incident {
 
   // The effect vector along the boundary.
   Eigen::VectorXcd EffectBV(const CSCPtrs& localCS) const {
-    Eigen::VectorXcd rst(localCS.size() * T::NoBV);
+    Eigen::VectorXcd rst(localCS.size() * T::NumBv);
     for (size_t i = 0; i < localCS.size(); i++)
-      rst.segment(i * T::NoBV, T::NoBV) = Effect(localCS[i]).BV();
+      rst.segment(i * T::NumBv, T::NumBv) = Effect(localCS[i]).BV();
     return rst;
   }
 

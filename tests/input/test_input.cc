@@ -62,8 +62,8 @@ TEST_P(InputTest, Constructors) {
   EXPECT_EQ(s_->frequency(), 1.25664e6);
   EXPECT_EQ(s_->matrix().material->ID, "rubber");
   EXPECT_EQ(s_->incident().size(), 2);
-  EXPECT_EQ(s_->configFiber().size(), 3);
-  EXPECT_EQ(s_->configFiber()[2].material->lambda, 68.5472e9);
+  EXPECT_EQ(s_->fiber_config().size(), 3);
+  EXPECT_EQ(s_->fiber_config()[2].material->lambda, 68.5472e9);
   EXPECT_EQ(s_->config().fiber.size(), 5);
   EXPECT_EQ(s_->config().fiber[2].config->radius, 8e-3);
   EXPECT_EQ(s_->config().width, 80e-3);

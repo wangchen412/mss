@@ -25,7 +25,7 @@ namespace input {
 
 Solution::Solution(const std::string& fn) : fn_(fn) {
   add_keyword();
-  add(material_, matrix_, incident_, configFiber_, configAssembly_, solve_);
+  add(material_, matrix_, incident_, fiber_config_, assembly_config_, solve_);
   link();
 }
 
@@ -39,30 +39,30 @@ void Solution::link() {
     i.kl       = i.frequency / i.material->cl;
     i.kt       = i.frequency / i.material->ct;
   }
-  for (auto& i : configFiber_) {
+  for (auto& i : fiber_config_) {
     i.material = FindID(material_, i.materialID);
     i.P = std::max(size_t(matrix().kt * i.radius * matrix().delta), P_MIN);
   }
-  for (auto& i : configAssembly_) {
-    i.configFiber  = &configFiber_;
+  for (auto& i : assembly_config_) {
+    i.fiber_config = &fiber_config_;
     i.pointDensity = matrix().kt * matrix().delta;
-    for (auto& j : i.fiber) j.config= FindID(configFiber_, j.configID);
+    for (auto& j : i.fiber) j.config= FindID(fiber_config_, j.configID);
     i.nsolve = iequals(solve_[0], i.ID) ? false : true;
   }
 }
 
 std::ostream& Solution::Print(std::ostream& os) const {
-  return print(os, material_, matrix_, incident_, configFiber_,
-               configAssembly_, solve_);
+  return print(os, material_, matrix_, incident_, fiber_config_,
+               assembly_config_, solve_);
 }
 
 void Solution::add_keyword() {
   keyword_[typeid(Material)]       = "[Materials]";
   keyword_[typeid(Matrix)]         = "[Matrix]";
   keyword_[typeid(IncidentPlane)]  = "[Incident Waves]";
-  keyword_[typeid(ConfigFiber)]    = "[Fiber Configurations]";
+  keyword_[typeid(FiberConfig)]    = "[Fiber Configurations]";
   keyword_[typeid(Fiber)]          = "[Fibers]";
-  keyword_[typeid(ConfigAssembly)] = "[Assembly Configurations]";
+  keyword_[typeid(AssemblyConfig)] = "[Assembly Configurations]";
   keyword_[typeid(std::string)]    = "[Solve]";
 }
 

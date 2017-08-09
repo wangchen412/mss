@@ -56,7 +56,7 @@ inline dcomp Hn(int n, const double& x) {
   return jn(n, x) + ii * yn(n, x);
 }
 
-inline bool angEqu(const double& a, const double& b) {
+inline bool AngEqu(const double& a, const double& b) {
   double t = (a - b) / pi / 2;
   return std::abs(t - (long long)t) * 2 * pi < epsilon;
 }
@@ -76,19 +76,19 @@ inline double RelativeDiff(const T& a, const T& b) {
 
 // Check if the two values are approximately equal with relative error.
 template <typename T>
-inline bool ApproxRV(const T& a, const T& b, const double& re = epsilon) {
+inline bool ApproxRv(const T& a, const T& b, const double& re = epsilon) {
   return RelativeDiff(a, b) < re;
 }
 
 // Check if the elements of two vectors are approximately equal with relative
 // error.
 template <typename T>
-inline bool ApproxVectRV(const Eigen::Matrix<T, Eigen::Dynamic, 1>& a,
+inline bool ApproxVectRv(const Eigen::Matrix<T, Eigen::Dynamic, 1>& a,
                          const Eigen::Matrix<T, Eigen::Dynamic, 1>& b,
                          const double& re = epsilon, int k = 0) {
   assert(a.size() == b.size());
   for (long i = k; i < a.size() - k; i++)
-    if (!ApproxRV(a(i), b(i), re)) return false;
+    if (!ApproxRv(a(i), b(i), re)) return false;
   return true;
 }
 

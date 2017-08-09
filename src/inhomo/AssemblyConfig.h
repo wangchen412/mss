@@ -17,89 +17,89 @@
 //
 // ----------------------------------------------------------------------
 
-#ifndef MSS_CONFIGASSEMBLY_H
-#define MSS_CONFIGASSEMBLY_H
+#ifndef MSS_ASSEMBLYCONFIG_H
+#define MSS_ASSEMBLYCONFIG_H
 
 #include "../pre/Input.h"
-#include "ConfigFiber.h"
 #include "Fiber.h"
-#include "Inhomogeneity.h"
+#include "FiberConfig.h"
+#include "Inhomo.h"
 
 namespace mss {
 
 template <typename T>
-class ConfigAssembly;
+class AssemblyConfig;
+template <typename T>
+using AsmConfigPtrs = std::vector<AssemblyConfig<T>*>;
+template <typename T>
+using AsmConfigCPtrs = std::vector<const AssemblyConfig<T>*>;
 
 template <typename T>
-using ConfigAssemPtrs = std::vector<ConfigAssembly<T>*>;
-
-template <typename T>
-using ConfigAssemCPtrs = std::vector<const ConfigAssembly<T>*>;
-
-template <typename T>
-class ConfigAssembly {
+class AssemblyConfig {
  public:
-  ConfigAssembly(const std::string& ID, const input::ConfigAssembly& input,
+  AssemblyConfig(const std::string& ID, const input::AssemblyConfig& input,
                  const Matrix* matrix)
       : ID_(ID),
-        matrix_(matrix),
         width_(input.width),
         height_(input.height),
+        matrix_(matrix),
         input_(input) {
     add_inhomo();
     allocate();
   }
 
-  virtual ~ConfigAssembly() { delete_inhomo(); }
-
-  const Eigen::MatrixXcd& TransMatrix() const;
+  virtual ~AssemblyConfig() { delete_inhomo(); }
 
   const double& CharLength() const { return height_ + width_; }
-  size_t NoN() const;  // TODO
-  size_t NoE() const;  // TODO
-  size_t NoC() const;  // TODO
+  size_t NumNode() const;  // TODO
+  size_t NumBv() const;    // TODO
+  size_t NumCoeff() const { return num_coeff_; }
+  size_t NumBv_in() const { return num_bv_in_; }
 
   const double& Height() const { return height_; }
   const double& Width() const { return width_; }
   const std::string& ID() const { return ID_; }
 
   void Solve(const InciCPtrs<T>& incident);
+  void CSolve(const InciCPtrs<T>& incident);
 
-  Inhomogeneity<T>* InWhich(const CS* objCS) const;
-  T Resultant(const CS* objCS, const Inhomogeneity<T>* inhomo,
+  Inhomo<T>* InWhich(const CS* objCS) const;
+  T Resultant(const CS* objCS, const Inhomo<T>* inhomo,
               const InciCPtrs<T>& incident) const;
   T Resultant(const CS* objCS, const InciCPtrs<T>& incident) const;
 
   void PrintCoeff(std::ostream& os) const;
 
-  const InhomoCPtrs<T>& Inhomo() const { return inhomoC_; }
-  const Inhomogeneity<T>* Inhomo(const size_t& sn) const {
-    return inhomoC_[sn];
-  }
+  const InhomoCPtrs<T>& inhomo() const { return inhomoC_; }
+  const Inhomo<T>* inhomo(const size_t& sn) const { return inhomoC_[sn]; }
 
  protected:
   const std::string ID_;
+  size_t num_coeff_{0}, num_bv_in_{0};
   InhomoPtrs<T> inhomo_;
   InhomoCPtrs<T> inhomoC_;
-  ConfigFiberCPtrs<T> configFiber_;
-  ConfigAssemCPtrs<T> configAssembly_;
+  FiberConfigCPtrs<T> fiber_config_;
+  AsmConfigCPtrs<T> assembly_config_;
 
-  const size_t P_      = {0};                // TODO
-  const double height_ = {0}, width_ = {0};  // TODO
+  // const size_t P_;
+  const double width_, height_;
 
   const class Matrix* matrix_;
-  const input::ConfigAssembly& input_;
+  const input::AssemblyConfig& input_;
 
-  Eigen::MatrixXcd Q_;
   Eigen::MatrixXcd C_;
+  Eigen::MatrixXcd CC_;
 
   void add_inhomo();
   void add_fiber();
-  void add_configFiber();
+  void add_fiber_config();
   void delete_inhomo();
-  void delete_configFiber();
+  void delete_fiber_config();
   void allocate();
-  void compute_MatrixC();
+  void allocate_C();
+  void allocate_CC();
+  void compute_C();
+  void compute_CC();
   Eigen::VectorXcd inVect(const InciCPtrs<T>& incident);
   void distSolution(const Eigen::VectorXcd& solution);
 };
@@ -108,51 +108,56 @@ class ConfigAssembly {
 // Inline functions:
 
 template <typename T>
-void ConfigAssembly<T>::Solve(const InciCPtrs<T>& incident) {
+void AssemblyConfig<T>::Solve(const InciCPtrs<T>& incident) {
+  CSolve(incident);
+}
+
+template <typename T>
+void AssemblyConfig<T>::CSolve(const InciCPtrs<T>& incident) {
   // Jacobi SVD:
-  compute_MatrixC();
-  auto svd = C_.jacobiSvd(Eigen::ComputeThinU | Eigen::ComputeThinV);
+  compute_CC();
+  auto svd = CC_.jacobiSvd(Eigen::ComputeThinU | Eigen::ComputeThinV);
   Eigen::VectorXcd solution = svd.solve(inVect(incident));
   distSolution(solution);
 }
 
 template <typename T>
-Eigen::VectorXcd ConfigAssembly<T>::inVect(const InciCPtrs<T>& incident) {
+Eigen::VectorXcd AssemblyConfig<T>::inVect(const InciCPtrs<T>& incident) {
   // The effect vector of incident wave along all the interfaces inside the
   // assembly.
 
   size_t n = 0, u = 0;
-  for (auto& i : inhomo_) n += i->NoE();
+  for (auto& i : inhomo_) n += i->NumBv();
   Eigen::VectorXcd rst(n);
   for (auto& i : inhomo_) {
-    rst.segment(u, i->NoE()) = i->InciVect(incident);
-    u += i->NoE();
+    rst.segment(u, i->NumBv()) = i->InciVect(incident);
+    u += i->NumBv();
   }
   return rst;
 }
 
 template <typename T>
-void ConfigAssembly<T>::distSolution(const Eigen::VectorXcd& solution) {
+void AssemblyConfig<T>::distSolution(const Eigen::VectorXcd& solution) {
   size_t u = 0;
   for (auto& i : inhomo_) {
-    i->SetCoeff(solution.segment(u, i->NoC()));
-    u += i->NoC();
+    i->SetCoeff(solution.segment(u, i->NumCoeff()));
+    u += i->NumCoeff();
   }
 }
 
 template <typename T>
-Inhomogeneity<T>* ConfigAssembly<T>::InWhich(const CS* objCS) const {
+Inhomo<T>* AssemblyConfig<T>::InWhich(const CS* objCS) const {
   // Return the pointer to the inhomogeneity in which the objCS is.
   // The local CS is considered as the global CS.
 
-  Inhomogeneity<T>* rst = nullptr;
+  Inhomo<T>* rst = nullptr;
   for (auto& i : inhomo_)
     if (i->Contain(objCS)) rst = i;
   return rst;
 }
 
 template <typename T>
-T ConfigAssembly<T>::Resultant(const CS* objCS, const Inhomogeneity<T>* in,
+T AssemblyConfig<T>::Resultant(const CS* objCS, const Inhomo<T>* in,
                                const InciCPtrs<T>& incident) const {
   T rst(objCS);
   if (in)
@@ -165,82 +170,93 @@ T ConfigAssembly<T>::Resultant(const CS* objCS, const Inhomogeneity<T>* in,
 }
 
 template <typename T>
-T ConfigAssembly<T>::Resultant(const CS* objCS,
+T AssemblyConfig<T>::Resultant(const CS* objCS,
                                const InciCPtrs<T>& incident) const {
   return Resultant(objCS, InWhich(objCS), incident);
 }
 
 template <typename T>
-void ConfigAssembly<T>::PrintCoeff(std::ostream& os) const {
+void AssemblyConfig<T>::PrintCoeff(std::ostream& os) const {
   for (auto& i : inhomo_) i->PrintCoeff(os);
 }
 
 template <typename T>
-void ConfigAssembly<T>::add_inhomo() {
+void AssemblyConfig<T>::add_inhomo() {
   add_fiber();
-  for (auto& i : inhomo_) inhomoC_.push_back(i);
+  for (auto& i : inhomo_) {
+    num_coeff_ += i->NumCoeff();
+    num_bv_in_ += i->NumBv();
+    inhomoC_.push_back(i);
+  }
 }
 
 template <typename T>
-void ConfigAssembly<T>::add_fiber() {
-  add_configFiber();
+void AssemblyConfig<T>::add_fiber() {
+  add_fiber_config();
   for (auto& i : input_.fiber)
     inhomo_.push_back(
-        new Fiber<T>(FindPtrID(configFiber_, i.configID), i.position));
+        new Fiber<T>(FindPtrID(fiber_config_, i.configID), i.position));
 }
 
 template <typename T>
-void ConfigAssembly<T>::add_configFiber() {
-  for (auto& i : *input_.configFiber)
-    configFiber_.push_back(new ConfigFiber<T>(i, matrix_));
+void AssemblyConfig<T>::add_fiber_config() {
+  for (auto& i : *input_.fiber_config)
+    fiber_config_.push_back(new FiberConfig<T>(i, matrix_));
 }
 
 template <typename T>
-void ConfigAssembly<T>::delete_inhomo() {
+void AssemblyConfig<T>::delete_inhomo() {
   for (auto& i : inhomo_) delete i;
-  delete_configFiber();
+  delete_fiber_config();
 }
 
 template <typename T>
-void ConfigAssembly<T>::delete_configFiber() {
-  for (auto& i : configFiber_) delete i;
+void AssemblyConfig<T>::delete_fiber_config() {
+  for (auto& i : fiber_config_) delete i;
 }
 
 template <typename T>
-void ConfigAssembly<T>::allocate() {
-  size_t noe = 0, noc = 0;
-  for (auto& i : inhomo_) {
-    noe += i->NoE();
-    noc += i->NoC();
-  }
-  C_.resize(noe, noc);  // The combined transform matrix.
+void AssemblyConfig<T>::allocate() {
+  allocate_CC();
 }
 
 template <typename T>
-void ConfigAssembly<T>::compute_MatrixC() {
+void AssemblyConfig<T>::allocate_C() {
+  C_.resize(NumCoeff(), NumCoeff());
+}
+
+template <typename T>
+void AssemblyConfig<T>::allocate_CC() {
+  CC_.resize(NumBv_in(), NumCoeff());
+}
+
+template <typename T>
+void AssemblyConfig<T>::compute_CC() {
 #ifdef NDEBUG
 #pragma omp parallel for
 #endif
 
   for (size_t v = 0; v < inhomo_.size(); v++) {
     int i = 0, j = 0;
-    for (size_t k = 0; k < v; k++) j += inhomo_[k]->NoC();
-    int Nv = inhomo_[v]->NoC();
+    for (size_t k = 0; k < v; k++) j += inhomo_[k]->NumCoeff();
+    int Nv = inhomo_[v]->NumCoeff();
     for (size_t u = 0; u < inhomo_.size(); u++) {
-      int Nu                 = inhomo_[u]->NoE();
-      C_.block(i, j, Nu, Nv) = inhomo_[v]->ModeMatrix(inhomo_[u]);
+      int Nu = inhomo_[u]->NumBv();
+
+      CC_.block(i, j, Nu, Nv) = u == v ? inhomo_[v]->ColloMat()
+                                       : inhomo_[v]->ModeMat(inhomo_[u]) * -1;
       i += Nu;
     }
   }
 }
 
 // template <typename T>
-// void ConfigAssembly<T>::add_node() {
+// void AssemblyConfig<T>::add_node() {
 //   add_rect({0, height_}, {width_, 0});
 // }
 
 // template <typename T>
-// void ConfigAssembly<T>::add_rect(const PosiVect& p1, const PosiVect& p2) {
+// void AssemblyConfig<T>::add_rect(const PosiVect& p1, const PosiVect& p2) {
 //   // The contour should be counter-clock wise.
 
 //   add_line({p1.x, p1.y}, {p1.x, p2.y});
@@ -250,7 +266,7 @@ void ConfigAssembly<T>::compute_MatrixC() {
 // }
 
 // template <typename T>
-// void ConfigAssembly<T>::add_line(const PosiVect& p1, const PosiVect& p2) {
+// void AssemblyConfig<T>::add_line(const PosiVect& p1, const PosiVect& p2) {
 //   // The contour is counter-clock wise. So the angle of the local CS
 //   // equals the vector angle minus pi/2.
 

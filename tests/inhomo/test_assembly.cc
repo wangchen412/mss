@@ -26,13 +26,13 @@ namespace test {
 class AssemblyTest : public Test {
  protected:
   AssemblyTest() : Test(__FILE__, "assembly") {
-    for (auto& i : c.Inhomo())
+    for (auto& i : c.inhomo())
       fiberPtrs.push_back(dynamic_cast<const Fiber<StateAP>*>(i));
   }
 
   input::Solution s{path("input.txt")};
   Matrix matrix{s};
-  ConfigAssembly<StateAP> c{"Test", s.config(), &matrix};
+  AssemblyConfig<StateAP> c{"Test", s.config(), &matrix};
   IncidentPlaneSH inSH1{matrix, s.incident()[0]};
   IncidentPlaneSH inSH2{matrix, s.incident()[1]};
   InciCPtrs<StateAP> incident{&inSH1, &inSH2};
@@ -41,11 +41,11 @@ class AssemblyTest : public Test {
 
 TEST_F(AssemblyTest, Constructor) {
   EXPECT_EQ(c.ID(), "Test");
-  EXPECT_EQ(c.Inhomo()[0]->Position(), PosiVect(0, 0));
-  EXPECT_EQ(c.Inhomo()[1]->Position(), PosiVect(18e-3, 18e-3));
-  EXPECT_EQ(c.Inhomo()[2]->Position(), PosiVect(-18e-3, -18e-3));
-  EXPECT_EQ(c.Inhomo()[3]->Position(), PosiVect(-18e-3, 18e-3));
-  EXPECT_EQ(c.Inhomo()[4]->Position(), PosiVect(18e-3, -18e-3));
+  EXPECT_EQ(c.inhomo(0)->Position(), PosiVect(0, 0));
+  EXPECT_EQ(c.inhomo(1)->Position(), PosiVect(18e-3, 18e-3));
+  EXPECT_EQ(c.inhomo(2)->Position(), PosiVect(-18e-3, -18e-3));
+  EXPECT_EQ(c.inhomo(3)->Position(), PosiVect(-18e-3, 18e-3));
+  EXPECT_EQ(c.inhomo(4)->Position(), PosiVect(18e-3, -18e-3));
 
   EXPECT_EQ(fiberPtrs[0]->Config()->ID(), "b-s");
   EXPECT_EQ(fiberPtrs[1]->Config()->ID(), "s-h");
@@ -77,13 +77,13 @@ TEST_F(AssemblyTest, InWhich) {
       p7(21e-3 - epsilon, 22e-3 - epsilon),
       p8(21e-3 + epsilon, 22e-3 + epsilon);
 
-  EXPECT_EQ(c.InWhich(&p1), c.Inhomo()[0]);
+  EXPECT_EQ(c.InWhich(&p1), c.inhomo(0));
   EXPECT_EQ(c.InWhich(&p2), nullptr);
-  EXPECT_EQ(c.InWhich(&p3), c.Inhomo()[1]);
+  EXPECT_EQ(c.InWhich(&p3), c.inhomo(1));
   EXPECT_EQ(c.InWhich(&p4), nullptr);
-  EXPECT_EQ(c.InWhich(&p5), c.Inhomo()[4]);
+  EXPECT_EQ(c.InWhich(&p5), c.inhomo(4));
   EXPECT_EQ(c.InWhich(&p6), nullptr);
-  EXPECT_EQ(c.InWhich(&p7), c.Inhomo()[1]);
+  EXPECT_EQ(c.InWhich(&p7), c.inhomo(1));
   EXPECT_EQ(c.InWhich(&p8), nullptr);
 }
 TEST_F(AssemblyTest, Solve) {
@@ -93,8 +93,8 @@ TEST_F(AssemblyTest, Solve) {
 
   for (int i = 0; i < 5; i++) {
     Eigen::VectorXcd rr = ref.segment(61 * i, 61),
-                     cc = c.Inhomo()[i]->ScatterCoeff();
-    EXPECT_TRUE(ApproxVectRV(rr, cc, 1e-5, 10));
+                     cc = c.inhomo(i)->ScatterCoeff();
+    EXPECT_TRUE(ApproxVectRv(rr, cc, 1e-5, 10));
   }
 }
 TEST_F(AssemblyTest, Scatter) {

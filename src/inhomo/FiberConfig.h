@@ -17,8 +17,8 @@
 //
 // ----------------------------------------------------------------------
 
-#ifndef MSS_CONFIGFIBER_H
-#define MSS_CONFIGFIBER_H
+#ifndef MSS_FIBERCONFIG_H
+#define MSS_FIBERCONFIG_H
 
 #include "../core/Matrix.h"
 #include "../core/Modes.h"
@@ -28,34 +28,34 @@
 namespace mss {
 
 template <typename T>
-class ConfigFiber {
+class FiberConfig {
  public:
-  ConfigFiber(const std::string& ID, const size_t& N_max, const size_t& P,
+  FiberConfig(const std::string& ID, const size_t& N_max, const size_t& P,
               const double& R, const Material& material, const Matrix* matrix)
       : ID_(ID),
         N_(N_max),
-        NoC_((2 * N_ + 1) * T::NoBV / 2),
+        NumCoeff_((2 * N_ + 1) * T::NumBv / 2),
         P_(P),
         R_(R),
         material_(material),
         kl_(matrix->Frequency() / material_.CL()),
         kt_(matrix->Frequency() / material_.CT()),
         matrix_(matrix),
-        Q_(NoE(), NoC()) {
+        CQ_(NumBv(), NumCoeff()) {
     add_node();
-    compute_MatrixQ();
+    com_CQ();
   }
 
-  ConfigFiber(const input::ConfigFiber& input, const Matrix* matrix)
-      : ConfigFiber(input.ID, input.N_max, input.P, input.radius,
+  FiberConfig(const input::FiberConfig& input, const Matrix* matrix)
+      : FiberConfig(input.ID, input.N_max, input.P, input.radius,
                     *input.material, matrix) {}
 
-  virtual ~ConfigFiber() { delete_node(); }
+  virtual ~FiberConfig() { del_node(); }
 
-  const Eigen::MatrixXcd& TransMatrix() const { return Q_; }
-  size_t NoN() const { return P_; }
-  size_t NoE() const { return P_ * T::NoBV; }
-  size_t NoC() const { return NoC_; }
+  const Eigen::MatrixXcd& ColloMat() const { return CQ_; }
+  size_t NumNode() const { return P_; }
+  size_t NumBv() const { return P_ * T::NumBv; }
+  size_t NumCoeff() const { return NumCoeff_; }
   int TopOrder() const { return N_; }
 
   const std::string& ID() const { return ID_; }
@@ -81,42 +81,42 @@ class ConfigFiber {
  protected:
   const std::string ID_;           // The ID.
   const int N_;                    // The top order of the series.
-  const int NoC_;                  // Number of the scattering coefficients.
+  const int NumCoeff_;             // Number of the scattering coefficients.
   const size_t P_;                 // Number of the collocation points.
   const double R_;                 // Radius of the fiber.
   const class Material material_;  // Material of the fiber.
   const double kl_, kt_;           // Wave numbers of the fiber.
   const class Matrix* matrix_;     // The matrix.
   CSCPtrs node_;                   // Collocation points.
-  Eigen::MatrixXcd Q_;             // Transform matrix.
+  Eigen::MatrixXcd CQ_;            // Collocation matrix.
 
   void add_node();
-  void delete_node();
-  void compute_MatrixQ();
+  void del_node();
+  void com_CQ();
 };
 
 template <typename T>
-using ConfigFiberPtrs = std::vector<ConfigFiber<T>*>;
+using FiberConfigPtrs = std::vector<FiberConfig<T>*>;
 
 template <typename T>
-using ConfigFiberCPtrs = std::vector<const ConfigFiber<T>*>;
+using FiberConfigCPtrs = std::vector<const FiberConfig<T>*>;
 
 // ---------------------------------------------------------------------------
 // Inline functions:
 
 template <typename T>
-inline void ConfigFiber<T>::add_node() {
+inline void FiberConfig<T>::add_node() {
   node_.reserve(P_);
   for (size_t i = 0; i < P_; i++)
     node_.push_back(
         new CS(PosiVect(R_, i * pi2 / P_).Cartesian(), i * pi2 / P_));
 }
 template <typename T>
-inline void ConfigFiber<T>::delete_node() {
+inline void FiberConfig<T>::del_node() {
   for (auto i : node_) delete i;
 }
 template <>
-dcomp ConfigFiber<StateAP>::TT(int n) const {
+dcomp FiberConfig<StateAP>::TT(int n) const {
   BesselFunctor Jf(Jn, n, KT(), R_), Jm(Jn, n, KT_m(), R_);
   BesselFunctor Hm(Hn, n, KT_m(), R_);
   dcomp mJf = Jf.dr(R_) * Material().Mu();
@@ -126,7 +126,7 @@ dcomp ConfigFiber<StateAP>::TT(int n) const {
   return (mJm * Hm(R_) - mHm * Jm(R_)) / (mJm * Jf(R_) - mJf * Jm(R_));
 }
 template <>
-void ConfigFiber<StateAP>::compute_MatrixQ() {
+void FiberConfig<StateAP>::com_CQ() {
 #ifdef NDEBUG
 #pragma omp parallel for
 #endif
@@ -137,35 +137,35 @@ void ConfigFiber<StateAP>::compute_MatrixQ() {
     for (size_t i = 0; i < P_; i++) {
       StateAP s = ModeT<StateAP>(nullptr, node_[i], J, Material()) * tn -
                   ModeT<StateAP>(nullptr, node_[i], H, Material_m());
-      Q_.block<2, 1>(2 * i, n + N_) = s.BV();
+      CQ_.block<2, 1>(2 * i, n + N_) = s.BV();
     }
   }
 }
 template <>
-dcomp ConfigFiber<StateIP>::TL(int) const {
+dcomp FiberConfig<StateIP>::TL(int) const {
   return 0;  // TODO: tL of in-plane problem
 }
 template <>
-dcomp ConfigFiber<StateIP>::TT(int) const {
+dcomp FiberConfig<StateIP>::TT(int) const {
   return 0;  // TODO: tT of in-plane problem
 }
 template <>
-void ConfigFiber<StateIP>::compute_MatrixQ() {
+void FiberConfig<StateIP>::com_CQ() {
   // TODO: tT of in-plane problem
 }
 template <typename T>
-Eigen::VectorXcd ConfigFiber<T>::InciVect(const InciPtrs<T>& incident) const {
-  Eigen::VectorXcd rst(NoE());
+Eigen::VectorXcd FiberConfig<T>::InciVect(const InciPtrs<T>& incident) const {
+  Eigen::VectorXcd rst(NumBv());
   rst.setZero();
   for (auto& i : incident) rst += i->EffectBV(Node());
   return rst;
 }
 template <typename T>
-Eigen::VectorXcd ConfigFiber<T>::Solve(const Eigen::VectorXcd& v) const {
-  return Q_.jacobiSvd(Eigen::ComputeThinU | Eigen::ComputeThinV).solve(v);
+Eigen::VectorXcd FiberConfig<T>::Solve(const Eigen::VectorXcd& v) const {
+  return CQ_.jacobiSvd(Eigen::ComputeThinU | Eigen::ComputeThinV).solve(v);
 }
 template <typename T>
-Eigen::VectorXcd ConfigFiber<T>::Solve(const InciPtrs<T>& incident) const {
+Eigen::VectorXcd FiberConfig<T>::Solve(const InciPtrs<T>& incident) const {
   return Solve(InciVect(incident));
 }
 

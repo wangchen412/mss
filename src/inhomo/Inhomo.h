@@ -20,8 +20,8 @@
 // Virtual base class of inhomogeneity classes.
 // Contains local CS and information about the matrix.
 
-#ifndef MSS_INHOMOGENEITY_H
-#define MSS_INHOMOGENEITY_H
+#ifndef MSS_INHOMO_H
+#define MSS_INHOMO_H
 
 #include "../incident/Incident.h"
 
@@ -30,15 +30,24 @@ namespace mss {
 enum InhomoType { fiber, assembly };
 
 template <typename T>
-class Inhomogeneity {
+class Inhomo {
  public:
-  explicit Inhomogeneity(const PosiVect& position, InhomoType type,
-                         const double& angle = 0)
+  explicit Inhomo(const PosiVect& position, InhomoType type,
+                  const double& angle = 0)
       : localCS_(position, angle), type_(type) {}
-  virtual ~Inhomogeneity() {}
+  virtual ~Inhomo() {}
 
-  // TransMatrix.
-  virtual const Eigen::MatrixXcd& TransMatrix() const = 0;
+  // Collocation matrix.
+  virtual const Eigen::MatrixXcd& ColloMat() const = 0;
+
+  // Transform matrix.
+  // virtual const Eigen::MatrixXcd& TransMat() const = 0;
+
+  // The matrix consists the modes from this inhomo to the nodes of the
+  // objective inhomo.
+  Eigen::MatrixXcd ModeMat(const Inhomo* obj) const;
+
+  Eigen::MatrixXcd QM(const Inhomo* obj) const;
 
   // Resultant states.
   virtual T Scatter(const CS* objCS) const = 0;
@@ -54,11 +63,10 @@ class Inhomogeneity {
   virtual T InnerMode(const CS* objCS, const size_t& sn) const   = 0;
 
   Eigen::VectorXcd ScatterBV(const CSCPtrs& objCSs, const size_t& sn) const;
-  Eigen::MatrixXcd ModeMatrix(const Inhomogeneity* source) const;
 
-  virtual size_t NoN() const = 0;
-  virtual size_t NoC() const = 0;
-  virtual size_t NoE() const = 0;
+  virtual size_t NumNode() const  = 0;
+  virtual size_t NumCoeff() const = 0;
+  virtual size_t NumBv() const    = 0;
 
   virtual Eigen::VectorXcd InciVect(const InciCPtrs<T>& incident) const = 0;
 
@@ -83,32 +91,36 @@ class Inhomogeneity {
 };
 
 template <typename T>
-using InhomoPtrs = std::vector<Inhomogeneity<T>*>;
+using InhomoPtrs = std::vector<Inhomo<T>*>;
 
 template <typename T>
-using InhomoCPtrs = std::vector<const Inhomogeneity<T>*>;
+using InhomoCPtrs = std::vector<const Inhomo<T>*>;
 
 // ---------------------------------------------------------------------------
 // Inline functions:
 
 template <typename T>
-Eigen::VectorXcd Inhomogeneity<T>::ScatterBV(const CSCPtrs& objCSs,
-                                             const size_t& sn) const {
-  Eigen::VectorXcd rst(objCSs.size() * T::NoBV);
+Eigen::VectorXcd Inhomo<T>::ScatterBV(const CSCPtrs& objCSs,
+                                      const size_t& sn) const {
+  Eigen::VectorXcd rst(objCSs.size() * T::NumBv);
   for (size_t i = 0; i < objCSs.size(); i++)
-    rst.segment(i * T::NoBV, T::NoBV) = ScatterMode(objCSs[i], sn).BV();
+    rst.segment(i * T::NumBv, T::NumBv) = ScatterMode(objCSs[i], sn).BV();
   return rst;
 }
 
 template <typename T>
-Eigen::MatrixXcd Inhomogeneity<T>::ModeMatrix(
-    const Inhomogeneity<T>* other) const {
-  if (this == other) return TransMatrix();
-  Eigen::MatrixXcd rst(other->NoE(), NoC());
-  for (size_t sn = 0; sn < NoC(); sn++)
-    rst.col(sn) = ScatterBV(other->Node(), sn);
-  return rst *= -1;
+Eigen::MatrixXcd Inhomo<T>::ModeMat(const Inhomo<T>* obj) const {
+  Eigen::MatrixXcd rst(obj->NumBv(), NumCoeff());
+  for (size_t sn = 0; sn < NumCoeff(); sn++)
+    rst.col(sn) = ScatterBV(obj->Node(), sn);
+  return rst;
 }
+
+// template <typename T>
+// Eigen::MatrixXcd Inhomo<T>::QM(const Inhomo<T>* obj) const {
+//   if (this == obj) {
+//   }
+// }
 
 }  // namespace mss
 

@@ -20,33 +20,33 @@
 #ifndef MSS_FIBER_H
 #define MSS_FIBER_H
 
-#include "ConfigFiber.h"
-#include "Inhomogeneity.h"
+#include "FiberConfig.h"
+#include "Inhomo.h"
 
 namespace mss {
 
 template <typename T>
-class Fiber : public Inhomogeneity<T> {
-  using Inhomogeneity<T>::LocalCS;
+class Fiber : public Inhomo<T> {
+  using Inhomo<T>::LocalCS;
 
  public:
-  Fiber(const ConfigFiber<T>* config, const PosiVect& position = 0)
-      : Inhomogeneity<T>(position, fiber),
+  Fiber(const FiberConfig<T>* config, const PosiVect& position = 0)
+      : Inhomo<T>(position, fiber),
         config_(config),
-        cSc_(NoC()),
-        cIn_(NoC()) {
+        cSc_(NumCoeff()),
+        cIn_(NumCoeff()) {
     add_node();
   }
 
   virtual ~Fiber() { delete_node(); }
 
-  const Eigen::MatrixXcd& TransMatrix() const override {
-    return config_->TransMatrix();
+  const Eigen::MatrixXcd& ColloMat() const override {
+    return config_->ColloMat();
   }
 
-  size_t NoN() const override { return config_->NoN(); }
-  size_t NoE() const override { return config_->NoE(); }
-  size_t NoC() const override { return config_->NoC(); }
+  size_t NumNode() const override { return config_->NumNode(); }
+  size_t NumBv() const override { return config_->NumBv(); }
+  size_t NumCoeff() const override { return config_->NumCoeff(); }
   const double& Radius() const { return config_->Radius(); }
 
   void SetCoeff(const Eigen::VectorXcd& solution) override;
@@ -69,12 +69,12 @@ class Fiber : public Inhomogeneity<T> {
   Eigen::VectorXcd InciVect(const InciCPtrs<T>& incident) const override;
   Eigen::VectorXcd Solve(const InciCPtrs<T>& incident) const override;
 
-  const ConfigFiber<T>* Config() const { return config_; }
+  const FiberConfig<T>* Config() const { return config_; }
   const CSCPtrs& Node() const override { return node_; }
   const Eigen::VectorXcd& ScatterCoeff() const override { return cSc_; }
 
  private:
-  const ConfigFiber<T>* config_;
+  const FiberConfig<T>* config_;
   CSCPtrs node_;
   Eigen::VectorXcd cSc_, cIn_;
 
@@ -98,18 +98,20 @@ inline bool Fiber<T>::Contain(const CS* objCS) const {
 template <typename T>
 inline T Fiber<T>::Scatter(const CS* objCS) const {
   T rst(objCS);
-  for (size_t i = 0; i < NoC(); i++) rst += ScatterMode(objCS, i) * cSc_(i);
+  for (size_t i = 0; i < NumCoeff(); i++)
+    rst += ScatterMode(objCS, i) * cSc_(i);
   return rst;
 }
 template <typename T>
 inline T Fiber<T>::Inner(const CS* objCS) const {
   T rst(objCS);
-  for (size_t i = 0; i < NoC(); i++) rst += InnerMode(objCS, i) * cIn_(i);
+  for (size_t i = 0; i < NumCoeff(); i++)
+    rst += InnerMode(objCS, i) * cIn_(i);
   return rst;
 }
 template <typename T>
 inline void Fiber<T>::SetCoeff(const Eigen::VectorXcd& solution) {
-  assert(solution.size() == long(NoC()));
+  assert(solution.size() == long(NumCoeff()));
   for (long i = 0; i < solution.size(); i++) {
     cSc_(i) = solution(i);
     cIn_(i) = cSc_(i) * config_->TT(od(i));  // TODO: in-plane problem.
@@ -122,7 +124,7 @@ inline void Fiber<T>::PrintCoeff(std::ostream& os) const {
 template <>
 inline StateIP Fiber<StateIP>::ScatterMode(const CS* objCS,
                                            const size_t& sn) const {
-  if (sn <= NoC() / 2)
+  if (sn <= NumCoeff() / 2)
     return scatterModeL(objCS, od(sn));
   else
     return scatterModeT(objCS, od(sn));
@@ -135,7 +137,7 @@ inline StateAP Fiber<StateAP>::ScatterMode(const CS* objCS,
 template <>
 inline StateIP Fiber<StateIP>::InnerMode(const CS* objCS,
                                          const size_t& sn) const {
-  if (sn <= NoC() / 2)
+  if (sn <= NumCoeff() / 2)
     return innerModeL(objCS, od(sn));
   else
     return innerModeT(objCS, od(sn));
@@ -171,7 +173,7 @@ inline T Fiber<T>::innerModeT(const CS* objCS, int n) const {
 }
 template <typename T>
 inline void Fiber<T>::add_node() {
-  node_.reserve(config_->NoN());
+  node_.reserve(config_->NumNode());
   for (auto& i : config_->Node()) node_.push_back(new CS(*i, LocalCS()));
 }
 template <typename T>
@@ -180,7 +182,7 @@ inline void Fiber<T>::delete_node() {
 }
 template <typename T>
 inline Eigen::VectorXcd Fiber<T>::InciVect(const InciCPtrs<T>& inc) const {
-  Eigen::VectorXcd rst(NoE());
+  Eigen::VectorXcd rst(NumBv());
   rst.setZero();
   for (auto& i : inc) rst += i->EffectBV(Node());
   return rst;

@@ -30,13 +30,13 @@ namespace post {
 template <typename T>
 class ContCheck {
  public:
-  ContCheck(const Solution<T>* solution, const size_t& NoP, const double& gap,
+  ContCheck(const Solution<T>* solution, const size_t& np, const double& gap,
             const double& tolerance)
       : sol_(solution),
-        P_(NoP),
+        P_(np),
         gap_(gap / 2),
         tol_(tolerance),
-        mis_(T::NoBV, NoP) {
+        mis_(T::NumBv, np) {
     for (auto& i : solution->Incident()) norm_ += i->Norm();
   }
   virtual ~ContCheck() {}
@@ -70,9 +70,9 @@ class CC_Fiber : public ContCheck<T> {
 
  public:
   CC_Fiber(const Solution<T>* solution, const Fiber<T>* fiber,
-           const size_t& NoP = 42, const double& gap = epsilon,
+           const size_t& np = 42, const double& gap = epsilon,
            const double& tolerance = 1e-6)
-      : ContCheck<T>(solution, NoP, gap, tolerance), f_(fiber) {
+      : ContCheck<T>(solution, np, gap, tolerance), f_(fiber) {
     add_circ();
     add_state();
     cc::ComputeMismatch();
@@ -93,9 +93,9 @@ class CC_Fiber : public ContCheck<T> {
 template <typename T>
 class CC_Solution {
  public:
-  CC_Solution(const Solution<T>* solution, const size_t& NoP = 42,
+  CC_Solution(const Solution<T>* solution, const size_t& np = 42,
               const double& gap = epsilon, const double& tolerance = 1e-6) {
-    add_cc(solution, NoP, gap, tolerance);
+    add_cc(solution, np, gap, tolerance);
   }
   ~CC_Solution() {
     for (auto& i : check_) delete i;
@@ -155,13 +155,13 @@ inline void CC_Fiber<T>::add_state() {
 // CC_Solution methods:
 template <typename T>
 inline void CC_Solution<T>::add_cc(const Solution<T>* solution,
-                                   const size_t& NoP, const double& gap,
+                                   const size_t& np, const double& gap,
                                    const double& tol) {
-  for (auto& i : solution->Inhomo()) {
+  for (auto& i : solution->inhomo()) {
     switch (i->Type()) {
       case fiber:
         check_.push_back(new CC_Fiber<T>(
-            solution, dynamic_cast<const Fiber<T>*>(i), NoP, gap, tol));
+            solution, dynamic_cast<const Fiber<T>*>(i), np, gap, tol));
         if (check_.back()->NC()) nc_.push_back(check_.back());
         break;
 

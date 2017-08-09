@@ -39,17 +39,17 @@ class Solution {
   const auto& material() const { return material_; }
   const auto& matrix() const { return matrix_[0]; }
   const auto& frequency() const { return matrix().frequency; }
-  const auto& configFiber() const { return configFiber_; }
+  const auto& fiber_config() const { return fiber_config_; }
   const auto& incident() const { return incident_; }
-  const auto& configAssem() const { return configAssembly_; }
-  const auto& config() const { return *FindID(configAssembly_, solve_[0]); }
+  const auto& configAssem() const { return assembly_config_; }
+  const auto& config() const { return *FindID(assembly_config_, solve_[0]); }
 
  private:
   std::vector<Material> material_;
   std::vector<Matrix> matrix_;
   std::vector<IncidentPlane> incident_;
-  std::vector<ConfigFiber> configFiber_;
-  std::vector<ConfigAssembly> configAssembly_;
+  std::vector<FiberConfig> fiber_config_;
+  std::vector<AssemblyConfig> assembly_config_;
   std::vector<std::string> solve_;
   // std::vector<Assembly> assembly_;  // TODO
 
@@ -65,7 +65,7 @@ class Solution {
 
   // Add entries of vec's element type to the back of vec.
   // The position of the input file stream is after the header.
-  // For the ConfigAssembly class, which is partially specialized, each entry
+  // For the AssemblyConfig class, which is partially specialized, each entry
   // includes multiple Fiber entries.
   template <typename T>
   void add_entry(std::ifstream& file, std::vector<T>& vec);
@@ -105,11 +105,11 @@ inline void Solution::add_entry(std::ifstream& file, std::vector<T>& vec) {
 }
 template <>
 inline void Solution::add_entry(std::ifstream& file,
-                                std::vector<ConfigAssembly>& vec) {
+                                std::vector<AssemblyConfig>& vec) {
   std::string tmp;
   skip(file, 2, &tmp);
   while (iequals(tmp.substr(0, 2), "ID")) {
-    ConfigAssembly rst;
+    AssemblyConfig rst;
     getline(file, tmp);
     std::stringstream(tmp) >> rst.ID >> rst.width >> rst.height;
     add_header<Fiber>(file);

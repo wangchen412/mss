@@ -17,8 +17,8 @@
 //
 // ----------------------------------------------------------------------
 
-#include "../test.h"
 #include "../../src/post/geometry/Point.h"
+#include "../test.h"
 
 namespace mss {
 

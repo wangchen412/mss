@@ -35,9 +35,9 @@ class FiberTest : public Test {
   input::Solution s2{path("input.txt")};
   Matrix matrix2{s2};
 
-  ConfigFiber<StateIP> c1 = {"c1", 30, 300, 1e-3, lead, &matrix};
-  ConfigFiber<StateAP> c2 = {"c2", 30, 300, 1e-3, lead, &matrix};
-  ConfigFiber<StateAP> c3 = {s2.configFiber()[0], &matrix2};
+  FiberConfig<StateIP> c1 = {"c1", 30, 300, 1e-3, lead, &matrix};
+  FiberConfig<StateAP> c2 = {"c2", 30, 300, 1e-3, lead, &matrix};
+  FiberConfig<StateAP> c3 = {s2.fiber_config()[0], &matrix2};
   IncidentPlaneSH inSH{matrix2, s2.incident()[0]};
 
   Fiber<StateIP> f1 = {&c1};
@@ -46,9 +46,9 @@ class FiberTest : public Test {
 };
 
 TEST_F(FiberTest, ConfigCtor) {
-  EXPECT_EQ(c1.TransMatrix().rows(), 1200);
-  EXPECT_EQ(c1.TransMatrix().cols(), 122);
-  EXPECT_EQ(c1.NoN(), 300);
+  EXPECT_EQ(c1.ColloMat().rows(), 1200);
+  EXPECT_EQ(c1.ColloMat().cols(), 122);
+  EXPECT_EQ(c1.NumNode(), 300);
   EXPECT_EQ(c1.TopOrder(), 30);
   EXPECT_EQ(c1.ID(), "c1");
   EXPECT_EQ(c1.Radius(), 1e-3);
@@ -60,9 +60,9 @@ TEST_F(FiberTest, ConfigCtor) {
   EXPECT_EQ(c1.KT_m(), omega / rubber.CT());
   EXPECT_EQ(c1.Node().size(), 300);
 
-  EXPECT_EQ(c2.TransMatrix().rows(), 600);
-  EXPECT_EQ(c2.TransMatrix().cols(), 61);
-  EXPECT_EQ(c2.NoN(), 300);
+  EXPECT_EQ(c2.ColloMat().rows(), 600);
+  EXPECT_EQ(c2.ColloMat().cols(), 61);
+  EXPECT_EQ(c2.NumNode(), 300);
   EXPECT_EQ(c2.TopOrder(), 30);
   EXPECT_EQ(c2.ID(), "c2");
   EXPECT_EQ(c2.Radius(), 1e-3);
@@ -77,16 +77,16 @@ TEST_F(FiberTest, ConfigCtor) {
 TEST_F(FiberTest, FiberCtor) {
   EXPECT_EQ(f1.Position(), PosiVect(0, 0));
   EXPECT_EQ(f1.Basis(), nullptr);
-  EXPECT_EQ(f1.NoN(), 300);
-  EXPECT_EQ(f1.NoC(), 122);
-  EXPECT_EQ(f1.NoE(), 1200);
+  EXPECT_EQ(f1.NumNode(), 300);
+  EXPECT_EQ(f1.NumCoeff(), 122);
+  EXPECT_EQ(f1.NumBv(), 1200);
   EXPECT_EQ(f1.Node().size(), 300);
 
   EXPECT_EQ(f2.Position(), PosiVect(1, 2));
   EXPECT_EQ(f2.Basis(), nullptr);
-  EXPECT_EQ(f2.NoN(), 300);
-  EXPECT_EQ(f2.NoC(), 61);
-  EXPECT_EQ(f2.NoE(), 600);
+  EXPECT_EQ(f2.NumNode(), 300);
+  EXPECT_EQ(f2.NumCoeff(), 61);
+  EXPECT_EQ(f2.NumBv(), 600);
   EXPECT_EQ(f1.Node().size(), 300);
 }
 TEST_F(FiberTest, Contain) {
@@ -115,7 +115,7 @@ TEST_F(FiberTest, TT) {
   Eigen::VectorXcd ref(122);
   ReadCoeff("Coeff_SH1.dat", ref);
   for (int i = 0; i < 61; i++) ref(i) *= f3.Config()->TT(i - 30);
-  EXPECT_TRUE(ApproxVectRV(Eigen::VectorXcd(ref.segment(0, 61)),
+  EXPECT_TRUE(ApproxVectRv(Eigen::VectorXcd(ref.segment(0, 61)),
                            Eigen::VectorXcd(ref.segment(61, 61)), 1e-9));
 }
 TEST_F(FiberTest, Solve) {
@@ -123,7 +123,7 @@ TEST_F(FiberTest, Solve) {
 
   Eigen::VectorXcd ref(61);
   ReadCoeff("Coeff_SH1.dat", ref);
-  EXPECT_TRUE(ApproxVectRV(ref, f3.Solve({&inSH}), 1e-4));
+  EXPECT_TRUE(ApproxVectRv(ref, f3.Solve({&inSH}), 1e-4));
 }
 TEST_F(FiberTest, Modes) {
   for (int n = -30; n <= 30; n++) {

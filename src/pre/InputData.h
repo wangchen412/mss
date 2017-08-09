@@ -42,7 +42,7 @@ struct IncidentPlane {
   std::string type;
   double amplitude, phase, angle;
 };
-struct ConfigFiber {
+struct FiberConfig {
   std::string ID;
   std::string materialID;
   double radius;
@@ -53,7 +53,7 @@ struct ConfigFiber {
 struct Fiber {
   std::string configID;
   PosiVect position;
-  const ConfigFiber* config;
+  const FiberConfig* config;
 };
 // TODO
 // struct Assembly {
@@ -61,14 +61,14 @@ struct Fiber {
 //   PosiVect position;
 //   double angle;
 // };
-struct ConfigAssembly {
+struct AssemblyConfig {
   std::string ID;
   double pointDensity;  // Point density.
   double width, height;
   std::vector<Fiber> fiber;
-  const std::vector<ConfigFiber>* configFiber;
+  const std::vector<FiberConfig>* fiber_config;
   bool nsolve;
-  // std::vector<ConfigAssembly> a;   // TODO
+  // std::vector<AssemblyConfig> a;   // TODO
   // std::vector<Assembly> assembly;  // TODO
 };
 
@@ -99,10 +99,10 @@ inline std::ostream& operator<<(std::ostream& os, const IncidentPlane& i) {
             << i.phase;
 }
 
-inline void operator>>(std::istream& is, ConfigFiber& c) {
+inline void operator>>(std::istream& is, FiberConfig& c) {
   is >> c.ID >> c.radius >> c.N_max >> c.materialID;
 }
-inline std::ostream& operator<<(std::ostream& os, const ConfigFiber& c) {
+inline std::ostream& operator<<(std::ostream& os, const FiberConfig& c) {
   return os << c.ID << "\t\t" << c.radius << "\t\t" << c.N_max << "\t\t"
             << c.materialID;
 }
@@ -114,7 +114,7 @@ inline std::ostream& operator<<(std::ostream& os, const Fiber& f) {
   return os << f.position << "\t\t" << f.configID;
 }
 
-inline std::ostream& operator<<(std::ostream& os, const ConfigAssembly& c) {
+inline std::ostream& operator<<(std::ostream& os, const AssemblyConfig& c) {
   os << separator("=", 45);
   os << "ID              Width           Height" << std::endl;
   os << c.ID << "\t\t" << c.width << "\t\t" << c.height << std::endl;

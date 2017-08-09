@@ -22,7 +22,7 @@
 
 #include "../../core/Solution.h"
 #include "../../core/State.h"
-#include "../../inhomo/Inhomogeneity.h"
+#include "../../inhomo/Inhomo.h"
 #include "../../tools/FileIO.h"
 
 namespace mss {

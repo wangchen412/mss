@@ -75,7 +75,7 @@ class CS {
 // Inline functions:
 
 inline bool CS::operator==(const CS& other) const {
-  return (position_ == other.position_) && angEqu(angle_, other.angle_) &&
+  return (position_ == other.position_) && AngEqu(angle_, other.angle_) &&
          (basis_ == other.basis_);
 }
 inline CS& CS::operator+=(const PosiVect& shift) {

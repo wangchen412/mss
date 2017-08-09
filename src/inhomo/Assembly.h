@@ -20,18 +20,18 @@
 #ifndef MSS_ASSEMBLY_H
 #define MSS_ASSEMBLY_H
 
-#include "ConfigAssembly.h"
-#include "Inhomogeneity.h"
+#include "AssemblyConfig.h"
+#include "Inhomo.h"
 
 namespace mss {
 
 template <typename T>
-class Assembly : public Inhomogeneity<T> {
+class Assembly : public Inhomo<T> {
  public:
-  explicit Assembly(const ConfigAssembly<T>* config,
+  explicit Assembly(const AssemblyConfig<T>* config,
                     const PosiVect& position = {0, 0},
                     const double& angle      = 0)
-      : Inhomogeneity<T>(position, angle), config_(config) {}
+      : Inhomo<T>(position, angle), config_(config) {}
 
   // TODO: The interactions among assemblies
   bool Contain(const CS* objCS) const override;
@@ -45,12 +45,12 @@ class Assembly : public Inhomogeneity<T> {
   T InnerModeT(const CS* local, int n) const;
 
   const CSCPtrs& Node() const override;
-  Eigen::MatrixXcd ModeMatrix(const Inhomogeneity<T>* other) const override;
+  Eigen::MatrixXcd ModeMatrix(const Inhomo<T>* other) const override;
   Eigen::VectorXcd InciVect(const InciCPtrs<T>& incident) const override;
   Eigen::VectorXcd Solve(const InciCPtrs<T>& incident) const override;
 
  private:
-  const ConfigAssembly<T>* config_;
+  const AssemblyConfig<T>* config_;
   CSCPtrs node_;
 };
 

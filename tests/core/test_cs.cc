@@ -49,56 +49,56 @@ TEST_F(CSTest, Constructors) {
 TEST_F(CSTest, in) {
   // a in b:
   EXPECT_EQ(a.in(&b).Position(), PosiVect(0, 5));
-  EXPECT_PRED2(angEqu, a.in(&b).Angle(), -t);
+  EXPECT_PRED2(AngEqu, a.in(&b).Angle(), -t);
   // a in c:
   EXPECT_EQ(a.in(&c).Position(), PosiVect(-5, -5));
-  EXPECT_PRED2(angEqu, a.in(&c).Angle(), 0);
+  EXPECT_PRED2(AngEqu, a.in(&c).Angle(), 0);
   // a in d:
   EXPECT_EQ(a.in(&d).Position(), PosiVect(-5, -4));
-  EXPECT_PRED2(angEqu, a.in(&d).Angle(), pi / 2);
+  EXPECT_PRED2(AngEqu, a.in(&d).Angle(), pi / 2);
   // a in GLB:
   EXPECT_EQ(a.inGLB().Position(), PosiVect(0, 0));
-  EXPECT_PRED2(angEqu, a.inGLB().Angle(), 0);
+  EXPECT_PRED2(AngEqu, a.inGLB().Angle(), 0);
 
   // b in a:
   EXPECT_EQ(b.in(&a).Position(), PosiVect(3, 4));
-  EXPECT_PRED2(angEqu, b.in(&a).Angle(), t);
+  EXPECT_PRED2(AngEqu, b.in(&a).Angle(), t);
   // b in c:
   EXPECT_EQ(b.in(&c).Position(), PosiVect(-2, -1));
-  EXPECT_PRED2(angEqu, b.in(&c).Angle(), t);
+  EXPECT_PRED2(AngEqu, b.in(&c).Angle(), t);
   // b in d:
   EXPECT_EQ(b.in(&d).Position(), PosiVect(-9, -1));
-  EXPECT_PRED2(angEqu, b.in(&d).Angle(), t + pi / 2);
+  EXPECT_PRED2(AngEqu, b.in(&d).Angle(), t + pi / 2);
   // b in GLB:
   EXPECT_EQ(b.inGLB().Position(), PosiVect(3, 4));
-  EXPECT_PRED2(angEqu, b.inGLB().Angle(), t);
+  EXPECT_PRED2(AngEqu, b.inGLB().Angle(), t);
 
   // c in a:
   EXPECT_EQ(c.in(&a).Position(), PosiVect(5, 5));
-  EXPECT_PRED2(angEqu, c.in(&a).Angle(), 0);
+  EXPECT_PRED2(AngEqu, c.in(&a).Angle(), 0);
   // c in b:
   EXPECT_EQ(c.in(&b).Position(), PosiVect(-1, -2));
-  EXPECT_PRED2(angEqu, c.in(&b).Angle(), -t);
+  EXPECT_PRED2(AngEqu, c.in(&b).Angle(), -t);
   // c in d:
   EXPECT_EQ(c.in(&d).Position(), PosiVect(-10, 1));
-  EXPECT_PRED2(angEqu, c.in(&d).Angle(), pi / 2);
+  EXPECT_PRED2(AngEqu, c.in(&d).Angle(), pi / 2);
   // c in GLB:
   EXPECT_EQ(c.in(nullptr).Position(), PosiVect(5, 5));
-  EXPECT_PRED2(angEqu, c.in(nullptr).Angle(), 0);
+  EXPECT_PRED2(AngEqu, c.in(nullptr).Angle(), 0);
 
   // d in a:
   EXPECT_EQ(d.in(&a).Position(), PosiVect(4, -5));
-  EXPECT_PRED2(angEqu, d.in(&a).Angle(), -pi / 2);
+  EXPECT_PRED2(AngEqu, d.in(&a).Angle(), -pi / 2);
   // d in b:
   double tmp = std::sqrt(66 - 10 * std::sqrt(41) * cos(at54 - at34)) / 5;
   EXPECT_EQ(d.in(&b).Position(), PosiVect(-5 - tmp * 3, 5 + tmp * 4));
-  EXPECT_PRED2(angEqu, d.in(&b).Angle(), pi / 2 + at34);
+  EXPECT_PRED2(AngEqu, d.in(&b).Angle(), pi / 2 + at34);
   // d in c:
   EXPECT_EQ(d.in(&c).Position(), PosiVect(-1, -10));
-  EXPECT_PRED2(angEqu, d.in(&c).Angle(), -pi / 2);
+  EXPECT_PRED2(AngEqu, d.in(&c).Angle(), -pi / 2);
   // d in GLB:
   EXPECT_EQ(d.inGLB().Position(), PosiVect(4, -5));
-  EXPECT_PRED2(angEqu, d.inGLB().Angle(), -pi / 2);
+  EXPECT_PRED2(AngEqu, d.inGLB().Angle(), -pi / 2);
 }
 
 }  // namespace test

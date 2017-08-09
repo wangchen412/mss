@@ -44,14 +44,14 @@ class Point : public Geometry<T> {
 
   const CS* LocalCS() const { return &localCS_; }
   const T& State() const { return state_; }
-  const Inhomogeneity<T>* In() const { return in_; }
+  const Inhomo<T>* In() const { return in_; }
 
   std::ostream& Print(std::ostream& os) const override;
 
  private:
   const CS localCS_;
-  const Inhomogeneity<T>* in_;  // The pointer to the inhomogeneity in which
-                                // the point is, if the point is in one.
+  const Inhomo<T>* in_;  // The pointer to the inhomogeneity in which
+                         // the point is, if the point is in one.
   const T state_;
 };
 

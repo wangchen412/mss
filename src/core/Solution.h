@@ -39,15 +39,15 @@ class Solution {
   virtual ~Solution() { delete_incident(); }
 
   void Solve() { config_.Solve(incident_); }
-  Inhomogeneity<T>* InWhich(const CS* objCS) const;
-  T Resultant(const CS* objCS, const Inhomogeneity<T>* inhomo) const;
+  Inhomo<T>* InWhich(const CS* objCS) const;
+  T Resultant(const CS* objCS, const Inhomo<T>* inhomo) const;
   T Resultant(const CS* objCS) const;
 
-  const ConfigAssembly<T>& Config() const { return config_; }
+  const AssemblyConfig<T>& Config() const { return config_; }
   const InciCPtrs<T>& Incident() const { return incident_; }
-  const InhomoCPtrs<T>& Inhomo() const { return Config().Inhomo(); }
-  const Inhomogeneity<T>* Inhomo(const size_t& sn) const {
-    return Config().Inhomo(sn);
+  const InhomoCPtrs<T>& inhomo() const { return Config().inhomo(); }
+  const Inhomo<T>* inhomo(const size_t& sn) const {
+    return Config().inhomo(sn);
   }
   const input::Solution& Input() const { return input_; }
   const std::string& InputFN() const { return input_.FN(); }
@@ -60,7 +60,7 @@ class Solution {
 
   // Only the configuration of the "root" assembly is needed.
   // The instantiation of the "root" assembly is not necessary.
-  ConfigAssembly<T> config_;
+  AssemblyConfig<T> config_;
   input::Solution input_;
 
   void add_incident();
@@ -85,12 +85,12 @@ void Solution<T>::delete_incident() {
 }
 
 template <typename T>
-Inhomogeneity<T>* Solution<T>::InWhich(const CS* objCS) const {
+Inhomo<T>* Solution<T>::InWhich(const CS* objCS) const {
   return config_.InWhich(objCS);
 }
 
 template <typename T>
-T Solution<T>::Resultant(const CS* objCS, const Inhomogeneity<T>* in) const {
+T Solution<T>::Resultant(const CS* objCS, const Inhomo<T>* in) const {
   return config_.Resultant(objCS, in, incident_);
 }
 

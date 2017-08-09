@@ -40,7 +40,7 @@ class PointSet : public Geometry<T> {
   std::ostream& Print(std::ostream& os) const override;
   virtual std::ostream& PrintParam(std::ostream& os) const = 0;
 
-  virtual std::string Shape() const  = 0;
+  virtual std::string Shape() const = 0;
 
   std::ostream& PrintHd(std::ostream& os) const;
 
