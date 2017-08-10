@@ -108,6 +108,11 @@ TEST_F(FiberTest, Contain) {
   EXPECT_FALSE(f2.Contain(&(cs01 += s)));
   EXPECT_TRUE(f2.Contain(&(cs02 += s)));
 }
+TEST_F(FiberTest, Solve) {
+  Eigen::VectorXcd ref(61);
+  ReadCoeff("Coeff_SH1.dat", ref);
+  EXPECT_TRUE(ApproxVectRv(ref, f3.Solve({&inSH}), 1e-3, 10));
+}
 TEST_F(FiberTest, TT) {
   // Compare with the results computed by previous version of mss.
   // The acceptable relative error is set as 1e-9.
@@ -118,12 +123,12 @@ TEST_F(FiberTest, TT) {
   EXPECT_TRUE(ApproxVectRv(Eigen::VectorXcd(ref.segment(0, 61)),
                            Eigen::VectorXcd(ref.segment(61, 61)), 1e-9));
 }
-TEST_F(FiberTest, Solve) {
+TEST_F(FiberTest, CSolve) {
   // The acceptable relative error is set as 1e-4.
 
   Eigen::VectorXcd ref(61);
   ReadCoeff("Coeff_SH1.dat", ref);
-  EXPECT_TRUE(ApproxVectRv(ref, f3.Solve({&inSH}), 1e-4));
+  EXPECT_TRUE(ApproxVectRv(ref, f3.CSolve({&inSH}), 1e-4));
 }
 TEST_F(FiberTest, Modes) {
   for (int n = -30; n <= 30; n++) {
@@ -157,6 +162,17 @@ TEST_F(FiberTest, Scatter) {
   EXPECT_EQ(ref.size(), 100);
 
   f3.SetCoeff(f3.Solve({&inSH}));
+  for (auto& i : SamplePts(0)) com.emplace_back(f3.Scatter(i));
+  EXPECT_EQ(com.size(), 100);
+
+  for (size_t i = 0; i < 100; i++) EXPECT_TRUE(ref[i].isApprox(com[i], 1e-3));
+}
+TEST_F(FiberTest, CScatter) {
+  std::vector<StateAP> ref, com;
+  ReadSample("Line_sc_SH1.dat", ref);
+  EXPECT_EQ(ref.size(), 100);
+
+  f3.SetCoeff(f3.CSolve({&inSH}));
   for (auto& i : SamplePts(0)) com.emplace_back(f3.Scatter(i));
   EXPECT_EQ(com.size(), 100);
 

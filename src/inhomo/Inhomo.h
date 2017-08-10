@@ -71,6 +71,7 @@ class Inhomo {
   virtual Eigen::VectorXcd InciVect(const InciCPtrs<T>& incident) const = 0;
 
   virtual Eigen::VectorXcd Solve(const InciCPtrs<T>& incident) const = 0;
+  virtual Eigen::VectorXcd CSolve(const InciCPtrs<T>& incident) const = 0;
 
   virtual void SetCoeff(const Eigen::VectorXcd&)       = 0;
   virtual const Eigen::VectorXcd& ScatterCoeff() const = 0;

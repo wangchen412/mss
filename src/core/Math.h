@@ -48,6 +48,14 @@ const double epsilon(1e-14);
 const auto setMaxPrecision =
     std::setprecision(std::numeric_limits<double>::digits10 + 1);
 
+inline dcomp operator*(const dcomp& lhs, int rhs) {
+  return lhs * double(rhs);
+}
+
+inline dcomp operator*(int lhs, const dcomp& rhs) {
+  return double(lhs) * rhs;
+}
+
 inline dcomp Jn(int n, const double& x) {
   return jn(n, x);
 }
@@ -90,6 +98,39 @@ inline bool ApproxVectRv(const Eigen::Matrix<T, Eigen::Dynamic, 1>& a,
   for (long i = k; i < a.size() - k; i++)
     if (!ApproxRv(a(i), b(i), re)) return false;
   return true;
+}
+
+inline Eigen::VectorXcd IntVect(const size_t& p, int n) {
+  Eigen::VectorXcd g(p), h(p);
+  double d    = pi2 / p;
+  long long P = p;
+  if (n)
+    for (long long i = 0; i < P; i++) {
+      g(i) = exp(-(i + 1) * n * d * ii) / (n * n * d) *
+             (exp(n * d * ii) - n * d * ii * exp(n * d * ii) - 1.0);
+      h(i) = exp(-(i + 1) * n * d * ii) / (n * n * d) *
+             (-exp(n * d * ii) + n * d * ii + 1.0);
+    }
+  else {
+    g.setConstant(d / 2);
+    h.setConstant(d / 2);
+  }
+
+  Eigen::VectorXcd rst(p);
+  rst(0) = g(0) + h(p - 1);
+  for (size_t i = 1; i < p; i++) rst(i)= h(i - 1) + g(i);
+  rst /= pi2;
+
+  return rst;
+}
+
+inline Eigen::MatrixXcd IntMat(int m, const size_t& p, int n) {
+  Eigen::VectorXcd v = IntVect(p, n);
+  Eigen::MatrixXcd rst(m, m * p);
+  rst.setZero();
+  for (int i = 0; i < m; i++)
+    for (size_t j = 0; j < p; j++) rst(i, i + m * j) = v(j);
+  return rst;
 }
 
 }  // namespace mss

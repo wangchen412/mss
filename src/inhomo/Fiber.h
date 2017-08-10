@@ -68,6 +68,7 @@ class Fiber : public Inhomo<T> {
 
   Eigen::VectorXcd InciVect(const InciCPtrs<T>& incident) const override;
   Eigen::VectorXcd Solve(const InciCPtrs<T>& incident) const override;
+  Eigen::VectorXcd CSolve(const InciCPtrs<T>& incident) const override;
 
   const FiberConfig<T>* Config() const { return config_; }
   const CSCPtrs& Node() const override { return node_; }
@@ -189,7 +190,11 @@ inline Eigen::VectorXcd Fiber<T>::InciVect(const InciCPtrs<T>& inc) const {
 }
 template <typename T>
 inline Eigen::VectorXcd Fiber<T>::Solve(const InciCPtrs<T>& inc) const {
-  return config_->Solve(InciVect(inc));
+  return config_->Solve(inc);
+}
+template <typename T>
+inline Eigen::VectorXcd Fiber<T>::CSolve(const InciCPtrs<T>& inc) const {
+  return config_->CSolve(inc);
 }
 
 }  // namespace mss

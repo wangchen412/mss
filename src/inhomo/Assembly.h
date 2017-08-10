@@ -48,6 +48,7 @@ class Assembly : public Inhomo<T> {
   Eigen::MatrixXcd ModeMatrix(const Inhomo<T>* other) const override;
   Eigen::VectorXcd InciVect(const InciCPtrs<T>& incident) const override;
   Eigen::VectorXcd Solve(const InciCPtrs<T>& incident) const override;
+  Eigen::VectorXcd CSolve(const InciCPtrs<T>& incident) const override;
 
  private:
   const AssemblyConfig<T>* config_;

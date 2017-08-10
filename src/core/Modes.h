@@ -31,11 +31,6 @@ inline T ModeL(const CS*, const CS*, const EigenFunctor&, const Material&);
 template <typename T>
 inline T ModeT(const CS*, const CS*, const EigenFunctor&, const Material&);
 
-template <typename T>
-inline T LimModeL(const CS*, const CS*, const EigenFunctor&, const Material&);
-template <typename T>
-inline T LimModeT(const CS*, const CS*, const EigenFunctor&, const Material&);
-
 template <>
 inline StateIP ModeL<StateIP>(const CS* localCS, const CS* objCS,
                               const EigenFunctor& f, const Material& m) {
