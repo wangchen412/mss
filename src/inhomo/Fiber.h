@@ -40,10 +40,12 @@ class Fiber : public Inhomo<T> {
 
   virtual ~Fiber() { delete_node(); }
 
-  const Eigen::MatrixXcd& ColloMat() override { return config_->ColloMat(); }
-
-  const Eigen::MatrixXcd& TransMat() override { return config_->TransMat(); }
-
+  const Eigen::MatrixXcd& ColloMat() const override {
+    return config_->ColloMat();
+  }
+  const Eigen::MatrixXcd& TransMat() const override {
+    return config_->TransMat();
+  }
   size_t NumNode() const override { return config_->NumNode(); }
   size_t NumBv() const override { return config_->NumBv(); }
   size_t NumCoeff() const override { return config_->NumCoeff(); }
@@ -68,11 +70,11 @@ class Fiber : public Inhomo<T> {
 
   Eigen::VectorXcd InciVec(const InciCPtrs<T>& incident) const override;
   Eigen::VectorXcd Solve(const InciCPtrs<T>& incident,
-                         SolveMethod method) override;
-  Eigen::VectorXcd CSolve(const InciCPtrs<T>& incident) override;
-  Eigen::VectorXcd DSolve(const InciCPtrs<T>& incident) override;
+                         SolveMethod method) const override;
+  Eigen::VectorXcd CSolve(const InciCPtrs<T>& incident) const override;
+  Eigen::VectorXcd DSolve(const InciCPtrs<T>& incident) const override;
 
-  FiberConfig<T>* Config() { return config_; }
+  FiberConfig<T>* Config() const { return config_; }
   const CSCPtrs& Node() const override { return node_; }
   const Eigen::VectorXcd& ScatterCoeff() const override { return cSc_; }
 
@@ -192,15 +194,15 @@ inline Eigen::VectorXcd Fiber<T>::InciVec(const InciCPtrs<T>& inc) const {
 }
 template <typename T>
 inline Eigen::VectorXcd Fiber<T>::Solve(const InciCPtrs<T>& inc,
-                                        SolveMethod method) {
+                                        SolveMethod method) const {
   return config_->Solve(inc, method);
 }
 template <typename T>
-inline Eigen::VectorXcd Fiber<T>::CSolve(const InciCPtrs<T>& inc) {
+inline Eigen::VectorXcd Fiber<T>::CSolve(const InciCPtrs<T>& inc) const {
   return config_->CSolve(inc);
 }
 template <typename T>
-inline Eigen::VectorXcd Fiber<T>::DSolve(const InciCPtrs<T>& inc) {
+inline Eigen::VectorXcd Fiber<T>::DSolve(const InciCPtrs<T>& inc) const {
   return config_->DSolve(inc);
 }
 

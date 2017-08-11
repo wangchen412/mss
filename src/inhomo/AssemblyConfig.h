@@ -70,13 +70,14 @@ class AssemblyConfig {
 
   void PrintCoeff(std::ostream& os) const;
 
-  const InhomoPtrs<T>& inhomo() const { return inhomo_; }
-  Inhomo<T>* inhomo(const size_t& sn) const { return inhomo_[sn]; }
+  const InhomoCPtrs<T>& inhomo() const { return inhomoC_; }
+  const Inhomo<T>* inhomo(const size_t& sn) const { return inhomoC_[sn]; }
 
  protected:
   const std::string ID_;
   size_t num_coeff_{0}, num_bv_in_{0};
   InhomoPtrs<T> inhomo_;
+  InhomoCPtrs<T> inhomoC_;
   FiberConfigPtrs<T> fiber_config_;
   AsmConfigPtrs<T> assembly_config_;
 
@@ -212,6 +213,7 @@ void AssemblyConfig<T>::add_inhomo() {
   for (auto& i : inhomo_) {
     num_coeff_ += i->NumCoeff();
     num_bv_in_ += i->NumBv();
+    inhomoC_.push_back(i);
   }
 }
 

@@ -45,12 +45,13 @@ class Assembly : public Inhomo<T> {
   T InnerModeT(const CS* local, int n) const;
 
   const CSCPtrs& Node() const override;
-  Eigen::MatrixXcd ColloMat() override;
-  Eigen::MatrixXcd TransMat() override;
+  Eigen::MatrixXcd ColloMat() const override;
+  Eigen::MatrixXcd TransMat() const override;
   Eigen::MatrixXcd ModeMat(const Inhomo<T>* other) const override;
   Eigen::VectorXcd InciVec(const InciCPtrs<T>& incident) const override;
   Eigen::VectorXcd Solve(const InciCPtrs<T>& incident) const override;
   Eigen::VectorXcd CSolve(const InciCPtrs<T>& incident) const override;
+  Eigen::VectorXcd DSolve(const InciCPtrs<T>& incident) const override;
 
  private:
   const AssemblyConfig<T>* config_;

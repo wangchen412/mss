@@ -27,7 +27,7 @@ class AssemblyTest : public Test {
  protected:
   AssemblyTest() : Test(__FILE__, "assembly") {
     for (auto& i : c.inhomo())
-      fiberPtrs.push_back(dynamic_cast<Fiber<StateAP>*>(i));
+      fiberPtrs.push_back(dynamic_cast<const Fiber<StateAP>*>(i));
   }
 
   input::Solution s{path("input.txt")};
@@ -36,7 +36,7 @@ class AssemblyTest : public Test {
   IncidentPlaneSH inSH1{matrix, s.incident()[0]};
   IncidentPlaneSH inSH2{matrix, s.incident()[1]};
   InciCPtrs<StateAP> incident{&inSH1, &inSH2};
-  std::vector<Fiber<StateAP>*> fiberPtrs;
+  std::vector<const Fiber<StateAP>*> fiberPtrs;
 };
 
 TEST_F(AssemblyTest, Constructor) {
