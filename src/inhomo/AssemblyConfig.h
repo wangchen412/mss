@@ -38,12 +38,11 @@ template <typename T>
 class AssemblyConfig {
  public:
   AssemblyConfig(const std::string& ID, const input::AssemblyConfig& input,
-                 const Matrix* matrix, SolveMethod method)
+                 const Matrix* matrix)
       : ID_(ID),
         width_(input.width),
         height_(input.height),
         matrix_(matrix),
-        method_(method),
         input_(input) {
     add_inhomo();
   }
@@ -60,7 +59,7 @@ class AssemblyConfig {
   const double& Width() const { return width_; }
   const std::string& ID() const { return ID_; }
 
-  void Solve(const InciCPtrs<T>& incident);
+  void Solve(const InciCPtrs<T>& incident, SolveMethod method);
   void CSolve(const InciCPtrs<T>& incident);
   void DSolve(const InciCPtrs<T>& incident);
 
@@ -71,22 +70,20 @@ class AssemblyConfig {
 
   void PrintCoeff(std::ostream& os) const;
 
-  const InhomoCPtrs<T>& inhomo() const { return inhomoC_; }
-  const Inhomo<T>* inhomo(const size_t& sn) const { return inhomoC_[sn]; }
+  const InhomoPtrs<T>& inhomo() const { return inhomo_; }
+  Inhomo<T>* inhomo(const size_t& sn) const { return inhomo_[sn]; }
 
  protected:
   const std::string ID_;
   size_t num_coeff_{0}, num_bv_in_{0};
   InhomoPtrs<T> inhomo_;
-  InhomoCPtrs<T> inhomoC_;
-  FiberConfigCPtrs<T> fiber_config_;
-  AsmConfigCPtrs<T> assembly_config_;
+  FiberConfigPtrs<T> fiber_config_;
+  AsmConfigPtrs<T> assembly_config_;
 
   // const size_t P_;
   const double width_, height_;
 
   const class Matrix* matrix_;
-  const SolveMethod method_;
   const input::AssemblyConfig& input_;
 
   Eigen::MatrixXcd C_;
@@ -108,8 +105,9 @@ class AssemblyConfig {
 // Inline functions:
 
 template <typename T>
-void AssemblyConfig<T>::Solve(const InciCPtrs<T>& incident) {
-  switch (method_) {
+void AssemblyConfig<T>::Solve(const InciCPtrs<T>& incident,
+                              SolveMethod method) {
+  switch (method) {
     case COLLOCATION:
       CSolve(incident);
       break;
@@ -214,7 +212,6 @@ void AssemblyConfig<T>::add_inhomo() {
   for (auto& i : inhomo_) {
     num_coeff_ += i->NumCoeff();
     num_bv_in_ += i->NumBv();
-    inhomoC_.push_back(i);
   }
 }
 
@@ -229,7 +226,7 @@ void AssemblyConfig<T>::add_fiber() {
 template <typename T>
 void AssemblyConfig<T>::add_fiber_config() {
   for (auto& i : *input_.fiber_config)
-    fiber_config_.push_back(new FiberConfig<T>(i, matrix_, method_));
+    fiber_config_.push_back(new FiberConfig<T>(i, matrix_));
 }
 
 template <typename T>
@@ -250,7 +247,6 @@ void AssemblyConfig<T>::compute_C() {
 #ifdef NDEBUG
 #pragma omp parallel for
 #endif
-
   for (size_t v = 0; v < inhomo_.size(); v++) {
     int i = 0, j = 0, Nv = inhomo_[v]->NumCoeff();
     Eigen::MatrixXcd I(Nv, Nv);
@@ -273,7 +269,6 @@ void AssemblyConfig<T>::compute_CC() {
 #ifdef NDEBUG
 #pragma omp parallel for
 #endif
-
   for (size_t v = 0; v < inhomo_.size(); v++) {
     int i = 0, j = 0, Nv = inhomo_[v]->NumCoeff();
     for (size_t k = 0; k < v; k++) j += inhomo_[k]->NumCoeff();

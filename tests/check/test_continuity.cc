@@ -41,6 +41,7 @@ TEST_F(ContinuityTest, FiberCheck) {
 TEST_F(ContinuityTest, SolutionCheck) {
   post::CC_Solution<StateAP> cc{&s};
   EXPECT_TRUE(cc.isCont());
+  cc.Write();
 }
 
 }  // namespace test

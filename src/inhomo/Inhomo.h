@@ -38,10 +38,10 @@ class Inhomo {
   virtual ~Inhomo() {}
 
   // Collocation matrix.
-  virtual const Eigen::MatrixXcd& ColloMat() const = 0;
+  virtual const Eigen::MatrixXcd& ColloMat() = 0;
 
   // Transform matrix.
-  virtual const Eigen::MatrixXcd& TransMat() const = 0;
+  virtual const Eigen::MatrixXcd& TransMat() = 0;
 
   // The matrix consists the modes from this inhomo to the nodes of the
   // objective inhomo.
@@ -70,12 +70,14 @@ class Inhomo {
 
   virtual Eigen::VectorXcd InciVec(const InciCPtrs<T>& incident) const = 0;
 
-  Eigen::VectorXcd TransInciVec(const InciCPtrs<T>& incident) const {
+  Eigen::VectorXcd TransInciVec(const InciCPtrs<T>& incident) {
     return TransMat() * InciVec(incident);
   }
 
-  virtual Eigen::VectorXcd Solve(const InciCPtrs<T>& incident) const  = 0;
-  virtual Eigen::VectorXcd CSolve(const InciCPtrs<T>& incident) const = 0;
+  virtual Eigen::VectorXcd Solve(const InciCPtrs<T>& incident,
+                                 SolveMethod method)            = 0;
+  virtual Eigen::VectorXcd CSolve(const InciCPtrs<T>& incident) = 0;
+  virtual Eigen::VectorXcd DSolve(const InciCPtrs<T>& incident) = 0;
 
   virtual void SetCoeff(const Eigen::VectorXcd&)       = 0;
   virtual const Eigen::VectorXcd& ScatterCoeff() const = 0;

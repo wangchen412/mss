@@ -30,7 +30,7 @@ class Fiber : public Inhomo<T> {
   using Inhomo<T>::LocalCS;
 
  public:
-  Fiber(const FiberConfig<T>* config, const PosiVect& position = 0)
+  Fiber(FiberConfig<T>* config, const PosiVect& position = 0)
       : Inhomo<T>(position, FIBER),
         config_(config),
         cSc_(NumCoeff()),
@@ -40,13 +40,9 @@ class Fiber : public Inhomo<T> {
 
   virtual ~Fiber() { delete_node(); }
 
-  const Eigen::MatrixXcd& ColloMat() const override {
-    return config_->ColloMat();
-  }
+  const Eigen::MatrixXcd& ColloMat() override { return config_->ColloMat(); }
 
-  const Eigen::MatrixXcd& TransMat() const override {
-    return config_->TransMat();
-  }
+  const Eigen::MatrixXcd& TransMat() override { return config_->TransMat(); }
 
   size_t NumNode() const override { return config_->NumNode(); }
   size_t NumBv() const override { return config_->NumBv(); }
@@ -71,15 +67,17 @@ class Fiber : public Inhomo<T> {
   T InnerMode(const CS* objCS, const size_t& sn) const override;
 
   Eigen::VectorXcd InciVec(const InciCPtrs<T>& incident) const override;
-  Eigen::VectorXcd Solve(const InciCPtrs<T>& incident) const override;
-  Eigen::VectorXcd CSolve(const InciCPtrs<T>& incident) const override;
+  Eigen::VectorXcd Solve(const InciCPtrs<T>& incident,
+                         SolveMethod method) override;
+  Eigen::VectorXcd CSolve(const InciCPtrs<T>& incident) override;
+  Eigen::VectorXcd DSolve(const InciCPtrs<T>& incident) override;
 
-  const FiberConfig<T>* Config() const { return config_; }
+  FiberConfig<T>* Config() { return config_; }
   const CSCPtrs& Node() const override { return node_; }
   const Eigen::VectorXcd& ScatterCoeff() const override { return cSc_; }
 
  private:
-  const FiberConfig<T>* config_;
+  FiberConfig<T>* config_;
   CSCPtrs node_;
   Eigen::VectorXcd cSc_, cIn_;
 
@@ -193,12 +191,17 @@ inline Eigen::VectorXcd Fiber<T>::InciVec(const InciCPtrs<T>& inc) const {
   return rst;
 }
 template <typename T>
-inline Eigen::VectorXcd Fiber<T>::Solve(const InciCPtrs<T>& inc) const {
-  return config_->Solve(inc);
+inline Eigen::VectorXcd Fiber<T>::Solve(const InciCPtrs<T>& inc,
+                                        SolveMethod method) {
+  return config_->Solve(inc, method);
 }
 template <typename T>
-inline Eigen::VectorXcd Fiber<T>::CSolve(const InciCPtrs<T>& inc) const {
+inline Eigen::VectorXcd Fiber<T>::CSolve(const InciCPtrs<T>& inc) {
   return config_->CSolve(inc);
+}
+template <typename T>
+inline Eigen::VectorXcd Fiber<T>::DSolve(const InciCPtrs<T>& inc) {
+  return config_->DSolve(inc);
 }
 
 }  // namespace mss

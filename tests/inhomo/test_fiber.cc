@@ -35,9 +35,9 @@ class FiberTest : public Test {
   input::Solution s2{path("input.txt")};
   Matrix matrix2{s2};
 
-  FiberConfig<StateIP> c1 = {"c1", 30, 300, 1e-3, lead, &matrix, COLLOCATION};
-  FiberConfig<StateAP> c2 = {"c2", 30, 300, 1e-3, lead, &matrix, COLLOCATION};
-  FiberConfig<StateAP> c3 = {s2.fiber_config()[0], &matrix2, DFT};
+  FiberConfig<StateIP> c1 = {"c1", 30, 300, 1e-3, lead, &matrix};
+  FiberConfig<StateAP> c2 = {"c2", 30, 300, 1e-3, lead, &matrix};
+  FiberConfig<StateAP> c3 = {s2.fiber_config()[0], &matrix2};
   IncidentPlaneSH inSH{matrix2, s2.incident()[0]};
 
   Fiber<StateIP> f1 = {&c1};
@@ -111,7 +111,7 @@ TEST_F(FiberTest, Contain) {
 TEST_F(FiberTest, Solve) {
   Eigen::VectorXcd ref(61);
   ReadCoeff("Coeff_SH1.dat", ref);
-  EXPECT_TRUE(ApproxVectRv(ref, f3.Solve({&inSH}), 1e-3, 10));
+  EXPECT_TRUE(ApproxVectRv(ref, f3.Solve({&inSH}, DFT), 1e-3, 10));
 }
 TEST_F(FiberTest, TT) {
   // Compare with the results computed by previous version of mss.
@@ -161,7 +161,7 @@ TEST_F(FiberTest, Scatter) {
   ReadSample("Line_sc_SH1.dat", ref);
   EXPECT_EQ(ref.size(), 100);
 
-  f3.SetCoeff(f3.Solve({&inSH}));
+  f3.SetCoeff(f3.Solve({&inSH}, DFT));
   for (auto& i : SamplePts(0)) com.emplace_back(f3.Scatter(i));
   EXPECT_EQ(com.size(), 100);
 

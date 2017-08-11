@@ -27,16 +27,16 @@ class AssemblyTest : public Test {
  protected:
   AssemblyTest() : Test(__FILE__, "assembly") {
     for (auto& i : c.inhomo())
-      fiberPtrs.push_back(dynamic_cast<const Fiber<StateAP>*>(i));
+      fiberPtrs.push_back(dynamic_cast<Fiber<StateAP>*>(i));
   }
 
   input::Solution s{path("input.txt")};
   Matrix matrix{s};
-  AssemblyConfig<StateAP> c{"Test", s.config(), &matrix, DFT};
+  AssemblyConfig<StateAP> c{"Test", s.config(), &matrix};
   IncidentPlaneSH inSH1{matrix, s.incident()[0]};
   IncidentPlaneSH inSH2{matrix, s.incident()[1]};
   InciCPtrs<StateAP> incident{&inSH1, &inSH2};
-  std::vector<const Fiber<StateAP>*> fiberPtrs;
+  std::vector<Fiber<StateAP>*> fiberPtrs;
 };
 
 TEST_F(AssemblyTest, Constructor) {
@@ -87,7 +87,7 @@ TEST_F(AssemblyTest, InWhich) {
   EXPECT_EQ(c.InWhich(&p8), nullptr);
 }
 TEST_F(AssemblyTest, Solve) {
-  c.Solve(incident);
+  c.Solve(incident, COLLOCATION);
   Eigen::VectorXcd ref(305);
   ReadCoeff("Coeff_SH.dat", ref);
 
@@ -102,7 +102,7 @@ TEST_F(AssemblyTest, Scatter) {
   ReadSample("line_1.dat", ref);
   EXPECT_EQ(ref.size(), 100);
 
-  c.Solve(incident);
+  c.Solve(incident, COLLOCATION);
   for (auto& i : SamplePts(0)) com.emplace_back(c.Resultant(i, incident));
   EXPECT_EQ(com.size(), 100);
 

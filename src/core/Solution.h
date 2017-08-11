@@ -32,24 +32,22 @@ class Solution {
   Solution(const input::Solution& input)
       : matrix_(input.matrix()),
         method_(input.method()),
-        config_("root", input.config(), &matrix_, method_),
+        config_("root", input.config(), &matrix_),
         input_(input) {
     add_incident();
   }
 
   virtual ~Solution() { delete_incident(); }
 
-  void Solve() { config_.Solve(incident_); }
+  void Solve() { config_.Solve(incident_, method_); }
   Inhomo<T>* InWhich(const CS* objCS) const;
   T Resultant(const CS* objCS, const Inhomo<T>* inhomo) const;
   T Resultant(const CS* objCS) const;
 
   const AssemblyConfig<T>& Config() const { return config_; }
   const InciCPtrs<T>& Incident() const { return incident_; }
-  const InhomoCPtrs<T>& inhomo() const { return Config().inhomo(); }
-  const Inhomo<T>* inhomo(const size_t& sn) const {
-    return Config().inhomo(sn);
-  }
+  const InhomoPtrs<T>& inhomo() const { return Config().inhomo(); }
+  Inhomo<T>* inhomo(const size_t& sn) const { return Config().inhomo(sn); }
   const input::Solution& Input() const { return input_; }
   const std::string& InputFN() const { return input_.FN(); }
 

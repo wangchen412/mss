@@ -71,7 +71,7 @@ class CC_Fiber : public ContCheck<T> {
  public:
   CC_Fiber(const Solution<T>* solution, const Fiber<T>* fiber,
            const size_t& np = 42, const double& gap = epsilon,
-           const double& tolerance = 1e-6)
+           const double& tolerance = 1e-4)
       : ContCheck<T>(solution, np, gap, tolerance), f_(fiber) {
     add_circ();
     add_state();
@@ -94,7 +94,7 @@ template <typename T>
 class CC_Solution {
  public:
   CC_Solution(const Solution<T>* solution, const size_t& np = 42,
-              const double& gap = epsilon, const double& tolerance = 1e-6) {
+              const double& gap = epsilon, const double& tolerance = 1e-4) {
     add_cc(solution, np, gap, tolerance);
   }
   ~CC_Solution() {

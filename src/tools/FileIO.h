@@ -81,7 +81,16 @@ const T* FindID(const std::vector<T>& vec, const std::string& name) {
 }
 
 template <typename T>
-const T* FindPtrID(const std::vector<T*>& vec, const std::string& name) {
+const T* FindCPtrID(const std::vector<const T*>& vec,
+                    const std::string& name) {
+  for (const auto& t : vec)
+    if (iequals(name, t->ID())) return t;
+  print_error_msg({"ID: ", name, " not found."});
+  exit(EXIT_FAILURE);
+}
+
+template <typename T>
+T* FindPtrID(const std::vector<T*>& vec, const std::string& name) {
   for (const auto& t : vec)
     if (iequals(name, t->ID())) return t;
   print_error_msg({"ID: ", name, " not found."});
