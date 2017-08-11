@@ -31,7 +31,8 @@ class Solution {
  public:
   Solution(const input::Solution& input)
       : matrix_(input.matrix()),
-        config_("root", input.config(), &matrix_),
+        method_(input.method()),
+        config_("root", input.config(), &matrix_, method_),
         input_(input) {
     add_incident();
   }
@@ -55,8 +56,9 @@ class Solution {
  protected:
   // bool solved_;
   const Matrix matrix_;
+  SolveMethod method_;
   InciCPtrs<T> incident_;
-  T inciNorm_;  // The normalization factor of the incidents.
+  // T inci_norm_;  // The normalization factor of the incidents.
 
   // Only the configuration of the "root" assembly is needed.
   // The instantiation of the "root" assembly is not necessary.

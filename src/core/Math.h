@@ -48,6 +48,8 @@ const double epsilon(1e-14);
 const auto setMaxPrecision =
     std::setprecision(std::numeric_limits<double>::digits10 + 1);
 
+enum SolveMethod { COLLOCATION, DFT };
+
 inline dcomp operator*(const dcomp& lhs, int rhs) {
   return lhs * double(rhs);
 }
@@ -100,7 +102,7 @@ inline bool ApproxVectRv(const Eigen::Matrix<T, Eigen::Dynamic, 1>& a,
   return true;
 }
 
-inline Eigen::VectorXcd IntVect(const size_t& p, int n) {
+inline Eigen::VectorXcd IntVec(const size_t& p, int n) {
   Eigen::VectorXcd g(p), h(p);
   double d    = pi2 / p;
   long long P = p;
@@ -125,7 +127,7 @@ inline Eigen::VectorXcd IntVect(const size_t& p, int n) {
 }
 
 inline Eigen::MatrixXcd IntMat(int m, const size_t& p, int n) {
-  Eigen::VectorXcd v = IntVect(p, n);
+  Eigen::VectorXcd v = IntVec(p, n);
   Eigen::MatrixXcd rst(m, m * p);
   rst.setZero();
   for (int i = 0; i < m; i++)

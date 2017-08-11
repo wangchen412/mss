@@ -159,7 +159,7 @@ inline void CC_Solution<T>::add_cc(const Solution<T>* solution,
                                    const double& tol) {
   for (auto& i : solution->inhomo()) {
     switch (i->Type()) {
-      case fiber:
+      case FIBER:
         check_.push_back(new CC_Fiber<T>(
             solution, dynamic_cast<const Fiber<T>*>(i), np, gap, tol));
         if (check_.back()->NC()) nc_.push_back(check_.back());

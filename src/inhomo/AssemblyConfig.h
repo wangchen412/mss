@@ -38,14 +38,14 @@ template <typename T>
 class AssemblyConfig {
  public:
   AssemblyConfig(const std::string& ID, const input::AssemblyConfig& input,
-                 const Matrix* matrix)
+                 const Matrix* matrix, SolveMethod method)
       : ID_(ID),
         width_(input.width),
         height_(input.height),
         matrix_(matrix),
+        method_(method),
         input_(input) {
     add_inhomo();
-    allocate();
   }
 
   virtual ~AssemblyConfig() { delete_inhomo(); }
@@ -62,6 +62,7 @@ class AssemblyConfig {
 
   void Solve(const InciCPtrs<T>& incident);
   void CSolve(const InciCPtrs<T>& incident);
+  void DSolve(const InciCPtrs<T>& incident);
 
   Inhomo<T>* InWhich(const CS* objCS) const;
   T Resultant(const CS* objCS, const Inhomo<T>* inhomo,
@@ -85,6 +86,7 @@ class AssemblyConfig {
   const double width_, height_;
 
   const class Matrix* matrix_;
+  const SolveMethod method_;
   const input::AssemblyConfig& input_;
 
   Eigen::MatrixXcd C_;
@@ -95,13 +97,11 @@ class AssemblyConfig {
   void add_fiber_config();
   void delete_inhomo();
   void delete_fiber_config();
-  void allocate();
-  void allocate_C();
-  void allocate_CC();
   void compute_C();
   void compute_CC();
-  Eigen::VectorXcd inVect(const InciCPtrs<T>& incident);
-  void distSolution(const Eigen::VectorXcd& solution);
+  Eigen::VectorXcd inVec(const InciCPtrs<T>& incident);
+  Eigen::VectorXcd trans_inVec(const InciCPtrs<T>& incident);
+  void dist_solution(const Eigen::VectorXcd& solution);
 };
 
 // ---------------------------------------------------------------------------
@@ -109,7 +109,16 @@ class AssemblyConfig {
 
 template <typename T>
 void AssemblyConfig<T>::Solve(const InciCPtrs<T>& incident) {
-  CSolve(incident);
+  switch (method_) {
+    case COLLOCATION:
+      CSolve(incident);
+      break;
+    case DFT:
+      DSolve(incident);
+      break;
+    default:
+      exit_error_msg({"Unknown method."});
+  }
 }
 
 template <typename T>
@@ -117,27 +126,46 @@ void AssemblyConfig<T>::CSolve(const InciCPtrs<T>& incident) {
   // Jacobi SVD:
   compute_CC();
   auto svd = CC_.jacobiSvd(Eigen::ComputeThinU | Eigen::ComputeThinV);
-  Eigen::VectorXcd solution = svd.solve(inVect(incident));
-  distSolution(solution);
+  Eigen::VectorXcd solution = svd.solve(inVec(incident));
+  dist_solution(solution);
 }
 
 template <typename T>
-Eigen::VectorXcd AssemblyConfig<T>::inVect(const InciCPtrs<T>& incident) {
+void AssemblyConfig<T>::DSolve(const InciCPtrs<T>& incident) {
+  // CSolve(incident);
+  compute_C();
+  Eigen::VectorXcd solution = C_.lu().solve(trans_inVec(incident));
+  dist_solution(solution);
+}
+
+template <typename T>
+Eigen::VectorXcd AssemblyConfig<T>::inVec(const InciCPtrs<T>& incident) {
   // The effect vector of incident wave along all the interfaces inside the
   // assembly.
 
-  size_t n = 0, u = 0;
-  for (auto& i : inhomo_) n += i->NumBv();
-  Eigen::VectorXcd rst(n);
+  Eigen::VectorXcd rst(NumBv_in());
+  size_t u = 0;
   for (auto& i : inhomo_) {
-    rst.segment(u, i->NumBv()) = i->InciVect(incident);
+    rst.segment(u, i->NumBv()) = i->InciVec(incident);
     u += i->NumBv();
   }
   return rst;
 }
 
 template <typename T>
-void AssemblyConfig<T>::distSolution(const Eigen::VectorXcd& solution) {
+Eigen::VectorXcd AssemblyConfig<T>::trans_inVec(
+    const InciCPtrs<T>& incident) {
+  Eigen::VectorXcd rst(NumCoeff());
+  size_t u = 0;
+  for (auto& i : inhomo_) {
+    rst.segment(u, i->NumCoeff()) = i->TransInciVec(incident);
+    u += i->NumCoeff();
+  }
+  return rst;
+}
+
+template <typename T>
+void AssemblyConfig<T>::dist_solution(const Eigen::VectorXcd& solution) {
   size_t u = 0;
   for (auto& i : inhomo_) {
     i->SetCoeff(solution.segment(u, i->NumCoeff()));
@@ -201,7 +229,7 @@ void AssemblyConfig<T>::add_fiber() {
 template <typename T>
 void AssemblyConfig<T>::add_fiber_config() {
   for (auto& i : *input_.fiber_config)
-    fiber_config_.push_back(new FiberConfig<T>(i, matrix_));
+    fiber_config_.push_back(new FiberConfig<T>(i, matrix_, method_));
 }
 
 template <typename T>
@@ -216,35 +244,44 @@ void AssemblyConfig<T>::delete_fiber_config() {
 }
 
 template <typename T>
-void AssemblyConfig<T>::allocate() {
-  allocate_CC();
-}
-
-template <typename T>
-void AssemblyConfig<T>::allocate_C() {
+void AssemblyConfig<T>::compute_C() {
   C_.resize(NumCoeff(), NumCoeff());
-}
 
-template <typename T>
-void AssemblyConfig<T>::allocate_CC() {
-  CC_.resize(NumBv_in(), NumCoeff());
-}
-
-template <typename T>
-void AssemblyConfig<T>::compute_CC() {
 #ifdef NDEBUG
 #pragma omp parallel for
 #endif
 
   for (size_t v = 0; v < inhomo_.size(); v++) {
-    int i = 0, j = 0;
+    int i = 0, j = 0, Nv = inhomo_[v]->NumCoeff();
+    Eigen::MatrixXcd I(Nv, Nv);
+    I.setIdentity();
     for (size_t k = 0; k < v; k++) j += inhomo_[k]->NumCoeff();
-    int Nv = inhomo_[v]->NumCoeff();
+    for (size_t u = 0; u < inhomo_.size(); u++) {
+      int Nu = inhomo_[u]->NumCoeff();
+      C_.block(i, j, Nu, Nv) =
+          u == v ? I
+                 : -inhomo_[u]->TransMat() * inhomo_[v]->ModeMat(inhomo_[u]);
+      i += Nu;
+    }
+  }
+}
+
+template <typename T>
+void AssemblyConfig<T>::compute_CC() {
+  CC_.resize(NumBv_in(), NumCoeff());
+
+#ifdef NDEBUG
+#pragma omp parallel for
+#endif
+
+  for (size_t v = 0; v < inhomo_.size(); v++) {
+    int i = 0, j = 0, Nv = inhomo_[v]->NumCoeff();
+    for (size_t k = 0; k < v; k++) j += inhomo_[k]->NumCoeff();
     for (size_t u = 0; u < inhomo_.size(); u++) {
       int Nu = inhomo_[u]->NumBv();
 
-      CC_.block(i, j, Nu, Nv) = u == v ? inhomo_[v]->ColloMat()
-                                       : inhomo_[v]->ModeMat(inhomo_[u]) * -1;
+      CC_.block(i, j, Nu, Nv) =
+          u == v ? inhomo_[v]->ColloMat() : -inhomo_[v]->ModeMat(inhomo_[u]);
       i += Nu;
     }
   }

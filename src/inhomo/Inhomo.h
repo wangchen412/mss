@@ -27,7 +27,7 @@
 
 namespace mss {
 
-enum InhomoType { fiber, assembly };
+enum InhomoType { FIBER, ASSEMBLY };
 
 template <typename T>
 class Inhomo {
@@ -41,7 +41,7 @@ class Inhomo {
   virtual const Eigen::MatrixXcd& ColloMat() const = 0;
 
   // Transform matrix.
-  // virtual const Eigen::MatrixXcd& TransMat() const = 0;
+  virtual const Eigen::MatrixXcd& TransMat() const = 0;
 
   // The matrix consists the modes from this inhomo to the nodes of the
   // objective inhomo.
@@ -62,15 +62,19 @@ class Inhomo {
   virtual T ScatterMode(const CS* objCS, const size_t& sn) const = 0;
   virtual T InnerMode(const CS* objCS, const size_t& sn) const   = 0;
 
-  Eigen::VectorXcd ScatterBV(const CSCPtrs& objCSs, const size_t& sn) const;
+  Eigen::VectorXcd ScatterBv(const CSCPtrs& objCSs, const size_t& sn) const;
 
   virtual size_t NumNode() const  = 0;
   virtual size_t NumCoeff() const = 0;
   virtual size_t NumBv() const    = 0;
 
-  virtual Eigen::VectorXcd InciVect(const InciCPtrs<T>& incident) const = 0;
+  virtual Eigen::VectorXcd InciVec(const InciCPtrs<T>& incident) const = 0;
 
-  virtual Eigen::VectorXcd Solve(const InciCPtrs<T>& incident) const = 0;
+  Eigen::VectorXcd TransInciVec(const InciCPtrs<T>& incident) const {
+    return TransMat() * InciVec(incident);
+  }
+
+  virtual Eigen::VectorXcd Solve(const InciCPtrs<T>& incident) const  = 0;
   virtual Eigen::VectorXcd CSolve(const InciCPtrs<T>& incident) const = 0;
 
   virtual void SetCoeff(const Eigen::VectorXcd&)       = 0;
@@ -101,7 +105,7 @@ using InhomoCPtrs = std::vector<const Inhomo<T>*>;
 // Inline functions:
 
 template <typename T>
-Eigen::VectorXcd Inhomo<T>::ScatterBV(const CSCPtrs& objCSs,
+Eigen::VectorXcd Inhomo<T>::ScatterBv(const CSCPtrs& objCSs,
                                       const size_t& sn) const {
   Eigen::VectorXcd rst(objCSs.size() * T::NumBv);
   for (size_t i = 0; i < objCSs.size(); i++)
@@ -113,15 +117,9 @@ template <typename T>
 Eigen::MatrixXcd Inhomo<T>::ModeMat(const Inhomo<T>* obj) const {
   Eigen::MatrixXcd rst(obj->NumBv(), NumCoeff());
   for (size_t sn = 0; sn < NumCoeff(); sn++)
-    rst.col(sn) = ScatterBV(obj->Node(), sn);
+    rst.col(sn) = ScatterBv(obj->Node(), sn);
   return rst;
 }
-
-// template <typename T>
-// Eigen::MatrixXcd Inhomo<T>::QM(const Inhomo<T>* obj) const {
-//   if (this == obj) {
-//   }
-// }
 
 }  // namespace mss
 

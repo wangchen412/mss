@@ -32,7 +32,7 @@ class AssemblyTest : public Test {
 
   input::Solution s{path("input.txt")};
   Matrix matrix{s};
-  AssemblyConfig<StateAP> c{"Test", s.config(), &matrix};
+  AssemblyConfig<StateAP> c{"Test", s.config(), &matrix, DFT};
   IncidentPlaneSH inSH1{matrix, s.incident()[0]};
   IncidentPlaneSH inSH2{matrix, s.incident()[1]};
   InciCPtrs<StateAP> incident{&inSH1, &inSH2};
@@ -94,7 +94,7 @@ TEST_F(AssemblyTest, Solve) {
   for (int i = 0; i < 5; i++) {
     Eigen::VectorXcd rr = ref.segment(61 * i, 61),
                      cc = c.inhomo(i)->ScatterCoeff();
-    EXPECT_TRUE(ApproxVectRv(rr, cc, 1e-5, 10));
+    EXPECT_TRUE(ApproxVectRv(rr, cc, 1e-3, 10));
   }
 }
 TEST_F(AssemblyTest, Scatter) {
@@ -106,7 +106,7 @@ TEST_F(AssemblyTest, Scatter) {
   for (auto& i : SamplePts(0)) com.emplace_back(c.Resultant(i, incident));
   EXPECT_EQ(com.size(), 100);
 
-  for (size_t i = 0; i < 100; i++) EXPECT_TRUE(ref[i].isApprox(com[i], 1e-5));
+  for (size_t i = 0; i < 100; i++) EXPECT_TRUE(ref[i].isApprox(com[i], 1e-3));
 }
 
 }  // namespace test

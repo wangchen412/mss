@@ -71,6 +71,10 @@ struct AssemblyConfig {
   // std::vector<AssemblyConfig> a;   // TODO
   // std::vector<Assembly> assembly;  // TODO
 };
+struct Solve {
+  std::string configID;
+  std::string method;
+};
 
 // ---------------------------------------------------------------------------
 // Inline functions:
@@ -122,6 +126,13 @@ inline std::ostream& operator<<(std::ostream& os, const AssemblyConfig& c) {
   os << "X               Y               Configuration" << std::endl;
   for (const auto& i : c.fiber) os << i << std::endl;
   return os;
+}
+
+inline void operator>>(std::istream& is, Solve& s) {
+  is >> s.configID >> s.method;
+}
+inline std::ostream& operator<<(std::ostream& os, const Solve& s) {
+  return os << s.configID << "\t\t" << s.method;
 }
 
 }  // namespace input

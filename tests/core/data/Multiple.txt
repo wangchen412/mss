@@ -53,5 +53,5 @@ X               Y               Configuration
 ===========================================================================
 [Solve]
 ---------------------------------------------------------------------------
-Assembly Configuration ID
-Assembly_1
+Assembly Configuration ID       Method
+Assembly_1                      Collocation

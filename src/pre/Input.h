@@ -41,8 +41,19 @@ class Solution {
   const auto& frequency() const { return matrix().frequency; }
   const auto& fiber_config() const { return fiber_config_; }
   const auto& incident() const { return incident_; }
-  const auto& configAssem() const { return assembly_config_; }
-  const auto& config() const { return *FindID(assembly_config_, solve_[0]); }
+  const auto& assembly_config() const { return assembly_config_; }
+  const auto& config() const {
+    return *FindID(assembly_config_, solve_[0].configID);
+  }
+  SolveMethod method() const {
+    if (iequals(solve_[0].method, "Collocation"))
+      return COLLOCATION;
+    else if (iequals(solve_[0].method, "DFT"))
+      return DFT;
+    else
+      error_msg({"Unknown method: ", solve_[0].method, "."});
+    exit(EXIT_FAILURE);
+  }
 
  private:
   std::vector<Material> material_;
@@ -50,7 +61,7 @@ class Solution {
   std::vector<IncidentPlane> incident_;
   std::vector<FiberConfig> fiber_config_;
   std::vector<AssemblyConfig> assembly_config_;
-  std::vector<std::string> solve_;
+  std::vector<Solve> solve_;
   // std::vector<Assembly> assembly_;  // TODO
 
   std::string fn_;

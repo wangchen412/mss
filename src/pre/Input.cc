@@ -47,7 +47,7 @@ void Solution::link() {
     i.fiber_config = &fiber_config_;
     i.pointDensity = matrix().kt * matrix().delta;
     for (auto& j : i.fiber) j.config= FindID(fiber_config_, j.configID);
-    i.nsolve = iequals(solve_[0], i.ID) ? false : true;
+    i.nsolve = iequals(solve_[0].configID, i.ID) ? false : true;
   }
 }
 
@@ -63,7 +63,7 @@ void Solution::add_keyword() {
   keyword_[typeid(FiberConfig)]    = "[Fiber Configurations]";
   keyword_[typeid(Fiber)]          = "[Fibers]";
   keyword_[typeid(AssemblyConfig)] = "[Assembly Configurations]";
-  keyword_[typeid(std::string)]    = "[Solve]";
+  keyword_[typeid(Solve)]          = "[Solve]";
 }
 
 }  // namespace input

@@ -31,7 +31,7 @@ class Fiber : public Inhomo<T> {
 
  public:
   Fiber(const FiberConfig<T>* config, const PosiVect& position = 0)
-      : Inhomo<T>(position, fiber),
+      : Inhomo<T>(position, FIBER),
         config_(config),
         cSc_(NumCoeff()),
         cIn_(NumCoeff()) {
@@ -42,6 +42,10 @@ class Fiber : public Inhomo<T> {
 
   const Eigen::MatrixXcd& ColloMat() const override {
     return config_->ColloMat();
+  }
+
+  const Eigen::MatrixXcd& TransMat() const override {
+    return config_->TransMat();
   }
 
   size_t NumNode() const override { return config_->NumNode(); }
@@ -66,7 +70,7 @@ class Fiber : public Inhomo<T> {
   T ScatterMode(const CS* objCS, const size_t& sn) const override;
   T InnerMode(const CS* objCS, const size_t& sn) const override;
 
-  Eigen::VectorXcd InciVect(const InciCPtrs<T>& incident) const override;
+  Eigen::VectorXcd InciVec(const InciCPtrs<T>& incident) const override;
   Eigen::VectorXcd Solve(const InciCPtrs<T>& incident) const override;
   Eigen::VectorXcd CSolve(const InciCPtrs<T>& incident) const override;
 
@@ -182,7 +186,7 @@ inline void Fiber<T>::delete_node() {
   for (auto& i : node_) delete i;
 }
 template <typename T>
-inline Eigen::VectorXcd Fiber<T>::InciVect(const InciCPtrs<T>& inc) const {
+inline Eigen::VectorXcd Fiber<T>::InciVec(const InciCPtrs<T>& inc) const {
   Eigen::VectorXcd rst(NumBv());
   rst.setZero();
   for (auto& i : inc) rst += i->EffectBV(Node());
