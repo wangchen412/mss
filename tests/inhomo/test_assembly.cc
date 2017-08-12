@@ -87,26 +87,38 @@ TEST_F(AssemblyTest, InWhich) {
   EXPECT_EQ(c.InWhich(&p8), nullptr);
 }
 TEST_F(AssemblyTest, Solve) {
-  c.Solve(incident, COLLOCATION);
   Eigen::VectorXcd ref(305);
   ReadCoeff("Coeff_SH.dat", ref);
 
+  c.Solve(incident, DFT);
   for (int i = 0; i < 5; i++) {
     Eigen::VectorXcd rr = ref.segment(61 * i, 61),
                      cc = c.inhomo(i)->ScatterCoeff();
     EXPECT_TRUE(ApproxVectRv(rr, cc, 1e-3, 10));
   }
+  c.Solve(incident, COLLOCATION);
+  for (int i = 0; i < 5; i++) {
+    Eigen::VectorXcd rr = ref.segment(61 * i, 61),
+                     cc = c.inhomo(i)->ScatterCoeff();
+    EXPECT_TRUE(ApproxVectRv(rr, cc, 1e-5, 10));
+  }
 }
 TEST_F(AssemblyTest, Scatter) {
-  std::vector<StateAP> ref, com;
+  std::vector<StateAP> ref, com1, com2;
   ReadSample("line_1.dat", ref);
   EXPECT_EQ(ref.size(), 100);
 
-  c.Solve(incident, COLLOCATION);
-  for (auto& i : SamplePts(0)) com.emplace_back(c.Resultant(i, incident));
-  EXPECT_EQ(com.size(), 100);
+  c.Solve(incident, DFT);
+  for (auto& i : SamplePts(0)) com1.emplace_back(c.Resultant(i, incident));
+  EXPECT_EQ(com1.size(), 100);
+  for (size_t i = 0; i < 100; i++)
+    EXPECT_TRUE(ref[i].isApprox(com1[i], 1e-3));
 
-  for (size_t i = 0; i < 100; i++) EXPECT_TRUE(ref[i].isApprox(com[i], 1e-3));
+  c.Solve(incident, COLLOCATION);
+  for (auto& i : SamplePts(0)) com2.emplace_back(c.Resultant(i, incident));
+  EXPECT_EQ(com2.size(), 100);
+  for (size_t i = 0; i < 100; i++)
+    EXPECT_TRUE(ref[i].isApprox(com2[i], 1e-5));
 }
 
 }  // namespace test

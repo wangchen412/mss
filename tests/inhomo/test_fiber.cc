@@ -108,7 +108,7 @@ TEST_F(FiberTest, Contain) {
   EXPECT_FALSE(f2.Contain(&(cs01 += s)));
   EXPECT_TRUE(f2.Contain(&(cs02 += s)));
 }
-TEST_F(FiberTest, Solve) {
+TEST_F(FiberTest, DSolve) {
   Eigen::VectorXcd ref(61);
   ReadCoeff("Coeff_SH1.dat", ref);
   EXPECT_TRUE(ApproxVectRv(ref, f3.Solve({&inSH}, DFT), 1e-3, 10));
@@ -156,12 +156,12 @@ TEST_F(FiberTest, Modes) {
     EXPECT_EQ(f3.ScatterMode(&p, 30 + n), st);
   }
 }
-TEST_F(FiberTest, Scatter) {
+TEST_F(FiberTest, DScatter) {
   std::vector<StateAP> ref, com;
   ReadSample("Line_sc_SH1.dat", ref);
   EXPECT_EQ(ref.size(), 100);
 
-  f3.SetCoeff(f3.Solve({&inSH}, DFT));
+  f3.SetCoeff(f3.DSolve({&inSH}));
   for (auto& i : SamplePts(0)) com.emplace_back(f3.Scatter(i));
   EXPECT_EQ(com.size(), 100);
 

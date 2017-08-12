@@ -58,16 +58,21 @@ TEST_F(SolutionTest, SampleLine) {
   for (size_t i = 0; i < 100; i++) EXPECT_TRUE(ref[i].isApprox(com[i], re));
 }
 TEST_F(SolutionTest, MsSampleLine) {
-  std::vector<StateAP> ref, com;
-  ReadSample("line_1.dat", ref);
+  std::vector<StateAP> ref, com1, com2;
+  ReadSample("SampleLine_SH2.dat", ref);
   EXPECT_EQ(ref.size(), 100);
 
-  Solution<StateAP> ss{input::Solution(path("Multiple.txt"))};
-  ss.Solve();
-  for (auto& i : SamplePts(0)) com.emplace_back(ss.Resultant(i));
-  EXPECT_EQ(com.size(), 100);
+  Solution<StateAP> sc{input::Solution(path("Multiple.txt"))};
+  for (auto& i : SamplePts(0)) com1.emplace_back(sc.Solve().Resultant(i));
+  EXPECT_EQ(com1.size(), 100);
+  for (size_t i = 0; i < 100; i++)
+    EXPECT_TRUE(ref[i].isApprox(com1[i], 1e-4));
 
-  for (size_t i = 0; i < 100; i++) EXPECT_TRUE(ref[i].isApprox(com[i], 1e-4));
+  Solution<StateAP> sd{input::Solution(path("Multiple_DFT.txt"))};
+  for (auto& i : SamplePts(0)) com2.emplace_back(sd.Solve().Resultant(i));
+  EXPECT_EQ(com2.size(), 100);
+  for (size_t i = 0; i < 100; i++)
+    EXPECT_TRUE(ref[i].isApprox(com2[i], 1e-3));
 }
 
 }  // namespace test

@@ -39,7 +39,7 @@ class Solution {
 
   virtual ~Solution() { delete_incident(); }
 
-  void Solve() { config_.Solve(incident_, method_); }
+  const Solution& Solve();
   Inhomo<T>* InWhich(const CS* objCS) const;
   T Resultant(const CS* objCS, const Inhomo<T>* inhomo) const;
   T Resultant(const CS* objCS) const;
@@ -47,18 +47,15 @@ class Solution {
   const AssemblyConfig<T>& Config() const { return config_; }
   const InciCPtrs<T>& Incident() const { return incident_; }
   const InhomoCPtrs<T>& inhomo() const { return Config().inhomo(); }
-  const Inhomo<T>* inhomo(const size_t& sn) const {
-    return Config().inhomo(sn);
-  }
+  const Inhomo<T>* inhomo(const size_t& sn) const;
   const input::Solution& Input() const { return input_; }
   const std::string& InputFN() const { return input_.FN(); }
 
  protected:
-  // bool solved_;
+  bool solved_{false};
   const Matrix matrix_;
   SolveMethod method_;
   InciCPtrs<T> incident_;
-  // T inci_norm_;  // The normalization factor of the incidents.
 
   // Only the configuration of the "root" assembly is needed.
   // The instantiation of the "root" assembly is not necessary.
@@ -74,6 +71,19 @@ typedef Solution<StateIP> SolutionIP;
 
 // ---------------------------------------------------------------------------
 // Inline functions:
+
+template <typename T>
+const Solution<T>& Solution<T>::Solve() {
+  if (solved_) return *this;
+  config_.Solve(incident_, method_);
+  solved_ = true;
+  return *this;
+}
+
+template <typename T>
+const Inhomo<T>* Solution<T>::inhomo(const size_t& sn) const {
+  return Config().inhomo(sn);
+}
 
 template <typename T>
 void Solution<T>::add_incident() {
