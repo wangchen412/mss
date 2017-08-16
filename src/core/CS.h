@@ -90,6 +90,22 @@ inline CS CS::operator+(const PosiVect& shift) const {
 inline PosiVect CS::PositionIn(const CS* otherBasis) const {
   return in(otherBasis).Position();
 }
+inline CS CS::in(const CS* other) const {
+  if (other == basis_) return *this;
+  if (other == this) return CS(0, 0, 0, this);
+  Vector<double> r;
+  double a;
+  if (other) {
+    CS sub(this->in(nullptr)), sup(other->in(nullptr));
+    r = (sub.position_ - sup.position_).RotateInPlace(sup.angle_);
+    a = sub.angle_ - sup.angle_;
+  } else {
+    CS basis(basis_->in(nullptr));
+    r = position_.Rotate(-basis.angle_) + basis.position_;
+    a = angle_ + basis.angle_;
+  }
+  return CS(r, a, other);
+}
 
 typedef std::vector<CS*> CSPtrs;
 typedef std::vector<const CS*> CSCPtrs;

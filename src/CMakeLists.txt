@@ -17,6 +17,6 @@
 #
 # ----------------------------------------------------------------------
 
-add_subdirectory(core)
+# add_subdirectory(core)
 # add_subdirectory(inhomo)
-add_subdirectory(pre)
+# add_subdirectory(pre)

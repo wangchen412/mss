@@ -31,7 +31,12 @@ const size_t P_MIN = 300;
 
 class Solution {
  public:
-  Solution(const std::string& file);
+  Solution(const std::string& file) : fn_(file) {
+    add_keyword();
+    add(material_, matrix_, incident_, fiber_config_, assembly_config_,
+        solve_);
+    link();
+  }
 
   std::ostream& Print(std::ostream& os) const;
   const std::string& FN() const { return fn_; }
@@ -157,6 +162,43 @@ inline std::ostream& Solution::print(std::ostream& os,
                                      const std::vector<Ts>&... vecs) const {
   print(os, vec);
   return print(os, vecs...);
+}
+
+inline void Solution::link() {
+  for (auto& i : material_) {
+    i.cl = std::sqrt((i.lambda + 2 * i.mu) / i.rho);
+    i.ct = std::sqrt(i.mu / i.rho);
+  }
+  for (auto& i : matrix_) {
+    i.material = FindID(material_, i.materialID);
+    i.kl       = i.frequency / i.material->cl;
+    i.kt       = i.frequency / i.material->ct;
+  }
+  for (auto& i : fiber_config_) {
+    i.material = FindID(material_, i.materialID);
+    i.P = std::max(size_t(matrix().kt * i.radius * matrix().delta), P_MIN);
+  }
+  for (auto& i : assembly_config_) {
+    i.fiber_config = &fiber_config_;
+    i.pointDensity = matrix().kt * matrix().delta;
+    for (auto& j : i.fiber) j.config= FindID(fiber_config_, j.configID);
+    i.nsolve = iequals(solve_[0].configID, i.ID) ? false : true;
+  }
+}
+
+inline std::ostream& Solution::Print(std::ostream& os) const {
+  return print(os, material_, matrix_, incident_, fiber_config_,
+               assembly_config_, solve_);
+}
+
+inline void Solution::add_keyword() {
+  keyword_[typeid(Material)]       = "[Materials]";
+  keyword_[typeid(Matrix)]         = "[Matrix]";
+  keyword_[typeid(IncidentPlane)]  = "[Incident Waves]";
+  keyword_[typeid(FiberConfig)]    = "[Fiber Configurations]";
+  keyword_[typeid(Fiber)]          = "[Fibers]";
+  keyword_[typeid(AssemblyConfig)] = "[Assembly Configurations]";
+  keyword_[typeid(Solve)]          = "[Solve]";
 }
 
 }  // namespace input
