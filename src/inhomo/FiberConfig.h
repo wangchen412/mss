@@ -194,7 +194,7 @@ void FiberConfig<T>::com_QR() {
 #endif
   for (int n = -N_; n <= N_; n++) {
     auto t             = tm(n);
-    Eigen::MatrixXcd g = IntMat(T::NumBv, NumNode(), n);
+    Eigen::MatrixXcd g = DFT_m(T::NumBv, NumNode(), n);
 
     Q_.block((n + N_) * N, 0, N, NumBv()) = t.block(0, 0, N, 2 * N) * g;
     R_.block((n + N_) * N, 0, N, NumBv()) = t.block(N, 0, N, 2 * N) * g;

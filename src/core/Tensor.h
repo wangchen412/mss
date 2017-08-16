@@ -22,8 +22,6 @@
 #ifndef MSS_TENSOR_H
 #define MSS_TENSOR_H
 
-#include <fstream>
-#include <iostream>
 #include "Math.h"
 
 namespace mss {

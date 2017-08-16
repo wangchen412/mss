@@ -20,7 +20,7 @@
 #ifndef MSS_FUNCTORS_H
 #define MSS_FUNCTORS_H
 
-#include "State.h"
+#include "Tensor.h"
 
 namespace mss {
 

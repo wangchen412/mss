@@ -27,11 +27,13 @@
 #include <cassert>
 #include <complex>
 #include <cstdlib>
+#include <fstream>
 #include <iomanip>
 #include <iostream>
 #include <limits>
 #include <map>
 #include <string>
+#include <tuple>
 #include <typeindex>
 #include <vector>
 
@@ -45,6 +47,7 @@ const double pi(3.14159265358979323846);
 const double pi2(pi * 2);
 const double pi_2(pi / 2);
 const double epsilon(1e-14);
+
 const auto setMaxPrecision =
     std::setprecision(std::numeric_limits<double>::digits10 + 1);
 
@@ -65,6 +68,52 @@ inline dcomp Jn(int n, const double& x) {
 inline dcomp Hn(int n, const double& x) {
   return jn(n, x) + ii * yn(n, x);
 }
+
+// The functor f returns the value of f(x) / f'(x).
+template <typename Func>
+inline double Newton(const Func& f, const double& x0,
+                     const double& e = 1e-16) {
+  double x = x0;
+  for (double dx = f(x); std::abs(dx) > e; dx = f(x)) x -= dx;
+  return x -= f(x);
+}
+
+// Return a tuple of Pn(x) and P'n(x).
+inline std::pair<double, double> Legendre(int N, const double& x) {
+  // assert(N > 2);
+  double pn = x, pn_1 = x, pn_2 = 1;
+  for (int i = 2; i <= N; i++) {
+    pn   = ((2 * i - 1) * x * pn_1 - (i - 1) * pn_2) / i;
+    pn_2 = pn_1;
+    pn_1 = pn;
+  }
+  return std::make_pair(pn, N * (x * pn - pn_2) / (x * x - 1));
+}
+
+template <int N>
+class LegendreRoot {
+ public:
+  LegendreRoot() : root_(N), weight_(N) {
+    for (int i = 0; i < N; i++) {
+      double x   = Newton(dx, cos(pi * (i + 0.75) / (N + 0.5)));
+      double d   = Legendre(N, x).second;
+      root_[i]   = x;
+      weight_[i] = 2 / ((1 - x * x) * d * d);
+    }
+  }
+
+  double root(int n) const { return root_[n]; }
+  double weight(int n) const { return weight_[n]; }
+
+ private:
+  std::vector<double> root_;
+  std::vector<double> weight_;
+
+  static double dx(const double& x) {
+    auto p = Legendre(N, x);
+    return p.first / p.second;
+  }
+};
 
 inline bool AngEqu(const double& a, const double& b) {
   double t = (a - b) / pi / 2;
@@ -102,39 +151,8 @@ inline bool ApproxVectRv(const Eigen::Matrix<T, Eigen::Dynamic, 1>& a,
   return true;
 }
 
-inline Eigen::VectorXcd IntVec(const size_t& p, int n) {
-  Eigen::VectorXcd g(p), h(p);
-  double d    = pi2 / p;
-  long long P = p;
-  if (n)
-    for (long long i = 0; i < P; i++) {
-      g(i) = exp(-(i + 1) * n * d * ii) / (n * n * d) *
-             (exp(n * d * ii) - n * d * ii * exp(n * d * ii) - 1.0);
-      h(i) = exp(-(i + 1) * n * d * ii) / (n * n * d) *
-             (-exp(n * d * ii) + n * d * ii + 1.0);
-    }
-  else {
-    g.setConstant(d / 2);
-    h.setConstant(d / 2);
-  }
-
-  Eigen::VectorXcd rst(p);
-  rst(0) = g(0) + h(p - 1);
-  for (size_t i = 1; i < p; i++) rst(i)= h(i - 1) + g(i);
-  rst /= pi2;
-
-  return rst;
-}
-
-inline Eigen::MatrixXcd IntMat(int m, const size_t& p, int n) {
-  Eigen::VectorXcd v = IntVec(p, n);
-  Eigen::MatrixXcd rst(m, m * p);
-  rst.setZero();
-  for (int i = 0; i < m; i++)
-    for (size_t j = 0; j < p; j++) rst(i, i + m * j) = v(j);
-  return rst;
-}
-
 }  // namespace mss
+
+#include "Integrators.h"
 
 #endif

@@ -28,7 +28,6 @@
 
 #include "../pre/Input.h"
 #include "Material.h"
-#include "Math.h"
 
 namespace mss {
 

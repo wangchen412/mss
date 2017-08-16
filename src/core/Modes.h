@@ -20,7 +20,6 @@
 #ifndef MSS_MODES_H
 #define MSS_MODES_H
 
-#include "CS.h"
 #include "Functors.h"
 #include "Material.h"
 

@@ -24,7 +24,6 @@
 #define MSS_STATE_H
 
 #include "CS.h"
-#include "Functors.h"
 
 namespace mss {
 
