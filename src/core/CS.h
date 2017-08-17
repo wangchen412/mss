@@ -28,10 +28,10 @@ namespace mss {
 
 class CS {
  public:
-  explicit CS(const double& x = 0, const double& y = 0,
-              const double& angle = 0, const CS* basis = nullptr)
+  explicit CS(double x = 0, double y = 0, double angle = 0,
+              const CS* basis = nullptr)
       : position_(x, y), angle_(angle), basis_(basis) {}
-  explicit CS(const PosiVect& position, const double& angle = 0,
+  explicit CS(const PosiVect& position, double angle = 0,
               const CS* basis = nullptr)
       : position_(position), angle_(angle), basis_(basis) {}
   CS(const CS& other)
@@ -62,7 +62,7 @@ class CS {
   const PosiVect& Position() const { return position_; }
   PosiVect PositionGLB() const { return inGLB().Position(); }
   PosiVect PositionIn(const CS* otherBasis) const;
-  const double& Angle() const { return angle_; }
+  double Angle() const { return angle_; }
   double AngleGLB() const { return inGLB().Angle(); }
 
  private:

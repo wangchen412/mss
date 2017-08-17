@@ -47,7 +47,7 @@ class Solution {
   const AssemblyConfig<T>& Config() const { return config_; }
   const InciCPtrs<T>& Incident() const { return incident_; }
   const InhomoCPtrs<T>& inhomo() const { return Config().inhomo(); }
-  const Inhomo<T>* inhomo(const size_t& sn) const;
+  const Inhomo<T>* inhomo(size_t sn) const;
   const input::Solution& Input() const { return input_; }
   const std::string& InputFN() const { return input_.FN(); }
 
@@ -81,7 +81,7 @@ const Solution<T>& Solution<T>::Solve() {
 }
 
 template <typename T>
-const Inhomo<T>* Solution<T>::inhomo(const size_t& sn) const {
+const Inhomo<T>* Solution<T>::inhomo(size_t sn) const {
   return Config().inhomo(sn);
 }
 

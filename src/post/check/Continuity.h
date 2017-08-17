@@ -30,8 +30,8 @@ namespace post {
 template <typename T>
 class ContCheck {
  public:
-  ContCheck(const Solution<T>* solution, const size_t& np, const double& gap,
-            const double& tolerance)
+  ContCheck(const Solution<T>* solution, size_t np, double gap,
+            double tolerance)
       : sol_(solution),
         P_(np),
         gap_(gap / 2),
@@ -70,8 +70,8 @@ class CC_Fiber : public ContCheck<T> {
 
  public:
   CC_Fiber(const Solution<T>* solution, const Fiber<T>* fiber,
-           const size_t& np = 42, const double& gap = epsilon,
-           const double& tolerance = 1e-4)
+           size_t np = 42, double gap = epsilon,
+           double tolerance = 1e-4)
       : ContCheck<T>(solution, np, gap, tolerance), f_(fiber) {
     add_circ();
     add_state();
@@ -93,8 +93,8 @@ class CC_Fiber : public ContCheck<T> {
 template <typename T>
 class CC_Solution {
  public:
-  CC_Solution(const Solution<T>* solution, const size_t& np = 42,
-              const double& gap = epsilon, const double& tolerance = 1e-4) {
+  CC_Solution(const Solution<T>* solution, size_t np = 42,
+              double gap = epsilon, double tolerance = 1e-4) {
     add_cc(solution, np, gap, tolerance);
   }
   ~CC_Solution() {
@@ -109,8 +109,8 @@ class CC_Solution {
  private:
   std::vector<ContCheck<T>*> check_;
   std::vector<const ContCheck<T>*> nc_;
-  void add_cc(const Solution<T>*, const size_t&, const double&,
-              const double&);
+  void add_cc(const Solution<T>*, size_t, double,
+              double);
 };
 
 // ---------------------------------------------------------------------------
@@ -155,8 +155,8 @@ inline void CC_Fiber<T>::add_state() {
 // CC_Solution methods:
 template <typename T>
 inline void CC_Solution<T>::add_cc(const Solution<T>* solution,
-                                   const size_t& np, const double& gap,
-                                   const double& tol) {
+                                   size_t np, double gap,
+                                   double tol) {
   for (auto& i : solution->inhomo()) {
     switch (i->Type()) {
       case FIBER:

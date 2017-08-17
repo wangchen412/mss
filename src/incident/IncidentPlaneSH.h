@@ -28,8 +28,8 @@ namespace mss {
 class IncidentPlaneSH : public IncidentPlane<StateAP>,
                         public IncidentS<StateAP> {
  public:
-  IncidentPlaneSH(const Matrix& matrix, const double& angle = 0,
-                  const double& amplitude = 1, const double& phase = 0)
+  IncidentPlaneSH(const Matrix& matrix, double angle = 0,
+                  double amplitude = 1, double phase = 0)
       : Incident<StateAP>(matrix, amplitude, phase),
         IncidentPlane<StateAP>(matrix, angle, amplitude, phase),
         IncidentS(matrix, amplitude, phase) {}

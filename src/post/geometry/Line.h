@@ -32,7 +32,7 @@ class Line : public PointSet<T> {
 
  public:
   Line(const Solution<T>* solution, const PosiVect& p1, const PosiVect& p2,
-       const size_t& N, const std::string& id = "1")
+       size_t N, const std::string& id = "1")
       : PointSet<T>(solution, "Line_" + id), p1_(p1), p2_(p2) {
     // Add points:
     PosiVect d = (p2 - p1) / N;

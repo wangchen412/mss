@@ -30,8 +30,8 @@ namespace mss {
 template <typename T>
 class FiberConfig {
  public:
-  FiberConfig(const std::string& ID, const size_t& N_max, const size_t& P,
-              const double& R, const Material& material, const Matrix* matrix)
+  FiberConfig(const std::string& ID, size_t N_max, size_t P, double R,
+              const Material& material, const Matrix* matrix)
       : ID_(ID),
         N_(N_max),
         NumCoeff_((2 * N_ + 1) * T::NumBv / 2),
@@ -58,14 +58,14 @@ class FiberConfig {
   int TopOrder() const { return N_; }
 
   const std::string& ID() const { return ID_; }
-  const double& Radius() const { return r_; }
+  double Radius() const { return r_; }
   const class Material& Material() const { return material_; }
-  const double& KL() const { return kl_; }
-  const double& KT() const { return kt_; }
+  double KL() const { return kl_; }
+  double KT() const { return kt_; }
   const class Matrix* Matrix() const { return matrix_; }
   const class Material& Material_m() const { return matrix_->Material(); }
-  const double& KL_m() const { return matrix_->KL(); }
-  const double& KT_m() const { return matrix_->KT(); }
+  double KL_m() const { return matrix_->KL(); }
+  double KT_m() const { return matrix_->KT(); }
   const CSCPtrs& Node() const { return node_; }
 
   // Functions for the factor T_n: B_n = T_n A_n.
@@ -134,10 +134,10 @@ inline void FiberConfig<T>::del_node() {
 
 template <>
 auto FiberConfig<StateIP>::tm(int n) const {
-  const double& lm = Matrix()->Material().Lambda();
-  const double& mm = Matrix()->Material().Mu();
-  const double& lf = Material().Lambda();
-  const double& mf = Material().Mu();
+  double lm        = Matrix()->Material().Lambda();
+  double mm        = Matrix()->Material().Mu();
+  double lf        = Material().Lambda();
+  double mf        = Material().Mu();
   const double lmm = lm + 2 * mm;
   const double lmf = lf + 2 * mf;
 

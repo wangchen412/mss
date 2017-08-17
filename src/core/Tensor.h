@@ -45,10 +45,10 @@ struct Scalar {
   Scalar operator/(const T& n) const;
 
   bool operator==(const Scalar& other) const;
-  bool isApprox(const Scalar& other, const double& re = epsilon) const;
+  bool isApprox(const Scalar& other, double re = epsilon) const;
 
-  Scalar& RotateInPlace(const double& angle);
-  Scalar Rotate(const double& angle) const;
+  Scalar& RotateInPlace(double angle);
+  Scalar Rotate(double angle) const;
 
   T x;
 };
@@ -71,14 +71,14 @@ struct Vector {
   Vector operator/(const T& n) const;
 
   bool operator==(const Vector& other) const;
-  bool isApprox(const Vector& other, const double& re = epsilon) const;
+  bool isApprox(const Vector& other, double re = epsilon) const;
 
-  Vector& RotateInPlace(const double& angle);
-  Vector Rotate(const double& angle) const;
+  Vector& RotateInPlace(double angle);
+  Vector Rotate(double angle) const;
 
   double Length() const;
   double Angle() const;
-  double Angle(const double& L) const;
+  double Angle(double L) const;
   Vector Polar() const;
   Vector Cartesian() const;
 
@@ -104,10 +104,10 @@ struct Tensor {
   Tensor operator/(const T& n) const;
 
   bool operator==(const Tensor& other) const;
-  bool isApprox(const Tensor& other, const double& re = epsilon) const;
+  bool isApprox(const Tensor& other, double re = epsilon) const;
 
-  Tensor& RotateInPlace(const double& angle);
-  Tensor Rotate(const double& angle) const;
+  Tensor& RotateInPlace(double angle);
+  Tensor Rotate(double angle) const;
 
   T xx, yy, xy;
 };
@@ -174,8 +174,7 @@ inline bool Scalar<T>::operator==(const Scalar<T>& other) const {
   return isApprox(other);
 }
 template <typename T>
-inline bool Scalar<T>::isApprox(const Scalar<T>& other,
-                                const double& re) const {
+inline bool Scalar<T>::isApprox(const Scalar<T>& other, double re) const {
   if (x == other.x) return true;
   return std::abs(x - other.x) / std::max(std::abs(x), std::abs(other.x)) <
          re;
@@ -189,11 +188,11 @@ inline std::istream& operator>>(std::istream& is, Scalar<T>& s) {
   return is >> s.x;
 }
 template <typename T>
-inline Scalar<T>& Scalar<T>::RotateInPlace(const double&) {
+inline Scalar<T>& Scalar<T>::RotateInPlace(double) {
   return *this;
 }
 template <typename T>
-inline Scalar<T> Scalar<T>::Rotate(const double&) const {
+inline Scalar<T> Scalar<T>::Rotate(double) const {
   return *this;
 }
 
@@ -254,8 +253,7 @@ inline bool Vector<T>::operator==(const Vector<T>& other) const {
   return isApprox(other);
 }
 template <typename T>
-inline bool Vector<T>::isApprox(const Vector<T>& other,
-                                const double& re) const {
+inline bool Vector<T>::isApprox(const Vector<T>& other, double re) const {
   if (x == other.x && y == other.y) return true;
   return Lp<2>({x - other.x, y - other.y}) /
              std::max(Lp<2>({x, y}), Lp<2>({other.x, other.y})) <
@@ -270,7 +268,7 @@ inline std::istream& operator>>(std::istream& is, Vector<T>& v) {
   return is >> v.x >> v.y;
 }
 template <typename T>
-inline Vector<T>& Vector<T>::RotateInPlace(const double& a) {
+inline Vector<T>& Vector<T>::RotateInPlace(double a) {
   // Change its components into the ones in a rotated CS.
 
   double c = cos(a), s = sin(a);
@@ -280,7 +278,7 @@ inline Vector<T>& Vector<T>::RotateInPlace(const double& a) {
   return *this;
 }
 template <typename T>
-inline Vector<T> Vector<T>::Rotate(const double& a) const {
+inline Vector<T> Vector<T>::Rotate(double a) const {
   // Return a new vector with components in a rotated C.S
 
   Vector<T> rst(*this);
@@ -301,7 +299,7 @@ inline double Vector<T>::Angle() const {
   return Angle(Length());
 }
 template <typename T>
-inline double Vector<T>::Angle(const double& L) const {
+inline double Vector<T>::Angle(double L) const {
   // Return the angle of the real vector with knowing its length.
 
   if (L < epsilon) return 0;
@@ -389,7 +387,7 @@ bool Tensor<T>::operator==(const Tensor<T>& other) const {
   return isApprox(other);
 }
 template <typename T>
-bool Tensor<T>::isApprox(const Tensor<T>& other, const double& re) const {
+bool Tensor<T>::isApprox(const Tensor<T>& other, double re) const {
   if (xx == other.xx && yy == other.yy && xy == other.xy) return true;
   return Lp<2>({xx - other.xx, yy - other.yy, xy - other.xy}) /
              std::max(Lp<2>({xx, yy, xy}),
@@ -405,7 +403,7 @@ inline std::istream& operator>>(std::istream& is, Tensor<T>& t) {
   return is >> t.xx >> t.yy >> t.xy;
 }
 template <typename T>
-inline Tensor<T>& Tensor<T>::RotateInPlace(const double& a) {
+inline Tensor<T>& Tensor<T>::RotateInPlace(double a) {
   // Change its components into the ones in a rotated CS.
 
   double c2 = cos(a * 2), s2 = sin(a * 2);
@@ -417,7 +415,7 @@ inline Tensor<T>& Tensor<T>::RotateInPlace(const double& a) {
   return *this;
 }
 template <typename T>
-inline Tensor<T> Tensor<T>::Rotate(const double& a) const {
+inline Tensor<T> Tensor<T>::Rotate(double a) const {
   // Return a new tensor with components in a rotated CS.
 
   Tensor<T> rst(*this);

@@ -30,7 +30,7 @@ template <typename T>
 class Point : public Geometry<T> {
  public:
   Point(const Solution<T>* solution, const PosiVect& position,
-        const double& angle = 0, const std::string& id = "1")
+        double angle = 0, const std::string& id = "1")
       : Geometry<T>(solution, "Point_" + id),
         localCS_(position, angle),
         in_(solution->InWhich(&localCS_)),

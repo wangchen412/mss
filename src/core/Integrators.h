@@ -24,7 +24,7 @@
 
 namespace mss {
 
-inline Eigen::VectorXcd DFT_v(const size_t& p, int n) {
+inline Eigen::VectorXcd DFT_v(size_t p, int n) {
   Eigen::VectorXcd g(p), h(p);
   double d    = pi2 / p;
   long long P = p;
@@ -48,7 +48,7 @@ inline Eigen::VectorXcd DFT_v(const size_t& p, int n) {
   return rst;
 }
 
-inline Eigen::MatrixXcd DFT_m(int m, const size_t& p, int n) {
+inline Eigen::MatrixXcd DFT_m(int m, size_t p, int n) {
   Eigen::VectorXcd v = DFT_v(p, n);
   Eigen::MatrixXcd rst(m, m * p);
   rst.setZero();
@@ -59,16 +59,16 @@ inline Eigen::MatrixXcd DFT_m(int m, const size_t& p, int n) {
 
 template <int N>
 class GaussQuad {
-public:
+ public:
   template <typename F>
-  auto operator()(const double& a, const double& b, const F& f) {
+  auto operator()(double a, double b, const F& f) {
     double c = (b - a) / 2, d = (b + a) / 2;
     decltype(f(1.)) s = 0.0;
     for (int i = 0; i < N; i++) s += l_.weight(i) * f(c * l_.root(i) + d);
     return s * c;
   }
 
-private:
+ private:
   static LegendreRoot<N> l_;
 };
 

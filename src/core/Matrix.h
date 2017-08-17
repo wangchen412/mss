@@ -33,7 +33,7 @@ namespace mss {
 
 class Matrix {
  public:
-  Matrix(const Material& material, const double& frequency)
+  Matrix(const Material& material, double frequency)
       : material_(material),
         omega_(frequency),
         kl_(omega_ / material_.CL()),
@@ -49,9 +49,9 @@ class Matrix {
   virtual ~Matrix() {}
 
   const class Material& Material() const { return material_; }
-  const double& Frequency() const { return omega_; }
-  const double& KL() const { return kl_; }
-  const double& KT() const { return kt_; }
+  double Frequency() const { return omega_; }
+  double KL() const { return kl_; }
+  double KT() const { return kt_; }
 
  private:
   const class Material material_;

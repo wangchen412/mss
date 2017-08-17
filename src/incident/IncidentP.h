@@ -26,15 +26,14 @@ namespace mss {
 
 class IncidentP : virtual public Incident<StateIP> {
  public:
-  IncidentP(const Matrix& matrix, const double& amplitude = 1,
-            const double& phase = 0)
+  IncidentP(const Matrix& matrix, double amplitude = 1, double phase = 0)
       : Incident<StateIP>(matrix, amplitude, phase), k_(matrix.KL()) {}
 
   virtual StateIP Effect(const PosiVect& position) const = 0;
   virtual StateIP Effect(const CS* localCS) const        = 0;
 
  protected:
-  const double& k_;
+  double k_;
 };
 
 }  // namespace mss

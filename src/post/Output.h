@@ -39,7 +39,7 @@ class Output {
 
   void Write() const;
   const GeoCPtrs<T>& Geo() const { return geo_; }
-  const Geometry<T>* Geo(const size_t& sn) const { return geo_[sn]; }
+  const Geometry<T>* Geo(size_t sn) const { return geo_[sn]; }
 
  private:
   const Solution<T>* sol_;

@@ -38,7 +38,7 @@ inline StateIP ModeL<StateIP>(const CS* localCS, const CS* objCS,
   // Position in the local CS, which is seen as a polar CS:
   const PosiVect pc = objCS->PositionIn(localCS);
   const PosiVect p  = pc.Polar();
-  const double& r   = p.x;
+  double r          = p.x;
   const CS cs(pc, p.y, localCS);
 
   // Displacement in the local CS:
@@ -63,7 +63,7 @@ inline StateIP ModeT<StateIP>(const CS* localCS, const CS* objCS,
   // Position in the local CS, which is seen as a polar CS:
   const PosiVect pc = objCS->PositionIn(localCS);
   const PosiVect p  = pc.Polar();
-  const double& r   = p.x;
+  double r          = p.x;
   const CS cs(pc, p.y, localCS);
 
   // Displacement in the local CS:
@@ -88,7 +88,7 @@ inline StateAP ModeT<StateAP>(const CS* localCS, const CS* objCS,
   // Position in the local CS, which is seen as a polar CS:
   const PosiVect pc = objCS->PositionIn(localCS);
   const PosiVect p  = pc.Polar();
-  const double& r   = p.x;
+  double r          = p.x;
   const CS cs(pc, p.y, localCS);
 
   // Displacement in the local CS:

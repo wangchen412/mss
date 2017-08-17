@@ -49,7 +49,7 @@ class Fiber : public Inhomo<T> {
   size_t NumNode() const override { return config_->NumNode(); }
   size_t NumBv() const override { return config_->NumBv(); }
   size_t NumCoeff() const override { return config_->NumCoeff(); }
-  const double& Radius() const { return config_->Radius(); }
+  double Radius() const { return config_->Radius(); }
 
   void SetCoeff(const Eigen::VectorXcd& solution) override;
   void PrintCoeff(std::ostream& os) const override;
@@ -65,8 +65,8 @@ class Fiber : public Inhomo<T> {
   // The transformation from the serial number to the order should be done in
   // the derived class.
   // n starts at zero.
-  T ScatterMode(const CS* objCS, const size_t& sn) const override;
-  T InnerMode(const CS* objCS, const size_t& sn) const override;
+  T ScatterMode(const CS* objCS, size_t sn) const override;
+  T InnerMode(const CS* objCS, size_t sn) const override;
 
   Eigen::VectorXcd InciVec(const InciCPtrs<T>& incident) const override;
   Eigen::VectorXcd Solve(const InciCPtrs<T>& incident,
@@ -90,7 +90,7 @@ class Fiber : public Inhomo<T> {
 
   void add_node();
   void delete_node();
-  int od(const size_t& sn) const { return sn - config_->TopOrder(); }
+  int od(size_t sn) const { return sn - config_->TopOrder(); }
 };
 
 // ---------------------------------------------------------------------------
@@ -127,29 +127,25 @@ inline void Fiber<T>::PrintCoeff(std::ostream& os) const {
   os << setMaxPrecision << cSc_ << std::endl;
 }
 template <>
-inline StateIP Fiber<StateIP>::ScatterMode(const CS* objCS,
-                                           const size_t& sn) const {
+inline StateIP Fiber<StateIP>::ScatterMode(const CS* objCS, size_t sn) const {
   if (sn <= NumCoeff() / 2)
     return scatterModeL(objCS, od(sn));
   else
     return scatterModeT(objCS, od(sn));
 }
 template <>
-inline StateAP Fiber<StateAP>::ScatterMode(const CS* objCS,
-                                           const size_t& sn) const {
+inline StateAP Fiber<StateAP>::ScatterMode(const CS* objCS, size_t sn) const {
   return scatterModeT(objCS, od(sn));
 }
 template <>
-inline StateIP Fiber<StateIP>::InnerMode(const CS* objCS,
-                                         const size_t& sn) const {
+inline StateIP Fiber<StateIP>::InnerMode(const CS* objCS, size_t sn) const {
   if (sn <= NumCoeff() / 2)
     return innerModeL(objCS, od(sn));
   else
     return innerModeT(objCS, od(sn));
 }
 template <>
-inline StateAP Fiber<StateAP>::InnerMode(const CS* objCS,
-                                         const size_t& sn) const {
+inline StateAP Fiber<StateAP>::InnerMode(const CS* objCS, size_t sn) const {
   return innerModeT(objCS, od(sn));
 }
 template <typename T>

@@ -29,16 +29,15 @@ template <typename T>
 class Assembly : public Inhomo<T> {
  public:
   explicit Assembly(const AssemblyConfig<T>* config,
-                    const PosiVect& position = {0, 0},
-                    const double& angle      = 0)
+                    const PosiVect& position = {0, 0}, double angle = 0)
       : Inhomo<T>(position, angle), config_(config) {}
 
   // TODO: The interactions among assemblies
   bool Contain(const CS* objCS) const override;
   T Scatter(const CS* objCS) const override;
   T Inner(const CS* objCS) const override;
-  T ScatterMode(const CS* objCS, const size_t& sn) const override;
-  T InnerMode(const CS* objCS, const size_t& sn) const override;
+  T ScatterMode(const CS* objCS, size_t sn) const override;
+  T InnerMode(const CS* objCS, size_t sn) const override;
   T ScatterModeL(const CS* objCS, int n) const;
   T ScatterModeT(const CS* objCS, int n) const;
   T InnerModeL(const CS* local, int n) const;

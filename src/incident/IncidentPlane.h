@@ -27,8 +27,8 @@ namespace mss {
 template <typename T>
 class IncidentPlane : virtual public Incident<T> {
  public:
-  IncidentPlane(const Matrix& matrix, const double& angle = 0,
-                const double& amplitude = 1, const double& phase = 0)
+  IncidentPlane(const Matrix& matrix, double angle = 0, double amplitude = 1,
+                double phase = 0)
       : Incident<T>(matrix, amplitude, phase), angle_(angle) {
     c_ = cos(angle_);
     s_ = sin(angle_);
@@ -37,7 +37,7 @@ class IncidentPlane : virtual public Incident<T> {
   virtual T Effect(const PosiVect& position) const = 0;
   virtual T Effect(const CS* localCS) const        = 0;
 
-  const double& Angle() const { return angle_; }
+  double Angle() const { return angle_; }
 
  protected:
   double angle_;
@@ -45,12 +45,12 @@ class IncidentPlane : virtual public Incident<T> {
 
   using Incident<T>::phase_;
 
-  dcomp _phaseGLB(const PosiVect& position, const double& k) const {
+  dcomp _phaseGLB(const PosiVect& position, double k) const {
     // Return the phase of the incident wave at the position in global CS.
 
     return exp(ii * (k * (c_ * position.x + s_ * position.y) + phase_));
   }
-  StateIP _stateGLB(const dcomp& u, const dcomp& v, const double& k) const {
+  StateIP _stateGLB(const dcomp& u, const dcomp& v, double k) const {
     // Return the State from known displacement u and v. (The wave number is
     // needed since P-wave and SV-wave have different wave numbers.)
 
@@ -60,7 +60,7 @@ class IncidentPlane : virtual public Incident<T> {
     StressIP t = this->m.C(gxx, gyy, gxy);
     return StateIP(u, v, t);
   }
-  StateAP _stateGLB(const dcomp& w, const double& k) const {
+  StateAP _stateGLB(const dcomp& w, double k) const {
     // Return the State from known displacement w.
 
     StressAP t = this->m.C(c_, s_) * ii * k * w;

@@ -49,14 +49,14 @@ class AssemblyConfig {
 
   virtual ~AssemblyConfig() { delete_inhomo(); }
 
-  const double& CharLength() const { return height_ + width_; }
+  double CharLength() const { return height_ + width_; }
   size_t NumNode() const;  // TODO
   size_t NumBv() const;    // TODO
   size_t NumCoeff() const { return num_coeff_; }
   size_t NumBv_in() const { return num_bv_in_; }
 
-  const double& Height() const { return height_; }
-  const double& Width() const { return width_; }
+  double Height() const { return height_; }
+  double Width() const { return width_; }
   const std::string& ID() const { return ID_; }
 
   void Solve(const InciCPtrs<T>& incident, SolveMethod method);
@@ -71,7 +71,7 @@ class AssemblyConfig {
   void PrintCoeff(std::ostream& os) const;
 
   const InhomoCPtrs<T>& inhomo() const { return inhomoC_; }
-  const Inhomo<T>* inhomo(const size_t& sn) const { return inhomoC_[sn]; }
+  const Inhomo<T>* inhomo(size_t sn) const { return inhomoC_[sn]; }
 
  protected:
   const std::string ID_;

@@ -163,7 +163,7 @@ inline bool copyFile(const std::string& inFileName, std::ofstream& outFile,
 }
 
 // Convert double to std::string.
-inline std::string d2string(const double& x) {
+inline std::string d2string(double x) {
   std::stringstream s;
   s << x;
   return s.str();
@@ -171,7 +171,7 @@ inline std::string d2string(const double& x) {
 
 class separator {
  public:
-  separator(const std::string& s, const size_t& n = 75) : s_(s), n_(n) {}
+  separator(const std::string& s, size_t n = 75) : s_(s), n_(n) {}
   friend std::ostream& operator<<(std::ostream& os, const separator& sep) {
     for (size_t i = 0; i < sep.n_; i++) os << sep.s_;
     return os << std::endl;

@@ -32,8 +32,7 @@ enum InhomoType { FIBER, ASSEMBLY };
 template <typename T>
 class Inhomo {
  public:
-  explicit Inhomo(const PosiVect& position, InhomoType type,
-                  const double& angle = 0)
+  explicit Inhomo(const PosiVect& position, InhomoType type, double angle = 0)
       : localCS_(position, angle), type_(type) {}
   virtual ~Inhomo() {}
 
@@ -59,10 +58,10 @@ class Inhomo {
   // The nth Modes. The n should be the serial number, instead of the order.
   // The transformation from the serial number to the order should be done in
   // the derived class.
-  virtual T ScatterMode(const CS* objCS, const size_t& sn) const = 0;
-  virtual T InnerMode(const CS* objCS, const size_t& sn) const   = 0;
+  virtual T ScatterMode(const CS* objCS, size_t sn) const = 0;
+  virtual T InnerMode(const CS* objCS, size_t sn) const   = 0;
 
-  Eigen::VectorXcd ScatterBv(const CSCPtrs& objCSs, const size_t& sn) const;
+  Eigen::VectorXcd ScatterBv(const CSCPtrs& objCSs, size_t sn) const;
 
   virtual size_t NumNode() const  = 0;
   virtual size_t NumCoeff() const = 0;
@@ -108,7 +107,7 @@ using InhomoCPtrs = std::vector<const Inhomo<T>*>;
 
 template <typename T>
 Eigen::VectorXcd Inhomo<T>::ScatterBv(const CSCPtrs& objCSs,
-                                      const size_t& sn) const {
+                                      size_t sn) const {
   Eigen::VectorXcd rst(objCSs.size() * T::NumBv);
   for (size_t i = 0; i < objCSs.size(); i++)
     rst.segment(i * T::NumBv, T::NumBv) = ScatterMode(objCSs[i], sn).BV();

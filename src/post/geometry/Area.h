@@ -32,7 +32,7 @@ class Area : public PointSet<T> {
 
  public:
   Area(const Solution<T>* solution, const PosiVect& p1, const PosiVect& p2,
-       const size_t& Nx, const size_t& Ny, const std::string& id = "1")
+       size_t Nx, size_t Ny, const std::string& id = "1")
       : PointSet<T>(solution, "Area_" + id),
         p1_(p1),
         p2_(p2),

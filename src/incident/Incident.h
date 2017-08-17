@@ -31,8 +31,7 @@ namespace mss {
 template <typename T>
 class Incident {
  public:
-  Incident(const Matrix& matrix, const double& amplitude = 1,
-           const double& phase = 0)
+  Incident(const Matrix& matrix, double amplitude = 1, double phase = 0)
       : amp_(amplitude),
         phase_(phase),
         m(matrix.Material()),
@@ -58,8 +57,8 @@ class Incident {
     return rst;
   }
 
-  const double& Amplitude() const { return amp_; }
-  const double& Phase() const { return phase_; }
+  double Amplitude() const { return amp_; }
+  double Phase() const { return phase_; }
 
  protected:
   double amp_, phase_;

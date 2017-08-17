@@ -61,25 +61,24 @@ inline dcomp operator*(int lhs, const dcomp& rhs) {
   return double(lhs) * rhs;
 }
 
-inline dcomp Jn(int n, const double& x) {
+inline dcomp Jn(int n, double x) {
   return jn(n, x);
 }
 
-inline dcomp Hn(int n, const double& x) {
+inline dcomp Hn(int n, double x) {
   return jn(n, x) + ii * yn(n, x);
 }
 
 // The functor f returns the value of f(x) / f'(x).
 template <typename Func>
-inline double Newton(const Func& f, const double& x0,
-                     const double& e = 1e-16) {
+inline double Newton(const Func& f, double x0, double e = 1e-16) {
   double x = x0;
   for (double dx = f(x); std::abs(dx) > e; dx = f(x)) x -= dx;
   return x -= f(x);
 }
 
 // Return a tuple of Pn(x) and P'n(x).
-inline std::pair<double, double> Legendre(int N, const double& x) {
+inline std::pair<double, double> Legendre(int N, double x) {
   // assert(N > 2);
   double pn = x, pn_1 = x, pn_2 = 1;
   for (int i = 2; i <= N; i++) {
@@ -109,13 +108,13 @@ class LegendreRoot {
   std::vector<double> root_;
   std::vector<double> weight_;
 
-  static double dx(const double& x) {
+  static double dx(double x) {
     auto p = Legendre(N, x);
     return p.first / p.second;
   }
 };
 
-inline bool AngEqu(const double& a, const double& b) {
+inline bool AngEqu(double a, double b) {
   double t = (a - b) / pi / 2;
   return std::abs(t - (long long)t) * 2 * pi < epsilon;
 }
@@ -135,7 +134,7 @@ inline double RelativeDiff(const T& a, const T& b) {
 
 // Check if the two values are approximately equal with relative error.
 template <typename T>
-inline bool ApproxRv(const T& a, const T& b, const double& re = epsilon) {
+inline bool ApproxRv(const T& a, const T& b, double re = epsilon) {
   return RelativeDiff(a, b) < re;
 }
 
@@ -144,7 +143,7 @@ inline bool ApproxRv(const T& a, const T& b, const double& re = epsilon) {
 template <typename T>
 inline bool ApproxVectRv(const Eigen::Matrix<T, Eigen::Dynamic, 1>& a,
                          const Eigen::Matrix<T, Eigen::Dynamic, 1>& b,
-                         const double& re = epsilon, int k = 0) {
+                         double re = epsilon, int k = 0) {
   assert(a.size() == b.size());
   for (long i = k; i < a.size() - k; i++)
     if (!ApproxRv(a(i), b(i), re)) return false;

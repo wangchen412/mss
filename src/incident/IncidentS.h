@@ -27,15 +27,14 @@ namespace mss {
 template <typename T>
 class IncidentS : virtual public Incident<T> {
  public:
-  IncidentS(const Matrix& matrix, const double& amplitude = 1,
-            const double& phase = 0)
+  IncidentS(const Matrix& matrix, double amplitude = 1, double phase = 0)
       : Incident<T>(matrix, amplitude, phase), k_(matrix.KT()) {}
 
   virtual T Effect(const PosiVect& position) const = 0;
   virtual T Effect(const CS* localCS) const        = 0;
 
  protected:
-  const double& k_;
+  double k_;
 };
 
 }  // namespace mss
