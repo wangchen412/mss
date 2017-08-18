@@ -24,8 +24,8 @@
 
 namespace mss {
 
-inline Eigen::VectorXcd DFT_v(size_t p, int n) {
-  Eigen::VectorXcd g(p), h(p);
+inline VectorXcd DFT_v(size_t p, int n) {
+  VectorXcd g(p), h(p);
   double d    = pi2 / p;
   long long P = p;
   if (n)
@@ -40,7 +40,7 @@ inline Eigen::VectorXcd DFT_v(size_t p, int n) {
     h.setConstant(d / 2);
   }
 
-  Eigen::VectorXcd rst(p);
+  VectorXcd rst(p);
   rst(0) = g(0) + h(p - 1);
   for (size_t i = 1; i < p; i++) rst(i)= h(i - 1) + g(i);
   rst /= pi2;
@@ -48,9 +48,9 @@ inline Eigen::VectorXcd DFT_v(size_t p, int n) {
   return rst;
 }
 
-inline Eigen::MatrixXcd DFT_m(int m, size_t p, int n) {
-  Eigen::VectorXcd v = DFT_v(p, n);
-  Eigen::MatrixXcd rst(m, m * p);
+inline MatrixXcd DFT_m(int m, size_t p, int n) {
+  VectorXcd v = DFT_v(p, n);
+  MatrixXcd rst(m, m * p);
   rst.setZero();
   for (int i = 0; i < m; i++)
     for (size_t j = 0; j < p; j++) rst(i, i + m * j) = v(j);

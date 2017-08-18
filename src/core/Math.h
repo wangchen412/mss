@@ -51,6 +51,9 @@ const double epsilon(1e-14);
 const auto setMaxPrecision =
     std::setprecision(std::numeric_limits<double>::digits10 + 1);
 
+using Eigen::MatrixXcd;
+using Eigen::VectorXcd;
+
 enum SolveMethod { COLLOCATION, DFT };
 
 inline dcomp operator*(const dcomp& lhs, int rhs) {

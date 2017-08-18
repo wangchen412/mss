@@ -52,7 +52,7 @@ class Test : public testing::Test {
   void ReadSample(std::ifstream& file, std::vector<T>& ref, int s = 0);
 
   // Read computed coefficients from data file.
-  void ReadCoeff(const std::string& fn, Eigen::VectorXcd& ref);
+  void ReadCoeff(const std::string& fn, VectorXcd& ref);
 
   std::string path(const std::string& fn) const { return path_ + fn; }
   const CSCPtrs& SamplePts(int i) const { return *sp_[i]; }
@@ -93,7 +93,7 @@ inline void Test::ReadSample(std::ifstream& file, std::vector<T>& ref,
   file.close();
 }
 
-inline void Test::ReadCoeff(const std::string& fn, Eigen::VectorXcd& ref) {
+inline void Test::ReadCoeff(const std::string& fn, VectorXcd& ref) {
   std::ifstream file(path(fn));
   for (int i = 0; i < ref.size(); i++) file >> ref(i);
   file.close();

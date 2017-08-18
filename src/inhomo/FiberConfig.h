@@ -50,8 +50,8 @@ class FiberConfig {
 
   virtual ~FiberConfig() { del_node(); }
 
-  const Eigen::MatrixXcd& ColloMat();
-  const Eigen::MatrixXcd& TransMat();
+  const MatrixXcd& ColloMat();
+  const MatrixXcd& TransMat();
   size_t NumNode() const { return P_; }
   size_t NumBv() const { return P_ * T::NumBv; }
   size_t NumCoeff() const { return NumCoeff_; }
@@ -73,10 +73,10 @@ class FiberConfig {
   dcomp TL(int n) const;  // TODO: T-matrix for in-plane problem.
   dcomp TT(int n) const;
 
-  Eigen::VectorXcd InciVect(const InciCPtrs<T>& inc) const;
-  Eigen::VectorXcd Solve(const InciCPtrs<T>& inc, SolveMethod method);
-  Eigen::VectorXcd CSolve(const InciCPtrs<T>& inc);
-  Eigen::VectorXcd DSolve(const InciCPtrs<T>& inc);
+  VectorXcd InciVect(const InciCPtrs<T>& inc) const;
+  VectorXcd Solve(const InciCPtrs<T>& inc, SolveMethod method);
+  VectorXcd CSolve(const InciCPtrs<T>& inc);
+  VectorXcd DSolve(const InciCPtrs<T>& inc);
 
  protected:
   const std::string ID_;           // The ID.
@@ -88,9 +88,9 @@ class FiberConfig {
   const double kl_, kt_;           // Wave numbers of the fiber.
   const class Matrix* matrix_;     // The matrix.
   CSCPtrs node_;                   // Nodes.
-  Eigen::MatrixXcd Q_;             // Transform matrix.
-  Eigen::MatrixXcd R_;             // Inner transform matrix.
-  Eigen::MatrixXcd CQ_;            // Collocation matrix.
+  MatrixXcd Q_;                    // Transform matrix.
+  MatrixXcd R_;                    // Inner transform matrix.
+  MatrixXcd CQ_;                   // Collocation matrix.
   bool QR_nc{true}, CQ_nc{true};   // Flag for the status of matrix.
 
   void add_node();
@@ -110,12 +110,12 @@ using FiberConfigCPtrs = std::vector<const FiberConfig<T>*>;
 // Inline functions:
 
 template <typename T>
-const Eigen::MatrixXcd& FiberConfig<T>::ColloMat() {
+const MatrixXcd& FiberConfig<T>::ColloMat() {
   if (CQ_nc) com_CQ();
   return CQ_;
 }
 template <typename T>
-const Eigen::MatrixXcd& FiberConfig<T>::TransMat() {
+const MatrixXcd& FiberConfig<T>::TransMat() {
   if (QR_nc) com_QR();
   return Q_;
 }
@@ -193,8 +193,8 @@ void FiberConfig<T>::com_QR() {
 #pragma omp parallel for
 #endif
   for (int n = -N_; n <= N_; n++) {
-    auto t             = tm(n);
-    Eigen::MatrixXcd g = DFT_m(T::NumBv, NumNode(), n);
+    auto t      = tm(n);
+    MatrixXcd g = DFT_m(T::NumBv, NumNode(), n);
 
     Q_.block((n + N_) * N, 0, N, NumBv()) = t.block(0, 0, N, 2 * N) * g;
     R_.block((n + N_) * N, 0, N, NumBv()) = t.block(N, 0, N, 2 * N) * g;
@@ -244,15 +244,14 @@ void FiberConfig<StateIP>::com_CQ() {
   // TODO: tT of in-plane problem
 }
 template <typename T>
-Eigen::VectorXcd FiberConfig<T>::InciVect(const InciCPtrs<T>& inc) const {
-  Eigen::VectorXcd rst(NumBv());
+VectorXcd FiberConfig<T>::InciVect(const InciCPtrs<T>& inc) const {
+  VectorXcd rst(NumBv());
   rst.setZero();
   for (auto& i : inc) rst += i->EffectBV(Node());
   return rst;
 }
 template <typename T>
-Eigen::VectorXcd FiberConfig<T>::Solve(const InciCPtrs<T>& inc,
-                                       SolveMethod method) {
+VectorXcd FiberConfig<T>::Solve(const InciCPtrs<T>& inc, SolveMethod method) {
   switch (method) {
     case COLLOCATION:
       return CSolve(inc);
@@ -264,13 +263,13 @@ Eigen::VectorXcd FiberConfig<T>::Solve(const InciCPtrs<T>& inc,
   }
 }
 template <typename T>
-Eigen::VectorXcd FiberConfig<T>::CSolve(const InciCPtrs<T>& inc) {
+VectorXcd FiberConfig<T>::CSolve(const InciCPtrs<T>& inc) {
   return ColloMat()
       .jacobiSvd(Eigen::ComputeThinU | Eigen::ComputeThinV)
       .solve(InciVect(inc));
 }
 template <typename T>
-Eigen::VectorXcd FiberConfig<T>::DSolve(const InciCPtrs<T>& inc) {
+VectorXcd FiberConfig<T>::DSolve(const InciCPtrs<T>& inc) {
   return TransMat() * InciVect(inc);
 }
 

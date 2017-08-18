@@ -87,19 +87,17 @@ TEST_F(AssemblyTest, InWhich) {
   EXPECT_EQ(c.InWhich(&p8), nullptr);
 }
 TEST_F(AssemblyTest, Solve) {
-  Eigen::VectorXcd ref(305);
+  VectorXcd ref(305);
   ReadCoeff("Coeff_SH.dat", ref);
 
   c.Solve(incident, DFT);
   for (int i = 0; i < 5; i++) {
-    Eigen::VectorXcd rr = ref.segment(61 * i, 61),
-                     cc = c.inhomo(i)->ScatterCoeff();
+    VectorXcd rr = ref.segment(61 * i, 61), cc = c.inhomo(i)->ScatterCoeff();
     EXPECT_TRUE(ApproxVectRv(rr, cc, 1e-3, 10));
   }
   c.Solve(incident, COLLOCATION);
   for (int i = 0; i < 5; i++) {
-    Eigen::VectorXcd rr = ref.segment(61 * i, 61),
-                     cc = c.inhomo(i)->ScatterCoeff();
+    VectorXcd rr = ref.segment(61 * i, 61), cc = c.inhomo(i)->ScatterCoeff();
     EXPECT_TRUE(ApproxVectRv(rr, cc, 1e-5, 10));
   }
 }

@@ -87,8 +87,8 @@ class AssemblyConfig {
   const class Matrix* matrix_;
   const input::AssemblyConfig& input_;
 
-  Eigen::MatrixXcd C_;
-  Eigen::MatrixXcd CC_;
+  MatrixXcd C_;
+  MatrixXcd CC_;
 
   void add_inhomo();
   void add_fiber();
@@ -97,9 +97,9 @@ class AssemblyConfig {
   void delete_fiber_config();
   void compute_C();
   void compute_CC();
-  Eigen::VectorXcd inVec(const InciCPtrs<T>& incident);
-  Eigen::VectorXcd trans_inVec(const InciCPtrs<T>& incident);
-  void dist_solution(const Eigen::VectorXcd& solution);
+  VectorXcd inVec(const InciCPtrs<T>& incident);
+  VectorXcd trans_inVec(const InciCPtrs<T>& incident);
+  void dist_solution(const VectorXcd& solution);
 };
 
 // ---------------------------------------------------------------------------
@@ -125,7 +125,7 @@ void AssemblyConfig<T>::CSolve(const InciCPtrs<T>& incident) {
   // Jacobi SVD:
   compute_CC();
   auto svd = CC_.jacobiSvd(Eigen::ComputeThinU | Eigen::ComputeThinV);
-  Eigen::VectorXcd solution = svd.solve(inVec(incident));
+  VectorXcd solution = svd.solve(inVec(incident));
   dist_solution(solution);
 }
 
@@ -133,16 +133,16 @@ template <typename T>
 void AssemblyConfig<T>::DSolve(const InciCPtrs<T>& incident) {
   // CSolve(incident);
   compute_C();
-  Eigen::VectorXcd solution = C_.lu().solve(trans_inVec(incident));
+  VectorXcd solution = C_.lu().solve(trans_inVec(incident));
   dist_solution(solution);
 }
 
 template <typename T>
-Eigen::VectorXcd AssemblyConfig<T>::inVec(const InciCPtrs<T>& incident) {
+VectorXcd AssemblyConfig<T>::inVec(const InciCPtrs<T>& incident) {
   // The effect vector of incident wave along all the interfaces inside the
   // assembly.
 
-  Eigen::VectorXcd rst(NumBv_in());
+  VectorXcd rst(NumBv_in());
   size_t u = 0;
   for (auto& i : inhomo_) {
     rst.segment(u, i->NumBv()) = i->InciVec(incident);
@@ -152,9 +152,8 @@ Eigen::VectorXcd AssemblyConfig<T>::inVec(const InciCPtrs<T>& incident) {
 }
 
 template <typename T>
-Eigen::VectorXcd AssemblyConfig<T>::trans_inVec(
-    const InciCPtrs<T>& incident) {
-  Eigen::VectorXcd rst(NumCoeff());
+VectorXcd AssemblyConfig<T>::trans_inVec(const InciCPtrs<T>& incident) {
+  VectorXcd rst(NumCoeff());
   size_t u = 0;
   for (auto& i : inhomo_) {
     rst.segment(u, i->NumCoeff()) = i->TransInciVec(incident);
@@ -164,7 +163,7 @@ Eigen::VectorXcd AssemblyConfig<T>::trans_inVec(
 }
 
 template <typename T>
-void AssemblyConfig<T>::dist_solution(const Eigen::VectorXcd& solution) {
+void AssemblyConfig<T>::dist_solution(const VectorXcd& solution) {
   size_t u = 0;
   for (auto& i : inhomo_) {
     i->SetCoeff(solution.segment(u, i->NumCoeff()));
@@ -251,7 +250,7 @@ void AssemblyConfig<T>::compute_C() {
 #endif
   for (size_t v = 0; v < inhomo_.size(); v++) {
     int i = 0, j = 0, Nv = inhomo_[v]->NumCoeff();
-    Eigen::MatrixXcd I(Nv, Nv);
+    MatrixXcd I(Nv, Nv);
     I.setIdentity();
     for (size_t k = 0; k < v; k++) j += inhomo_[k]->NumCoeff();
     for (size_t u = 0; u < inhomo_.size(); u++) {

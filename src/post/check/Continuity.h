@@ -60,7 +60,7 @@ class ContCheck {
   // side. The points should have the same sequence.
   virtual void add_state() = 0;
   std::vector<const T*> inner_, outer_;
-  Eigen::MatrixXcd mis_;
+  MatrixXcd mis_;
 };
 
 // Continuity Check class for Fiber.

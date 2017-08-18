@@ -37,16 +37,16 @@ class Inhomo {
   virtual ~Inhomo() {}
 
   // Collocation matrix.
-  virtual const Eigen::MatrixXcd& ColloMat() const = 0;
+  virtual const MatrixXcd& ColloMat() const = 0;
 
   // Transform matrix.
-  virtual const Eigen::MatrixXcd& TransMat() const = 0;
+  virtual const MatrixXcd& TransMat() const = 0;
 
   // The matrix consists the modes from this inhomo to the nodes of the
   // objective inhomo.
-  Eigen::MatrixXcd ModeMat(const Inhomo* obj) const;
+  MatrixXcd ModeMat(const Inhomo* obj) const;
 
-  Eigen::MatrixXcd QM(const Inhomo* obj) const;
+  MatrixXcd QM(const Inhomo* obj) const;
 
   // Resultant states.
   virtual T Scatter(const CS* objCS) const = 0;
@@ -61,26 +61,26 @@ class Inhomo {
   virtual T ScatterMode(const CS* objCS, size_t sn) const = 0;
   virtual T InnerMode(const CS* objCS, size_t sn) const   = 0;
 
-  Eigen::VectorXcd ScatterBv(const CSCPtrs& objCSs, size_t sn) const;
+  VectorXcd ScatterBv(const CSCPtrs& objCSs, size_t sn) const;
 
   virtual size_t NumNode() const  = 0;
   virtual size_t NumCoeff() const = 0;
   virtual size_t NumBv() const    = 0;
 
-  virtual Eigen::VectorXcd InciVec(const InciCPtrs<T>& incident) const = 0;
+  virtual VectorXcd InciVec(const InciCPtrs<T>& incident) const = 0;
 
-  Eigen::VectorXcd TransInciVec(const InciCPtrs<T>& incident) {
+  VectorXcd TransInciVec(const InciCPtrs<T>& incident) {
     return TransMat() * InciVec(incident);
   }
 
-  virtual Eigen::VectorXcd Solve(const InciCPtrs<T>& incident,
-                                 SolveMethod method) const            = 0;
-  virtual Eigen::VectorXcd CSolve(const InciCPtrs<T>& incident) const = 0;
-  virtual Eigen::VectorXcd DSolve(const InciCPtrs<T>& incident) const = 0;
+  virtual VectorXcd Solve(const InciCPtrs<T>& incident,
+                          SolveMethod method) const            = 0;
+  virtual VectorXcd CSolve(const InciCPtrs<T>& incident) const = 0;
+  virtual VectorXcd DSolve(const InciCPtrs<T>& incident) const = 0;
 
-  virtual void SetCoeff(const Eigen::VectorXcd&)       = 0;
-  virtual const Eigen::VectorXcd& ScatterCoeff() const = 0;
-  virtual void PrintCoeff(std::ostream& os) const      = 0;
+  virtual void SetCoeff(const VectorXcd&)         = 0;
+  virtual const VectorXcd& ScatterCoeff() const   = 0;
+  virtual void PrintCoeff(std::ostream& os) const = 0;
 
   // This inhomogeneity's nodes.
   virtual const CSCPtrs& Node() const = 0;
@@ -106,17 +106,16 @@ using InhomoCPtrs = std::vector<const Inhomo<T>*>;
 // Inline functions:
 
 template <typename T>
-Eigen::VectorXcd Inhomo<T>::ScatterBv(const CSCPtrs& objCSs,
-                                      size_t sn) const {
-  Eigen::VectorXcd rst(objCSs.size() * T::NumBv);
+VectorXcd Inhomo<T>::ScatterBv(const CSCPtrs& objCSs, size_t sn) const {
+  VectorXcd rst(objCSs.size() * T::NumBv);
   for (size_t i = 0; i < objCSs.size(); i++)
     rst.segment(i * T::NumBv, T::NumBv) = ScatterMode(objCSs[i], sn).BV();
   return rst;
 }
 
 template <typename T>
-Eigen::MatrixXcd Inhomo<T>::ModeMat(const Inhomo<T>* obj) const {
-  Eigen::MatrixXcd rst(obj->NumBv(), NumCoeff());
+MatrixXcd Inhomo<T>::ModeMat(const Inhomo<T>* obj) const {
+  MatrixXcd rst(obj->NumBv(), NumCoeff());
   for (size_t sn = 0; sn < NumCoeff(); sn++)
     rst.col(sn) = ScatterBv(obj->Node(), sn);
   return rst;
