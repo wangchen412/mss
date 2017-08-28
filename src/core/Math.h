@@ -55,6 +55,7 @@ using Eigen::MatrixXcd;
 using Eigen::VectorXcd;
 
 enum SolveMethod { COLLOCATION, DFT };
+enum Tessellation { RECTANGULAR, HEXAGONAL };
 
 inline dcomp operator*(const dcomp& lhs, int rhs) {
   return lhs * double(rhs);
@@ -62,6 +63,14 @@ inline dcomp operator*(const dcomp& lhs, int rhs) {
 
 inline dcomp operator*(int lhs, const dcomp& rhs) {
   return double(lhs) * rhs;
+}
+
+inline dcomp operator/(const dcomp& lhs, int rhs) {
+  return lhs / double(rhs);
+}
+
+inline dcomp operator/(int lhs, const dcomp& rhs) {
+  return double(lhs) / rhs;
 }
 
 inline dcomp Jn(int n, double x) {

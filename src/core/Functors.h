@@ -24,14 +24,13 @@
 
 namespace mss {
 
-// typedef decltype((Hn)) BesselFunc;
-typedef dcomp (*BesselFunc)(int, double);
+typedef dcomp (*BesselFunction)(int, double);
 
 class BesselFunctor {
   /// The functor for the Bessel functions: Bessel(n, k * r).
 
  public:
-  BesselFunctor(const BesselFunc f, int n, double k, double R)
+  BesselFunctor(const BesselFunction f, int n, double k, double R = 1.0)
       : f(f), n(n), k(k), norm(f(n, k * R)) {}
 
   dcomp operator()(double r) const { return f(n, k * r) / norm; }
@@ -61,7 +60,7 @@ class BesselFunctor {
   const dcomp& Norm() const { return norm; }
 
  private:
-  const BesselFunc f;
+  const BesselFunction f;
   const int n;
   const double k;
   const dcomp norm;
@@ -92,7 +91,7 @@ class EigenFunctor {
   /// CS. Eigenfunction: Bessel(n, k * r) * exp(ii * n * t).
 
  public:
-  EigenFunctor(const BesselFunc f, int n, double k, double R)
+  EigenFunctor(const BesselFunction f, int n, double k, double R)
       : f(f, n, k, R), g(n) {}
 
   dcomp operator()(const PosiVect& p) const { return f(p.x) * g(p.y); }

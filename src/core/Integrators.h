@@ -61,11 +61,11 @@ template <int N>
 class GaussQuad {
  public:
   template <typename F>
-  auto operator()(double a, double b, const F& f) {
+  auto operator()(const F& f, double a = -1.0, double b = 1.0,
+                  decltype(f(1.0)) rst = 0) {
     double c = (b - a) / 2, d = (b + a) / 2;
-    decltype(f(1.)) s = 0.0;
-    for (int i = 0; i < N; i++) s += l_.weight(i) * f(c * l_.root(i) + d);
-    return s * c;
+    for (int i = 0; i < N; i++) rst += l_.weight(i) * f(c * l_.root(i) + d);
+    return rst * c;
   }
 
  private:

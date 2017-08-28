@@ -48,6 +48,9 @@ class CS {
   CS& operator+=(const PosiVect& shift);
   CS operator+(const PosiVect& shift) const;
 
+  // Translate in the direction of its own x and y axes.
+  CS& Translate(double x, double y);
+
   friend std::ostream& operator<<(std::ostream& os, const CS& cs) {
     return os << cs.PositionGLB();
   }
@@ -87,6 +90,11 @@ inline CS CS::operator+(const PosiVect& shift) const {
   rst += shift;
   return rst;
 }
+inline CS& CS::Translate(double x, double y) {
+  position_ += PosiVect(x, y).RotateInPlace(-Angle());
+  return *this;
+}
+
 inline PosiVect CS::PositionIn(const CS* otherBasis) const {
   return in(otherBasis).Position();
 }

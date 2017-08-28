@@ -21,14 +21,16 @@
 #define MSS_MODES_H
 
 #include "Functors.h"
-#include "Material.h"
+#include "Matrix.h"
 
 namespace mss {
 
+using Eigen::VectorXcd;
+
 template <typename T>
-inline T ModeL(const CS*, const CS*, const EigenFunctor&, const Material&);
+T ModeL(const CS*, const CS*, const EigenFunctor&, const Material&);
 template <typename T>
-inline T ModeT(const CS*, const CS*, const EigenFunctor&, const Material&);
+T ModeT(const CS*, const CS*, const EigenFunctor&, const Material&);
 
 template <>
 inline StateIP ModeL<StateIP>(const CS* localCS, const CS* objCS,
@@ -101,6 +103,45 @@ inline StateAP ModeT<StateAP>(const CS* localCS, const CS* objCS,
 
   // Normalized state in the objective CS.
   return StateAP(w, t, &cs).in(objCS);
+}
+
+// template <typename T>
+// auto GreenL(const CS*, const CS*, const Material&);
+
+// The return should be a matrix of which size is 4x4 for in-plane and 2x2 for
+// antiplane.
+template <typename T>
+auto GreenT(const CS* localCS, const CS* objCS, const Matrix* matrix);
+
+template <>
+inline auto GreenT<StateAP>(const CS* localCS, const CS* objCS,
+                            const Matrix* matrix) {
+  Eigen::Matrix2cd rst;
+
+  CS X = objCS->inGLB(), Y = localCS->inGLB();
+  // distance
+  double r = (X.Position() - Y.Position()).Length();
+  // n_j(y), n_l(x)
+  double nxy = cos(Y.Angle()), nyy = sin(Y.Angle());
+  double nxx = cos(X.Angle()), nyx = sin(X.Angle());
+  // r_{,j} n_j(y)
+  double rny = (Y.Position().x - X.Position().x) / r * nxy +
+               (Y.Position().y - X.Position().y) / r * nyy;
+  // r_{,j} n_j(x)
+  double rnx = (X.Position().x - Y.Position().x) / r * nxx +
+               (X.Position().y - Y.Position().y) / r * nyx;
+
+  double k = matrix->KT();
+  BesselFunctor H(Hn, 0, k);
+  dcomp Hr = H(r), Hdr = H.dr(r), H2r = Hn(2, k * r);
+
+  rst(0, 0) = -ii / 4 * Hdr * rny;
+  rst(0, 1) = ii / 4 * Hr;
+  rst(1, 0) = ii / 4 / r * Hdr * (nxx * nxy + nyx * nyy) -
+              ii * k * k / 4 * H2r * rnx * rny;
+  rst(1, 1) = ii / 4 * Hdr * rnx;
+
+  return rst;
 }
 
 }  // namespace mss

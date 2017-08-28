@@ -87,16 +87,16 @@ class AssemblyConfig {
   const class Matrix* matrix_;
   const input::AssemblyConfig& input_;
 
-  MatrixXcd C_;
-  MatrixXcd CC_;
+  MatrixXcd cc_;
+  MatrixXcd dc_;
 
   void add_inhomo();
   void add_fiber();
   void add_fiber_config();
   void delete_inhomo();
   void delete_fiber_config();
-  void compute_C();
-  void compute_CC();
+  void compute_cc();
+  void compute_dc();
   VectorXcd inVec(const InciCPtrs<T>& incident);
   VectorXcd trans_inVec(const InciCPtrs<T>& incident);
   void dist_solution(const VectorXcd& solution);
@@ -123,8 +123,8 @@ void AssemblyConfig<T>::Solve(const InciCPtrs<T>& incident,
 template <typename T>
 void AssemblyConfig<T>::CSolve(const InciCPtrs<T>& incident) {
   // Jacobi SVD:
-  compute_CC();
-  auto svd = CC_.jacobiSvd(Eigen::ComputeThinU | Eigen::ComputeThinV);
+  compute_cc();
+  auto svd = cc_.jacobiSvd(Eigen::ComputeThinU | Eigen::ComputeThinV);
   VectorXcd solution = svd.solve(inVec(incident));
   dist_solution(solution);
 }
@@ -132,8 +132,8 @@ void AssemblyConfig<T>::CSolve(const InciCPtrs<T>& incident) {
 template <typename T>
 void AssemblyConfig<T>::DSolve(const InciCPtrs<T>& incident) {
   // CSolve(incident);
-  compute_C();
-  VectorXcd solution = C_.lu().solve(trans_inVec(incident));
+  compute_dc();
+  VectorXcd solution = dc_.lu().solve(trans_inVec(incident));
   dist_solution(solution);
 }
 
@@ -242,8 +242,8 @@ void AssemblyConfig<T>::delete_fiber_config() {
 }
 
 template <typename T>
-void AssemblyConfig<T>::compute_C() {
-  C_.resize(NumCoeff(), NumCoeff());
+void AssemblyConfig<T>::compute_dc() {
+  dc_.resize(NumCoeff(), NumCoeff());
 
 #ifdef NDEBUG
 #pragma omp parallel for
@@ -255,7 +255,7 @@ void AssemblyConfig<T>::compute_C() {
     for (size_t k = 0; k < v; k++) j += inhomo_[k]->NumCoeff();
     for (size_t u = 0; u < inhomo_.size(); u++) {
       int Nu = inhomo_[u]->NumCoeff();
-      C_.block(i, j, Nu, Nv) =
+      dc_.block(i, j, Nu, Nv) =
           u == v ? I
                  : -inhomo_[u]->TransMat() * inhomo_[v]->ModeMat(inhomo_[u]);
       i += Nu;
@@ -264,8 +264,8 @@ void AssemblyConfig<T>::compute_C() {
 }
 
 template <typename T>
-void AssemblyConfig<T>::compute_CC() {
-  CC_.resize(NumBv_in(), NumCoeff());
+void AssemblyConfig<T>::compute_cc() {
+  cc_.resize(NumBv_in(), NumCoeff());
 
 #ifdef NDEBUG
 #pragma omp parallel for
@@ -276,7 +276,7 @@ void AssemblyConfig<T>::compute_CC() {
     for (size_t u = 0; u < inhomo_.size(); u++) {
       int Nu = inhomo_[u]->NumBv();
 
-      CC_.block(i, j, Nu, Nv) =
+      cc_.block(i, j, Nu, Nv) =
           u == v ? inhomo_[v]->ColloMat() : -inhomo_[v]->ModeMat(inhomo_[u]);
       i += Nu;
     }
