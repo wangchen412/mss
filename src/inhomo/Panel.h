@@ -36,7 +36,7 @@ class Panel {
     for (auto& i : point_) delete i;
   }
 
-  auto InfMatT(const CS* objCS) const;
+  MatrixNcd<T> InfMatT(const CS* objCS) const;
 
  private:
   // The center CS of the panel, with the out-going normal
@@ -63,11 +63,11 @@ using PanelPtrs = std::vector<Panel<T, N>*>;
 // Inline functions:
 
 template <typename T, int N>
-auto Panel<T, N>::InfMatT(const CS* objCS) const {
-  Eigen::Matrix<dcomp, T::NumBv, T::NumBv> rst;
+MatrixNcd<T> Panel<T, N>::InfMatT(const CS* objCS) const {
+  MatrixNcd<T> rst;
   rst.setZero();
   for (int i = 0; i < N; i++)
-    rst += GreenT<T>(point_[i], objCS, matrix_) * l_.root(i);
+    rst += GreenT<T>(point_[i], objCS, matrix_) * l_.weight(i);
   return rst * hl_;
 }
 

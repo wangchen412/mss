@@ -50,7 +50,7 @@ class Incident {
   virtual T Effect(const CS* localCS) const = 0;
 
   // The effect vector along the boundary.
-  VectorXcd EffectBV(const CSCPtrs& localCS) const {
+  VectorXcd EffectBv(const CSCPtrs& localCS) const {
     VectorXcd rst(localCS.size() * T::NumBv);
     for (size_t i = 0; i < localCS.size(); i++)
       rst.segment(i * T::NumBv, T::NumBv) = Effect(localCS[i]).BV();

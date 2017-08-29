@@ -181,7 +181,7 @@ template <typename T>
 inline VectorXcd Fiber<T>::InciVec(const InciCPtrs<T>& inc) const {
   VectorXcd rst(NumBv());
   rst.setZero();
-  for (auto& i : inc) rst += i->EffectBV(Node());
+  for (auto& i : inc) rst += i->EffectBv(Node());
   return rst;
 }
 template <typename T>

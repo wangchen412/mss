@@ -30,7 +30,7 @@ class BesselFunctor {
   /// The functor for the Bessel functions: Bessel(n, k * r).
 
  public:
-  BesselFunctor(const BesselFunction f, int n, double k, double R = 1.0)
+  BesselFunctor(const BesselFunction f, int n, double k, double R)
       : f(f), n(n), k(k), norm(f(n, k * R)) {}
 
   dcomp operator()(double r) const { return f(n, k * r) / norm; }

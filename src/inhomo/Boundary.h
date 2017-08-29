@@ -65,10 +65,10 @@ class Boundary {
 
 template <typename T, int N>
 MatrixXcd Boundary<T, N>::InfMatT(const mss::CS* objCS) const {
-  MatrixXcd rst(T::NumBv, T::NumBv * P_);
+  int n = T::NumBv;
+  MatrixXcd rst(n, n * P_);
   for (size_t i = 0; i < P_; i++)
-    rst.block<T::NumBv, T::NumBv>(0, T::NumBv * i) =
-        panel_[i]->InfMatT(objCS);
+    rst.block(0, n * i, n, n) = panel_[i]->InfMatT(objCS);
   return rst;
 }
 
@@ -91,7 +91,7 @@ void Boundary<T, N>::add_rect(const PosiVect& p1, const PosiVect& p2) {
 template <typename T, int N>
 void Boundary<T, N>::add_line(const PosiVect& p1, const PosiVect& p2) {
   size_t n   = (p2 - p1).Length() * density_;
-  PosiVect d = (p2 - p1) / N;
+  PosiVect d = (p2 - p1) / n;
   double len = d.Length();
   double ang = d.Angle() - pi_2;
   for (size_t i = 0; i < n; i++) {

@@ -54,6 +54,9 @@ const auto setMaxPrecision =
 using Eigen::MatrixXcd;
 using Eigen::VectorXcd;
 
+template <typename T>
+using MatrixNcd = Eigen::Matrix<dcomp, T::NumBv, T::NumBv>;
+
 enum SolveMethod { COLLOCATION, DFT };
 enum Tessellation { RECTANGULAR, HEXAGONAL };
 

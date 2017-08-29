@@ -131,15 +131,15 @@ inline auto GreenT<StateAP>(const CS* localCS, const CS* objCS,
   double rnx = (X.Position().x - Y.Position().x) / r * nxx +
                (X.Position().y - Y.Position().y) / r * nyx;
 
-  double k = matrix->KT();
-  BesselFunctor H(Hn, 0, k);
-  dcomp Hr = H(r), Hdr = H.dr(r), H2r = Hn(2, k * r);
+  double k = matrix->KT(), mu = matrix->Material().Mu();
 
-  rst(0, 0) = -ii / 4 * Hdr * rny;
-  rst(0, 1) = ii / 4 * Hr;
-  rst(1, 0) = ii / 4 / r * Hdr * (nxx * nxy + nyx * nyy) -
-              ii * k * k / 4 * H2r * rnx * rny;
-  rst(1, 1) = ii / 4 * Hdr * rnx;
+  dcomp H = Hn(0, k * r), Hd = -k * Hn(1, k * r), H2r = Hn(2, k * r);
+
+  rst(0, 0) = -ii / 4 * Hd * rny;
+  rst(0, 1) = ii / 4 * H / mu;
+  rst(1, 0) = ii / 4 / r * mu * Hd * (nxx * nxy + nyx * nyy) -
+              ii / 4 * k * k * mu * H2r * rnx * rny;
+  rst(1, 1) = -ii / 4 * Hd * rnx;
 
   return rst;
 }
