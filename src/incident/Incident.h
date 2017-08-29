@@ -53,7 +53,7 @@ class Incident {
   VectorXcd EffectBv(const CSCPtrs& localCS) const {
     VectorXcd rst(localCS.size() * T::NumBv);
     for (size_t i = 0; i < localCS.size(); i++)
-      rst.segment(i * T::NumBv, T::NumBv) = Effect(localCS[i]).BV();
+      rst.segment(i * T::NumBv, T::NumBv) = Effect(localCS[i]).Bv();
     return rst;
   }
 

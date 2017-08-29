@@ -41,13 +41,13 @@ class Solution {
   std::ostream& Print(std::ostream& os) const;
   const std::string& FN() const { return fn_; }
 
-  const auto& material() const { return material_; }
-  const auto& matrix() const { return matrix_[0]; }
-  const auto& frequency() const { return matrix().frequency; }
-  const auto& fiber_config() const { return fiber_config_; }
-  const auto& incident() const { return incident_; }
-  const auto& assembly_config() const { return assembly_config_; }
-  const auto& config() const {
+  const std::vector<Material>& material() const { return material_; }
+  const Matrix& matrix() const { return matrix_[0]; }
+  double frequency() const { return matrix().frequency; }
+  const std::vector<FiberConfig>& fiber_config() const { return fiber_config_; }
+  const std::vector<IncidentPlane>& incident() const { return incident_; }
+  const std::vector<AssemblyConfig>& assembly_config() const { return assembly_config_; }
+  const AssemblyConfig& config() const {
     return *FindID(assembly_config_, solve_[0].configID);
   }
   SolveMethod method() const {

@@ -109,7 +109,7 @@ class State {
 
   // Boundary values. Assumed that the x axis of the basis CS of the state is
   // the normal vector.
-  auto BV() const;
+  VectorXcd Bv() const;
   static const size_t NumBv;  // Number of boundary values.
   static const std::string Type;
 
@@ -164,13 +164,13 @@ inline bool State<T1, T2>::isApprox(const State& other, double re) const {
          (tmp.stress_.isApprox(other.stress_, re));
 }
 template <>
-auto StateIP::BV() const {
-  return Eigen::Vector4cd(displacement_.x, displacement_.y, stress_.xx,
+VectorXcd StateIP::Bv() const {
+  return Vector4cd(displacement_.x, displacement_.y, stress_.xx,
                           stress_.xy);
 }
 template <>
-auto StateAP::BV() const {
-  return Eigen::Vector2cd(displacement_.x, stress_.x);
+VectorXcd StateAP::Bv() const {
+  return Vector2cd(displacement_.x, stress_.x);
 }
 
 }  // namespace mss

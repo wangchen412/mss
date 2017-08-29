@@ -20,7 +20,7 @@
 cmake_minimum_required(VERSION 3.7)
 
 set(CMAKE_CXX_COMPILER icpc)
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
 
 # find_package(Eigen3 REQUIRED)
@@ -29,8 +29,8 @@ add_definitions(-D EIGEN_USE_MKL_ALL)
 
 project(mss)
 
-set(CMAKE_BUILD_TYPE Debug)
-# set(CMAKE_BUILD_TYPE Release)
+# set(CMAKE_BUILD_TYPE Debug)
+set(CMAKE_BUILD_TYPE Release)
 
 set(DFLAGS "-Wall -mkl=sequential -fp-model precise")
 set(RFLAGS "-Wall -mkl=parallel -fopenmp -parallel")

@@ -38,8 +38,8 @@ TEST_F(BoundaryTest, DISABLED_Constructor) {
 
 TEST_F(BoundaryTest, InfMat) {
   CS cs(10e-3, 10e-3, 1);
-  Eigen::Vector2cd bv_in = in1.Effect(&cs).BV();
-  Eigen::Vector2cd bv_bd = b1.InfMatT(&cs) * in1.EffectBv(b1.Node());
+  Vector2cd bv_in = in1.Effect(&cs).Bv();
+  Vector2cd bv_bd = b1.InfMatT(&cs) * in1.EffectBv(b1.Node());
 
   // std::cout << b1.InfMatT(&cs) << std::endl;
   // std::cout << in1.EffectBv(b1.Node()) << std::endl;

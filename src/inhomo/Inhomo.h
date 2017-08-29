@@ -109,7 +109,7 @@ template <typename T>
 VectorXcd Inhomo<T>::ScatterBv(const CSCPtrs& objCSs, size_t sn) const {
   VectorXcd rst(objCSs.size() * T::NumBv);
   for (size_t i = 0; i < objCSs.size(); i++)
-    rst.segment(i * T::NumBv, T::NumBv) = ScatterMode(objCSs[i], sn).BV();
+    rst.segment(i * T::NumBv, T::NumBv) = ScatterMode(objCSs[i], sn).Bv();
   return rst;
 }
 

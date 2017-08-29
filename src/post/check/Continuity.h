@@ -121,7 +121,7 @@ class CC_Solution {
 template <typename T>
 inline void ContCheck<T>::ComputeMismatch() {
   for (size_t i = 0; i < inner_.size(); i++)
-    mis_.col(i) = ((*inner_[i] - *outer_[i]) / norm_).BV();
+    mis_.col(i) = ((*inner_[i] - *outer_[i]) / norm_).Bv();
 }
 template <typename T>
 inline std::ostream& ContCheck<T>::Print(std::ostream& os) const {

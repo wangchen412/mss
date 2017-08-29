@@ -105,18 +105,15 @@ inline StateAP ModeT<StateAP>(const CS* localCS, const CS* objCS,
   return StateAP(w, t, &cs).in(objCS);
 }
 
-// template <typename T>
-// auto GreenL(const CS*, const CS*, const Material&);
-
 // The return should be a matrix of which size is 4x4 for in-plane and 2x2 for
 // antiplane.
 template <typename T>
-auto GreenT(const CS* localCS, const CS* objCS, const Matrix* matrix);
+MatrixNcd<T> GreenT(const CS* localCS, const CS* objCS, const Matrix* matrix);
 
 template <>
-inline auto GreenT<StateAP>(const CS* localCS, const CS* objCS,
-                            const Matrix* matrix) {
-  Eigen::Matrix2cd rst;
+inline Matrix2cd GreenT<StateAP>(const CS* localCS, const CS* objCS,
+                                          const Matrix* matrix) {
+  Matrix2cd rst;
 
   CS X = objCS->inGLB(), Y = localCS->inGLB();
   // distance

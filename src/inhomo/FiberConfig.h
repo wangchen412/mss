@@ -97,7 +97,7 @@ class FiberConfig {
   void del_node();
   void com_QR();
   void com_CQ();
-  auto tm(int n) const;
+  MatrixNcd<T> tm(int n) const;
 };
 
 template <typename T>
@@ -133,7 +133,7 @@ inline void FiberConfig<T>::del_node() {
 }
 
 template <>
-auto FiberConfig<StateIP>::tm(int n) const {
+Matrix4cd FiberConfig<StateIP>::tm(int n) const {
   double lm        = Matrix()->Material().Lambda();
   double mm        = Matrix()->Material().Mu();
   double lf        = Material().Lambda();
@@ -149,7 +149,7 @@ auto FiberConfig<StateIP>::tm(int n) const {
   dcomp JL_dr_r = JL.dr_r(r_), JL_rr = JL._rr(r_);
   dcomp JT_dr_r = JT.dr_r(r_), JT_rr = JT._rr(r_);
 
-  Eigen::Matrix4cd Ti;
+  Matrix4cd Ti;
 
   Ti(0, 0) = -HL.dr(r_);
   Ti(0, 1) = -ii * n * HT._r(r_);
@@ -174,11 +174,11 @@ auto FiberConfig<StateIP>::tm(int n) const {
   return Ti.inverse();
 }
 template <>
-auto FiberConfig<StateAP>::tm(int n) const {
+Matrix2cd FiberConfig<StateAP>::tm(int n) const {
   BesselFunctor H(Hn, n, KT_m(), r_), J(Jn, n, KT(), r_);
   dcomp mH = H.dr(r_) * Matrix()->Material().Mu();
   dcomp mJ = J.dr(r_) * Material().Mu();
-  Eigen::Matrix2cd Ti;
+  Matrix2cd Ti;
   Ti << -H(r_), J(r_), -mH, mJ;
   return Ti.inverse().eval();
 }
@@ -225,7 +225,7 @@ void FiberConfig<StateAP>::com_CQ() {
     for (size_t i = 0; i < P_; i++) {
       StateAP s = ModeT<StateAP>(nullptr, node_[i], J, Material()) * tn -
                   ModeT<StateAP>(nullptr, node_[i], H, Material_m());
-      CQ_.block<2, 1>(2 * i, n + N_) = s.BV();
+      CQ_.block<2, 1>(2 * i, n + N_) = s.Bv();
     }
   }
 
