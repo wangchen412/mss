@@ -137,20 +137,20 @@ const std::string StateIP::Type = "In-plane";
 // Inline functions:
 
 template <typename T1, typename T2>
-inline State<T1, T2>& State<T1, T2>::rotate(double angle) {
+State<T1, T2>& State<T1, T2>::rotate(double angle) {
   displacement_.RotateInPlace(angle);
   stress_.RotateInPlace(angle);
   return *this;
 }
 template <typename T1, typename T2>
-inline double State<T1, T2>::AngleGLB() const {
+double State<T1, T2>::AngleGLB() const {
   if (basis_)
     return basis_->AngleGLB();
   else
     return 0;
 }
 template <typename T1, typename T2>
-inline State<T1, T2> State<T1, T2>::in(const mss::CS* otherBasis) const {
+State<T1, T2> State<T1, T2>::in(const mss::CS* otherBasis) const {
   if (otherBasis == basis_) return *this;
   double d = 0;
   if (otherBasis) d= otherBasis->AngleGLB();
@@ -158,7 +158,7 @@ inline State<T1, T2> State<T1, T2>::in(const mss::CS* otherBasis) const {
       .rotate(d - AngleGLB());
 }
 template <typename T1, typename T2>
-inline bool State<T1, T2>::isApprox(const State& other, double re) const {
+bool State<T1, T2>::isApprox(const State& other, double re) const {
   State tmp(in(other.basis_));
   return (tmp.displacement_.isApprox(other.displacement_, re)) &&
          (tmp.stress_.isApprox(other.stress_, re));

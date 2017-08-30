@@ -125,14 +125,14 @@ const MatrixXcd& FiberConfig<T>::TransMat() {
 }
 
 template <typename T>
-inline void FiberConfig<T>::add_node() {
+void FiberConfig<T>::add_node() {
   node_.reserve(P_);
   for (size_t i = 0; i < P_; i++)
     node_.push_back(
         new CS(PosiVect(r_, i * pi2 / P_).Cartesian(), i * pi2 / P_));
 }
 template <typename T>
-inline void FiberConfig<T>::del_node() {
+void FiberConfig<T>::del_node() {
   for (auto i : node_) delete i;
 }
 

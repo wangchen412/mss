@@ -69,7 +69,7 @@ class Test : public testing::Test {
 };
 
 template <typename T>
-inline void Test::ReadSample(const std::string& fn, std::vector<T>& ref,
+void Test::ReadSample(const std::string& fn, std::vector<T>& ref,
                              int s) {
   std::ifstream file(path(fn));
   skip(file, s);
@@ -77,7 +77,7 @@ inline void Test::ReadSample(const std::string& fn, std::vector<T>& ref,
 }
 
 template <typename T>
-inline void Test::ReadSample(std::ifstream& file, std::vector<T>& ref,
+void Test::ReadSample(std::ifstream& file, std::vector<T>& ref,
                              int s) {
   skip(file, s);
   sp_.push_back(new CSCPtrs);

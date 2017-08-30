@@ -93,7 +93,7 @@ inline dcomp Hn(int n, double x) {
 
 // The functor f returns the value of f(x) / f'(x).
 template <typename Func>
-inline double Newton(const Func& f, double x0, double e = 1e-16) {
+double Newton(const Func& f, double x0, double e = 1e-16) {
   double x = x0;
   for (double dx = f(x); std::abs(dx) > e; dx = f(x)) x -= dx;
   return x -= f(x);
@@ -142,7 +142,7 @@ inline bool AngEqu(double a, double b) {
 }
 
 template <int p, typename T>
-inline double Lp(std::initializer_list<T> l) {
+double Lp(std::initializer_list<T> l) {
   assert(p > 0);
   double sum = 0;
   for (T i : l) sum += pow(std::abs(i), p);
@@ -150,22 +150,22 @@ inline double Lp(std::initializer_list<T> l) {
 }
 
 template <typename T>
-inline double RelativeDiff(const T& a, const T& b) {
+double RelativeDiff(const T& a, const T& b) {
   return std::abs(a - b) / std::max(std::abs(a), std::abs(b));
 }
 
 // Check if the two values are approximately equal with relative error.
 template <typename T>
-inline bool ApproxRv(const T& a, const T& b, double re = epsilon) {
+bool ApproxRv(const T& a, const T& b, double re = epsilon) {
   return RelativeDiff(a, b) < re;
 }
 
 // Check if the elements of two vectors are approximately equal with relative
 // error.
 template <typename T>
-inline bool ApproxVectRv(const Eigen::Matrix<T, Eigen::Dynamic, 1>& a,
-                         const Eigen::Matrix<T, Eigen::Dynamic, 1>& b,
-                         double re = epsilon, int k = 0) {
+bool ApproxVectRv(const Eigen::Matrix<T, Eigen::Dynamic, 1>& a,
+                  const Eigen::Matrix<T, Eigen::Dynamic, 1>& b,
+                  double re = epsilon, int k = 0) {
   assert(a.size() == b.size());
   for (long i = k; i < a.size() - k; i++)
     if (!ApproxRv(a(i), b(i), re)) return false;

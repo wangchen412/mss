@@ -98,25 +98,25 @@ class Fiber : public Inhomo<T> {
 // Inline functions:
 
 template <typename T>
-inline bool Fiber<T>::Contain(const CS* objCS) const {
+bool Fiber<T>::Contain(const CS* objCS) const {
   return objCS->PositionIn(LocalCS()).Length() < config_->Radius();
 }
 template <typename T>
-inline T Fiber<T>::Scatter(const CS* objCS) const {
+T Fiber<T>::Scatter(const CS* objCS) const {
   T rst(objCS);
   for (size_t i = 0; i < NumCoeff(); i++)
     rst += ScatterMode(objCS, i) * cSc_(i);
   return rst;
 }
 template <typename T>
-inline T Fiber<T>::Inner(const CS* objCS) const {
+T Fiber<T>::Inner(const CS* objCS) const {
   T rst(objCS);
   for (size_t i = 0; i < NumCoeff(); i++)
     rst += InnerMode(objCS, i) * cIn_(i);
   return rst;
 }
 template <typename T>
-inline void Fiber<T>::SetCoeff(const VectorXcd& solution) {
+void Fiber<T>::SetCoeff(const VectorXcd& solution) {
   assert(solution.size() == long(NumCoeff()));
   for (long i = 0; i < solution.size(); i++) {
     cSc_(i) = solution(i);
@@ -124,7 +124,7 @@ inline void Fiber<T>::SetCoeff(const VectorXcd& solution) {
   }
 }
 template <typename T>
-inline void Fiber<T>::PrintCoeff(std::ostream& os) const {
+void Fiber<T>::PrintCoeff(std::ostream& os) const {
   os << setMaxPrecision << cSc_ << std::endl;
 }
 template <>
@@ -150,36 +150,36 @@ inline StateAP Fiber<StateAP>::InnerMode(const CS* objCS, size_t sn) const {
   return innerModeT(objCS, od(sn));
 }
 template <typename T>
-inline T Fiber<T>::scatterModeL(const CS* objCS, int n) const {
+T Fiber<T>::scatterModeL(const CS* objCS, int n) const {
   return ModeL<T>(LocalCS(), objCS,
                   EigenFunctor(Hn, n, config_->KL_m(), Radius()),
                   config_->Material_m());
 }
 template <typename T>
-inline T Fiber<T>::innerModeL(const CS* objCS, int n) const {
+T Fiber<T>::innerModeL(const CS* objCS, int n) const {
   return ModeL<T>(LocalCS(), objCS,
                   EigenFunctor(Jn, n, config_->KL(), Radius()),
                   config_->Material());
 }
 template <typename T>
-inline T Fiber<T>::scatterModeT(const CS* objCS, int n) const {
+T Fiber<T>::scatterModeT(const CS* objCS, int n) const {
   return ModeT<T>(LocalCS(), objCS,
                   EigenFunctor(Hn, n, config_->KT_m(), Radius()),
                   config_->Material_m());
 }
 template <typename T>
-inline T Fiber<T>::innerModeT(const CS* objCS, int n) const {
+T Fiber<T>::innerModeT(const CS* objCS, int n) const {
   return ModeT<T>(LocalCS(), objCS,
                   EigenFunctor(Jn, n, config_->KT(), Radius()),
                   config_->Material());
 }
 template <typename T>
-inline void Fiber<T>::add_node() {
+void Fiber<T>::add_node() {
   node_.reserve(config_->NumNode());
   for (auto& i : config_->Node()) node_.push_back(new CS(*i, LocalCS()));
 }
 template <typename T>
-inline void Fiber<T>::delete_node() {
+void Fiber<T>::delete_node() {
   for (auto& i : node_) delete i;
 }
 template <typename T>
@@ -187,31 +187,31 @@ VectorXcd Fiber<T>::Solve(const VectorXcd& incBv, SolveMethod method) const {
   return config_->Solve(incBv, method);
 }
 template <typename T>
-VectorXcd Fiber<T>::CSolve(const VectorXcd &incBv) const {
+VectorXcd Fiber<T>::CSolve(const VectorXcd& incBv) const {
   return config_->CSolve(incBv);
 }
 template <typename T>
-VectorXcd Fiber<T>::DSolve(const VectorXcd &incBv) const {
+VectorXcd Fiber<T>::DSolve(const VectorXcd& incBv) const {
   return config_->DSolve(incBv);
 }
 template <typename T>
-inline VectorXcd Fiber<T>::IncVec(const InciCPtrs<T>& inc) const {
+VectorXcd Fiber<T>::IncVec(const InciCPtrs<T>& inc) const {
   VectorXcd rst(NumBv());
   rst.setZero();
   for (auto& i : inc) rst += i->EffectBv(Node());
   return rst;
 }
 template <typename T>
-inline VectorXcd Fiber<T>::Solve(const InciCPtrs<T>& inc,
+VectorXcd Fiber<T>::Solve(const InciCPtrs<T>& inc,
                                  SolveMethod method) const {
   return config_->Solve(IncVec(inc), method);
 }
 template <typename T>
-inline VectorXcd Fiber<T>::CSolve(const InciCPtrs<T>& inc) const {
+VectorXcd Fiber<T>::CSolve(const InciCPtrs<T>& inc) const {
   return config_->CSolve(IncVec(inc));
 }
 template <typename T>
-inline VectorXcd Fiber<T>::DSolve(const InciCPtrs<T>& inc) const {
+VectorXcd Fiber<T>::DSolve(const InciCPtrs<T>& inc) const {
   return config_->DSolve(IncVec(inc));
 }
 

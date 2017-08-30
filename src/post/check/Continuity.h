@@ -119,26 +119,26 @@ class CC_Solution {
 // ----------------------------------------
 // ContCheck methods:
 template <typename T>
-inline void ContCheck<T>::ComputeMismatch() {
+void ContCheck<T>::ComputeMismatch() {
   for (size_t i = 0; i < inner_.size(); i++)
     mis_.col(i) = ((*inner_[i] - *outer_[i]) / norm_).Bv();
 }
 template <typename T>
-inline std::ostream& ContCheck<T>::Print(std::ostream& os) const {
+std::ostream& ContCheck<T>::Print(std::ostream& os) const {
   return os << separator("-") << mis_.transpose() << std::endl;
 }
 
 // ----------------------------------------
 // CC_Fiber methods:
 template <typename T>
-inline void CC_Fiber<T>::add_circ() {
+void CC_Fiber<T>::add_circ() {
   circ_.push_back(new post::Circle<T>(cc::sol_, f_->PositionGLB(),
                                       f_->Radius() - cc::gap_, cc::P_));
   circ_.push_back(new post::Circle<T>(cc::sol_, f_->PositionGLB(),
                                       f_->Radius() + cc::gap_, cc::P_));
 }
 template <typename T>
-inline void CC_Fiber<T>::add_state() {
+void CC_Fiber<T>::add_state() {
   for (auto& i : circ_[0]->Points()) {
     if (i->In() != f_)
       exit_error_msg({"Continuity check error, inside points out."});
@@ -154,7 +154,7 @@ inline void CC_Fiber<T>::add_state() {
 // ----------------------------------------
 // CC_Solution methods:
 template <typename T>
-inline void CC_Solution<T>::add_cc(const Solution<T>* solution,
+void CC_Solution<T>::add_cc(const Solution<T>* solution,
                                    size_t np, double gap,
                                    double tol) {
   for (auto& i : solution->inhomo()) {
@@ -171,7 +171,7 @@ inline void CC_Solution<T>::add_cc(const Solution<T>* solution,
   }
 }
 template <typename T>
-inline std::string CC_Solution<T>::WriteAll() const {
+std::string CC_Solution<T>::WriteAll() const {
   std::string fn = NewFileName("Continuity_ALL", ".dat");
   std::ofstream file(fn);
   for (auto& i : check_) i->Print(file);
@@ -179,7 +179,7 @@ inline std::string CC_Solution<T>::WriteAll() const {
   return fn;
 }
 template <typename T>
-inline std::string CC_Solution<T>::WriteNC() const {
+std::string CC_Solution<T>::WriteNC() const {
   assert(!nc_.empty());
   std::string fn = NewFileName("Continuity_NC", ".dat");
   std::ofstream file(fn);
@@ -188,7 +188,7 @@ inline std::string CC_Solution<T>::WriteNC() const {
   return fn;
 }
 template <typename T>
-inline void CC_Solution<T>::Write() const {
+void CC_Solution<T>::Write() const {
   if (isCont())
     print_msg({"Continuity of all interfaces checked."});
   else {

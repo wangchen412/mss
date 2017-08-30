@@ -107,14 +107,14 @@ class Solution {
 // Inline functions:
 
 template <typename T>
-inline void Solution::add_header(std::ifstream& file) {
+void Solution::add_header(std::ifstream& file) {
   std::string tmp;
   skipUntil(file, keyword_[typeid(T)], 2, &tmp);
   header_[typeid(T)] = tmp;
 }
 
 template <typename T>
-inline void Solution::add_entry(std::ifstream& file, std::vector<T>& vec) {
+void Solution::add_entry(std::ifstream& file, std::vector<T>& vec) {
   std::string tmp;
   while (getline(file, tmp)) {
     if (isWhiteSpace(tmp)) break;
@@ -140,20 +140,20 @@ inline void Solution::add_entry(std::ifstream& file,
 }
 
 template <typename T>
-inline void Solution::add(std::vector<T>& vec) {
+void Solution::add(std::vector<T>& vec) {
   std::ifstream file(fn_);
   add_header<T>(file);
   add_entry(file, vec);
   file.close();
 }
 template <typename T, typename... Ts>
-inline void Solution::add(std::vector<T>& vec, std::vector<Ts>&... vecs) {
+void Solution::add(std::vector<T>& vec, std::vector<Ts>&... vecs) {
   add(vec);
   add(vecs...);
 }
 
 template <typename T>
-inline std::ostream& Solution::print(std::ostream& os,
+std::ostream& Solution::print(std::ostream& os,
                                      const std::vector<T>& vec) const {
   os << separator("=") << keyword_.at(typeid(T)) << std::endl
      << separator("-") << header_.at(typeid(T)) << std::endl;
@@ -161,7 +161,7 @@ inline std::ostream& Solution::print(std::ostream& os,
   return os << std::endl << std::endl;
 }
 template <typename T, typename... Ts>
-inline std::ostream& Solution::print(std::ostream& os,
+std::ostream& Solution::print(std::ostream& os,
                                      const std::vector<T>& vec,
                                      const std::vector<Ts>&... vecs) const {
   print(os, vec);

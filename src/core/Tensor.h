@@ -125,150 +125,150 @@ typedef Vector<double> PosiVect;
 // Inline functions:
 
 template <typename T>
-inline Scalar<T>& Scalar<T>::operator+=(const Scalar<T>& other) {
+Scalar<T>& Scalar<T>::operator+=(const Scalar<T>& other) {
   x += other.x;
   return *this;
 }
 template <typename T>
-inline Scalar<T>& Scalar<T>::operator-=(const Scalar<T>& other) {
+Scalar<T>& Scalar<T>::operator-=(const Scalar<T>& other) {
   x -= other.x;
   return *this;
 }
 template <typename T>
-inline Scalar<T>& Scalar<T>::operator/=(const Scalar<T>& norm) {
+Scalar<T>& Scalar<T>::operator/=(const Scalar<T>& norm) {
   x /= std::abs(norm.x);
   return *this;
 }
 template <typename T>
-inline Scalar<T>& Scalar<T>::operator*=(const T& n) {
+Scalar<T>& Scalar<T>::operator*=(const T& n) {
   x *= n;
   return *this;
 }
 template <typename T>
-inline Scalar<T>& Scalar<T>::operator/=(const T& n) {
+Scalar<T>& Scalar<T>::operator/=(const T& n) {
   x /= n;
   return *this;
 }
 template <typename T>
-inline Scalar<T> Scalar<T>::operator+(const Scalar<T>& other) const {
+Scalar<T> Scalar<T>::operator+(const Scalar<T>& other) const {
   return Scalar<T>(*this) += other;
 }
 template <typename T>
-inline Scalar<T> Scalar<T>::operator-(const Scalar<T>& other) const {
+Scalar<T> Scalar<T>::operator-(const Scalar<T>& other) const {
   return Scalar<T>(*this) -= other;
 }
 template <typename T>
-inline Scalar<T> Scalar<T>::operator/(const Scalar<T>& norm) const {
+Scalar<T> Scalar<T>::operator/(const Scalar<T>& norm) const {
   return Scalar<T>(*this) /= norm;
 }
 template <typename T>
-inline Scalar<T> Scalar<T>::operator*(const T& n) const {
+Scalar<T> Scalar<T>::operator*(const T& n) const {
   return Scalar<T>(*this) *= n;
 }
 template <typename T>
-inline Scalar<T> Scalar<T>::operator/(const T& n) const {
+Scalar<T> Scalar<T>::operator/(const T& n) const {
   return Scalar<T>(*this) /= n;
 }
 template <typename T>
-inline bool Scalar<T>::operator==(const Scalar<T>& other) const {
+bool Scalar<T>::operator==(const Scalar<T>& other) const {
   return isApprox(other);
 }
 template <typename T>
-inline bool Scalar<T>::isApprox(const Scalar<T>& other, double re) const {
+bool Scalar<T>::isApprox(const Scalar<T>& other, double re) const {
   if (x == other.x) return true;
   return std::abs(x - other.x) / std::max(std::abs(x), std::abs(other.x)) <
          re;
 }
 template <typename T>
-inline std::ostream& operator<<(std::ostream& os, const Scalar<T>& s) {
+std::ostream& operator<<(std::ostream& os, const Scalar<T>& s) {
   return os << s.x;
 }
 template <typename T>
-inline std::istream& operator>>(std::istream& is, Scalar<T>& s) {
+std::istream& operator>>(std::istream& is, Scalar<T>& s) {
   return is >> s.x;
 }
 template <typename T>
-inline Scalar<T>& Scalar<T>::RotateInPlace(double) {
+Scalar<T>& Scalar<T>::RotateInPlace(double) {
   return *this;
 }
 template <typename T>
-inline Scalar<T> Scalar<T>::Rotate(double) const {
+Scalar<T> Scalar<T>::Rotate(double) const {
   return *this;
 }
 
 // ----------------------------------------------------------------------
 
 template <typename T>
-inline Vector<T>& Vector<T>::operator+=(const Vector<T>& other) {
+Vector<T>& Vector<T>::operator+=(const Vector<T>& other) {
   x += other.x;
   y += other.y;
   return *this;
 }
 template <typename T>
-inline Vector<T>& Vector<T>::operator-=(const Vector<T>& other) {
+Vector<T>& Vector<T>::operator-=(const Vector<T>& other) {
   x -= other.x;
   y -= other.y;
   return *this;
 }
 template <typename T>
-inline Vector<T>& Vector<T>::operator/=(const Vector<T>& norm) {
+Vector<T>& Vector<T>::operator/=(const Vector<T>& norm) {
   x /= std::abs(norm.x);
   y /= std::abs(norm.y);
   return *this;
 }
 template <typename T>
-inline Vector<T>& Vector<T>::operator*=(const T& n) {
+Vector<T>& Vector<T>::operator*=(const T& n) {
   x *= n;
   y *= n;
   return *this;
 }
 template <typename T>
-inline Vector<T>& Vector<T>::operator/=(const T& n) {
+Vector<T>& Vector<T>::operator/=(const T& n) {
   x /= n;
   y /= n;
   return *this;
 }
 template <typename T>
-inline Vector<T> Vector<T>::operator+(const Vector<T>& other) const {
+Vector<T> Vector<T>::operator+(const Vector<T>& other) const {
   return Vector<T>(*this) += other;
 }
 template <typename T>
-inline Vector<T> Vector<T>::operator-(const Vector<T>& other) const {
+Vector<T> Vector<T>::operator-(const Vector<T>& other) const {
   return Vector<T>(*this) -= other;
 }
 template <typename T>
-inline Vector<T> Vector<T>::operator/(const Vector<T>& norm) const {
+Vector<T> Vector<T>::operator/(const Vector<T>& norm) const {
   return Vector<T>(*this) /= norm;
 }
 template <typename T>
-inline Vector<T> Vector<T>::operator*(const T& n) const {
+Vector<T> Vector<T>::operator*(const T& n) const {
   return Vector<T>(*this) *= n;
 }
 template <typename T>
-inline Vector<T> Vector<T>::operator/(const T& n) const {
+Vector<T> Vector<T>::operator/(const T& n) const {
   return Vector<T>(*this) /= n;
 }
 template <typename T>
-inline bool Vector<T>::operator==(const Vector<T>& other) const {
+bool Vector<T>::operator==(const Vector<T>& other) const {
   return isApprox(other);
 }
 template <typename T>
-inline bool Vector<T>::isApprox(const Vector<T>& other, double re) const {
+bool Vector<T>::isApprox(const Vector<T>& other, double re) const {
   if (x == other.x && y == other.y) return true;
   return Lp<2>({x - other.x, y - other.y}) /
              std::max(Lp<2>({x, y}), Lp<2>({other.x, other.y})) <
          re;
 }
 template <typename T>
-inline std::ostream& operator<<(std::ostream& os, const Vector<T>& v) {
+std::ostream& operator<<(std::ostream& os, const Vector<T>& v) {
   return os << v.x << "\t\t" << v.y;
 }
 template <typename T>
-inline std::istream& operator>>(std::istream& is, Vector<T>& v) {
+std::istream& operator>>(std::istream& is, Vector<T>& v) {
   return is >> v.x >> v.y;
 }
 template <typename T>
-inline Vector<T>& Vector<T>::RotateInPlace(double a) {
+Vector<T>& Vector<T>::RotateInPlace(double a) {
   // Change its components into the ones in a rotated CS.
 
   double c = cos(a), s = sin(a);
@@ -278,7 +278,7 @@ inline Vector<T>& Vector<T>::RotateInPlace(double a) {
   return *this;
 }
 template <typename T>
-inline Vector<T> Vector<T>::Rotate(double a) const {
+Vector<T> Vector<T>::Rotate(double a) const {
   // Return a new vector with components in a rotated C.S
 
   Vector<T> rst(*this);
@@ -286,20 +286,20 @@ inline Vector<T> Vector<T>::Rotate(double a) const {
   return rst;
 }
 template <typename T>
-inline double Vector<T>::Length() const {
+double Vector<T>::Length() const {
   // Return the length of the real vector.
 
   assert(typeid(T) == typeid(double));
   return Lp<2>({x, y});
 }
 template <typename T>
-inline double Vector<T>::Angle() const {
+double Vector<T>::Angle() const {
   // Return the angle the real vector without knowing its length.
 
   return Angle(Length());
 }
 template <typename T>
-inline double Vector<T>::Angle(double L) const {
+double Vector<T>::Angle(double L) const {
   // Return the angle of the real vector with knowing its length.
 
   if (L < epsilon) return 0;
@@ -307,7 +307,7 @@ inline double Vector<T>::Angle(double L) const {
   return x > 0 ? asin(y / L) : pi - asin(y / L);
 }
 template <typename T>
-inline Vector<T> Vector<T>::Polar() const {
+Vector<T> Vector<T>::Polar() const {
   // Return the components of the position vector as if it is in a polar
   // coordinate system, of which the polar axis is aligned along the x axis.
   // The first value is the radius, and the second one is the polar angle.
@@ -317,7 +317,7 @@ inline Vector<T> Vector<T>::Polar() const {
   return Vector<T>(r, Angle(r));
 }
 template <typename T>
-inline Vector<T> Vector<T>::Cartesian() const {
+Vector<T> Vector<T>::Cartesian() const {
   // Return the components of the position vector as if it is in a Cartesian
   // coordinate system. The reverse of the Polar().
 
@@ -328,58 +328,58 @@ inline Vector<T> Vector<T>::Cartesian() const {
 // ----------------------------------------------------------------------
 
 template <typename T>
-inline Tensor<T>& Tensor<T>::operator+=(const Tensor<T>& other) {
+Tensor<T>& Tensor<T>::operator+=(const Tensor<T>& other) {
   xx += other.xx;
   yy += other.yy;
   xy += other.xy;
   return *this;
 }
 template <typename T>
-inline Tensor<T>& Tensor<T>::operator-=(const Tensor<T>& other) {
+Tensor<T>& Tensor<T>::operator-=(const Tensor<T>& other) {
   xx -= other.xx;
   yy -= other.yy;
   xy -= other.xy;
   return *this;
 }
 template <typename T>
-inline Tensor<T>& Tensor<T>::operator/=(const Tensor<T>& norm) {
+Tensor<T>& Tensor<T>::operator/=(const Tensor<T>& norm) {
   xx -= std::abs(norm.xx);
   yy -= std::abs(norm.yy);
   xy -= std::abs(norm.xy);
   return *this;
 }
 template <typename T>
-inline Tensor<T>& Tensor<T>::operator*=(const T& n) {
+Tensor<T>& Tensor<T>::operator*=(const T& n) {
   xx *= n;
   yy *= n;
   xy *= n;
   return *this;
 }
 template <typename T>
-inline Tensor<T>& Tensor<T>::operator/=(const T& n) {
+Tensor<T>& Tensor<T>::operator/=(const T& n) {
   xx /= n;
   yy /= n;
   xy /= n;
   return *this;
 }
 template <typename T>
-inline Tensor<T> Tensor<T>::operator+(const Tensor<T>& other) const {
+Tensor<T> Tensor<T>::operator+(const Tensor<T>& other) const {
   return Tensor<T>(*this) += other;
 }
 template <typename T>
-inline Tensor<T> Tensor<T>::operator-(const Tensor<T>& other) const {
+Tensor<T> Tensor<T>::operator-(const Tensor<T>& other) const {
   return Tensor<T>(*this) -= other;
 }
 template <typename T>
-inline Tensor<T> Tensor<T>::operator/(const Tensor<T>& norm) const {
+Tensor<T> Tensor<T>::operator/(const Tensor<T>& norm) const {
   return Tensor<T>(*this) /= norm;
 }
 template <typename T>
-inline Tensor<T> Tensor<T>::operator*(const T& n) const {
+Tensor<T> Tensor<T>::operator*(const T& n) const {
   return Tensor<T>(*this) *= n;
 }
 template <typename T>
-inline Tensor<T> Tensor<T>::operator/(const T& n) const {
+Tensor<T> Tensor<T>::operator/(const T& n) const {
   return Tensor<T>(*this) /= n;
 }
 template <typename T>
@@ -395,15 +395,15 @@ bool Tensor<T>::isApprox(const Tensor<T>& other, double re) const {
          re;
 }
 template <typename T>
-inline std::ostream& operator<<(std::ostream& os, const Tensor<T>& t) {
+std::ostream& operator<<(std::ostream& os, const Tensor<T>& t) {
   return os << t.xx << "\t" << t.yy << "\t" << t.xy;
 }
 template <typename T>
-inline std::istream& operator>>(std::istream& is, Tensor<T>& t) {
+std::istream& operator>>(std::istream& is, Tensor<T>& t) {
   return is >> t.xx >> t.yy >> t.xy;
 }
 template <typename T>
-inline Tensor<T>& Tensor<T>::RotateInPlace(double a) {
+Tensor<T>& Tensor<T>::RotateInPlace(double a) {
   // Change its components into the ones in a rotated CS.
 
   double c2 = cos(a * 2), s2 = sin(a * 2);
@@ -415,7 +415,7 @@ inline Tensor<T>& Tensor<T>::RotateInPlace(double a) {
   return *this;
 }
 template <typename T>
-inline Tensor<T> Tensor<T>::Rotate(double a) const {
+Tensor<T> Tensor<T>::Rotate(double a) const {
   // Return a new tensor with components in a rotated CS.
 
   Tensor<T> rst(*this);
