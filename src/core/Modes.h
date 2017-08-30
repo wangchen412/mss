@@ -112,7 +112,7 @@ MatrixNcd<T> GreenT(const CS* localCS, const CS* objCS, const Matrix* matrix);
 
 template <>
 inline Matrix2cd GreenT<StateAP>(const CS* localCS, const CS* objCS,
-                                          const Matrix* matrix) {
+                                 const Matrix* matrix) {
   Matrix2cd rst;
 
   CS X = objCS->inGLB(), Y = localCS->inGLB();
@@ -136,7 +136,7 @@ inline Matrix2cd GreenT<StateAP>(const CS* localCS, const CS* objCS,
   rst(0, 1) = ii / 4 * H / mu;
   rst(1, 0) = ii / 4 / r * mu * Hd * (nxx * nxy + nyx * nyy) -
               ii / 4 * k * k * mu * H2r * rnx * rny;
-  rst(1, 1) = -ii / 4 * Hd * rnx;
+  rst(1, 1) = ii / 4 * Hd * rnx;
 
   return rst;
 }

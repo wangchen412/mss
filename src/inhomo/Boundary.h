@@ -46,8 +46,9 @@ class Boundary {
   }
 
   const CSCPtrs& Node() const { return node_; }
-  MatrixXcd InfMatT(const CS* objCS) const;
-  MatrixXcd InfMatT(const CSCPtrs& objCSs) const;
+  MatrixXcd EffectMatT(const CS* objCS) const;
+  MatrixXcd EffectMatT(const CSCPtrs& objCSs) const;
+  VectorXcd EffectBvT(const Inhomo<T>* obj, const VectorXcd& psi) const;
 
  private:
   double density_;
@@ -55,6 +56,7 @@ class Boundary {
   PanelCPtrs<T, N> panel_;
   size_t P_;
   const Matrix* matrix_;
+  int n_{T::NumBv};
 
   void add_rect(const PosiVect& p1, const PosiVect& p2);
   void add_line(const PosiVect& p1, const PosiVect& p2);
@@ -64,20 +66,29 @@ class Boundary {
 // Inline functions:
 
 template <typename T, int N>
-MatrixXcd Boundary<T, N>::InfMatT(const mss::CS* objCS) const {
-  int n = T::NumBv;
-  MatrixXcd rst(n, n * P_);
+MatrixXcd Boundary<T, N>::EffectMatT(const mss::CS* objCS) const {
+  MatrixXcd rst(n_, n_ * P_);
   for (size_t i = 0; i < P_; i++)
-    rst.block(0, n * i, n, n) = panel_[i]->InfMatT(objCS);
+    rst.block(0, n_ * i, n_, n_) = panel_[i]->InfMatT(objCS);
   return rst;
 }
 
 template <typename T, int N>
-MatrixXcd Boundary<T, N>::InfMatT(const CSCPtrs& objCSs) const {
-  MatrixXcd rst(T::NumBv * objCSs.size(), T::NumBv * P_);
+MatrixXcd Boundary<T, N>::EffectMatT(const CSCPtrs& objCSs) const {
+  MatrixXcd rst(n_ * objCSs.size(), n_ * P_);
+
+#ifdef NDEBUG
+#pragma omp parallel for
+#endif
   for (size_t i = 0; i < objCSs.size(); i++)
-    rst.block(T::NumBv * i, 0, T::NumBv, T::NumBv * P_) = InfMatT(objCSs[i]);
+    rst.block(n_ * i, 0, n_, n_ * P_) = EffectMatT(objCSs[i]);
   return rst;
+}
+
+template <typename T, int N>
+VectorXcd Boundary<T, N>::EffectBvT(const Inhomo<T>* obj,
+                                    const VectorXcd& psi) const {
+  return EffectMatT(obj->Node()) * psi;
 }
 
 template <typename T, int N>

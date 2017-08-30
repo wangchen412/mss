@@ -145,7 +145,7 @@ VectorXcd AssemblyConfig<T>::inVec(const InciCPtrs<T>& incident) {
   VectorXcd rst(NumBv_in());
   size_t u = 0;
   for (auto& i : inhomo_) {
-    rst.segment(u, i->NumBv()) = i->InciVec(incident);
+    rst.segment(u, i->NumBv()) = i->IncVec(incident);
     u += i->NumBv();
   }
   return rst;
@@ -156,7 +156,7 @@ VectorXcd AssemblyConfig<T>::trans_inVec(const InciCPtrs<T>& incident) {
   VectorXcd rst(NumCoeff());
   size_t u = 0;
   for (auto& i : inhomo_) {
-    rst.segment(u, i->NumCoeff()) = i->TransInciVec(incident);
+    rst.segment(u, i->NumCoeff()) = i->TransIncVec(incident);
     u += i->NumCoeff();
   }
   return rst;

@@ -64,7 +64,11 @@ class Fiber : public Inhomo<T> {
   T ScatterMode(const CS* objCS, size_t sn) const override;
   T InnerMode(const CS* objCS, size_t sn) const override;
 
-  VectorXcd InciVec(const InciCPtrs<T>& incident) const override;
+  VectorXcd Solve(const VectorXcd& incBv, SolveMethod method) const override;
+  VectorXcd CSolve(const VectorXcd& incBv) const override;
+  VectorXcd DSolve(const VectorXcd& incBv) const override;
+
+  VectorXcd IncVec(const InciCPtrs<T>& incident) const override;
   VectorXcd Solve(const InciCPtrs<T>& incident,
                   SolveMethod method) const override;
   VectorXcd CSolve(const InciCPtrs<T>& incident) const override;
@@ -72,6 +76,7 @@ class Fiber : public Inhomo<T> {
 
   FiberConfig<T>* Config() const { return config_; }
   const CSCPtrs& Node() const override { return node_; }
+  const CS* Node(size_t i) const override { return node_[i]; }
   const VectorXcd& ScatterCoeff() const override { return cSc_; }
 
  private:
@@ -178,7 +183,19 @@ inline void Fiber<T>::delete_node() {
   for (auto& i : node_) delete i;
 }
 template <typename T>
-inline VectorXcd Fiber<T>::InciVec(const InciCPtrs<T>& inc) const {
+VectorXcd Fiber<T>::Solve(const VectorXcd& incBv, SolveMethod method) const {
+  return config_->Solve(incBv, method);
+}
+template <typename T>
+VectorXcd Fiber<T>::CSolve(const VectorXcd &incBv) const {
+  return config_->CSolve(incBv);
+}
+template <typename T>
+VectorXcd Fiber<T>::DSolve(const VectorXcd &incBv) const {
+  return config_->DSolve(incBv);
+}
+template <typename T>
+inline VectorXcd Fiber<T>::IncVec(const InciCPtrs<T>& inc) const {
   VectorXcd rst(NumBv());
   rst.setZero();
   for (auto& i : inc) rst += i->EffectBv(Node());
@@ -187,15 +204,15 @@ inline VectorXcd Fiber<T>::InciVec(const InciCPtrs<T>& inc) const {
 template <typename T>
 inline VectorXcd Fiber<T>::Solve(const InciCPtrs<T>& inc,
                                  SolveMethod method) const {
-  return config_->Solve(inc, method);
+  return config_->Solve(IncVec(inc), method);
 }
 template <typename T>
 inline VectorXcd Fiber<T>::CSolve(const InciCPtrs<T>& inc) const {
-  return config_->CSolve(inc);
+  return config_->CSolve(IncVec(inc));
 }
 template <typename T>
 inline VectorXcd Fiber<T>::DSolve(const InciCPtrs<T>& inc) const {
-  return config_->DSolve(inc);
+  return config_->DSolve(IncVec(inc));
 }
 
 }  // namespace mss

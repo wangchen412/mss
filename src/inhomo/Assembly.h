@@ -47,10 +47,13 @@ class Assembly : public Inhomo<T> {
   MatrixXcd ColloMat() const override;
   MatrixXcd TransMat() const override;
   MatrixXcd ModeMat(const Inhomo<T>* other) const override;
-  VectorXcd InciVec(const InciCPtrs<T>& incident) const override;
-  VectorXcd Solve(const InciCPtrs<T>& incident) const override;
-  VectorXcd CSolve(const InciCPtrs<T>& incident) const override;
-  VectorXcd DSolve(const InciCPtrs<T>& incident) const override;
+  VectorXcd Solve(const VectorXcd& incBv, SolveMethod method) const override;
+  VectorXcd CSolve(const VectorXcd& incBv) const override;
+  VectorXcd DSolve(const VectorXcd& incBv) const override;
+  VectorXcd IncVec(const InciCPtrs<T>& inc) const override;
+  VectorXcd Solve(const InciCPtrs<T>& inc, SolveMethod method) const override;
+  VectorXcd CSolve(const InciCPtrs<T>& inc) const override;
+  VectorXcd DSolve(const InciCPtrs<T>& inc) const override;
 
  private:
   const AssemblyConfig<T>* config_;

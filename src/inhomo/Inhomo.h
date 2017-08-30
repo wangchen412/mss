@@ -67,12 +67,15 @@ class Inhomo {
   virtual size_t NumCoeff() const = 0;
   virtual size_t NumBv() const    = 0;
 
-  virtual VectorXcd InciVec(const InciCPtrs<T>& incident) const = 0;
-
-  VectorXcd TransInciVec(const InciCPtrs<T>& incident) {
-    return TransMat() * InciVec(incident);
+  virtual VectorXcd IncVec(const InciCPtrs<T>& inc) const = 0;
+  VectorXcd TransIncVec(const InciCPtrs<T>& inc) {
+    return TransMat() * IncVec(inc);
   }
 
+  virtual VectorXcd Solve(const VectorXcd& incBv,
+                          SolveMethod method) const            = 0;
+  virtual VectorXcd CSolve(const VectorXcd& incBv) const       = 0;
+  virtual VectorXcd DSolve(const VectorXcd& incBv) const       = 0;
   virtual VectorXcd Solve(const InciCPtrs<T>& incident,
                           SolveMethod method) const            = 0;
   virtual VectorXcd CSolve(const InciCPtrs<T>& incident) const = 0;
@@ -84,6 +87,7 @@ class Inhomo {
 
   // This inhomogeneity's nodes.
   virtual const CSCPtrs& Node() const = 0;
+  virtual const CS* Node(size_t i) const { return Node()[i]; }
 
   const CS* LocalCS() const { return &localCS_; }
   const CS* Basis() const { return localCS_.Basis(); }

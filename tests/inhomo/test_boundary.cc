@@ -26,35 +26,36 @@ namespace test {
 
 class BoundaryTest : public Test {
  protected:
-  Matrix m{Material(1300, 1.41908e9, 0.832e9), 1.25664e6};
+  Material rubber{1300, 1.41908e9, 0.832e9}, lead{11400, 36.32496e9, 8.43e9};
+  Matrix m{rubber, 1.25664e6};
   IncidentPlaneSH in1{m, pi / 3, 1, 2};
+  FiberConfig<StateAP> fc1{"1", 20, 213, 3e-3, lead, &m};
+  Fiber<StateAP> f1{&fc1, {10e-3, 6e-3}};
+  Fiber<StateAP> f2{&fc1, {10e-3, 6e-3}};
+  Fiber<StateAP> f3{&fc1, {50e-3, 50e-3}};
 
-  Boundary<StateAP> b1{10 * m.KT(), {{0, 12e-3}, {23e-3, 0}}, &m};
+  Boundary<StateAP, 2> b1{100 * m.KT(), {{0, 12e-3}, {23e-3, 0}}, &m};
 };
 
-TEST_F(BoundaryTest, DISABLED_Constructor) {
-  EXPECT_EQ(b1.Node().size(), 1098);
+TEST_F(BoundaryTest, Constructor) {
+  EXPECT_EQ(b1.Node().size(), 10992);
 }
 
-TEST_F(BoundaryTest, InfMat) {
-  CS cs(10e-3, 10e-3, 1);
-  Vector2cd bv_in = in1.Effect(&cs).Bv();
-  Vector2cd bv_bd = b1.InfMatT(&cs) * in1.EffectBv(b1.Node());
+TEST_F(BoundaryTest, EffectMat) {
+  // The points with normal vector perpendicular to the incident plane wave
+  // should have zero traction, which will cause large relative error.
+  VectorXcd bv_in = in1.EffectBv(f1.Node());
+  VectorXcd bv_bd = b1.EffectMatT(f1.Node()) * in1.EffectBv(b1.Node());
+  EXPECT_TRUE(ApproxVectRv(bv_in, bv_bd, 1e-4));
+}
 
-  // std::cout << b1.InfMatT(&cs) << std::endl;
-  // std::cout << in1.EffectBv(b1.Node()) << std::endl;
-
-  
-  std::cout << bv_in << std::endl;
-  std::cout << bv_bd << std::endl;
-
-  // EXPECT_EQ(bv_in, bv_bd);
-
-  // CS cs1(10e-3, 10e-3), cs2(30e-3, 10e-3);
-  // std::cout << GreenT<StateAP>(&cs2, &cs1, &m) << std::endl;
-  // std::cout << m.KT() << std::endl;
-
-  // std::cout << b1.InfMatT(&cs1);
+TEST_F(BoundaryTest, Solve) {
+  EXPECT_TRUE(ApproxVectRv(
+      f1.CSolve({&in1}),
+      f2.CSolve(b1.EffectBvT(&f2, in1.EffectBv(b1.Node()))), 1e-5));
+  EXPECT_TRUE(ApproxVectRv(
+      f1.DSolve({&in1}),
+      f2.DSolve(b1.EffectBvT(&f2, in1.EffectBv(b1.Node()))), 1e-4));
 }
 
 }  // namespace test

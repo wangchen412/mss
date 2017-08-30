@@ -165,8 +165,7 @@ inline bool State<T1, T2>::isApprox(const State& other, double re) const {
 }
 template <>
 VectorXcd StateIP::Bv() const {
-  return Vector4cd(displacement_.x, displacement_.y, stress_.xx,
-                          stress_.xy);
+  return Vector4cd(displacement_.x, displacement_.y, stress_.xx, stress_.xy);
 }
 template <>
 VectorXcd StateAP::Bv() const {

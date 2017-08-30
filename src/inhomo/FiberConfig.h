@@ -73,7 +73,11 @@ class FiberConfig {
   dcomp TL(int n) const;  // TODO: T-matrix for in-plane problem.
   dcomp TT(int n) const;
 
-  VectorXcd InciVect(const InciCPtrs<T>& inc) const;
+  VectorXcd Solve(const VectorXcd& incBv, SolveMethod method);
+  VectorXcd CSolve(const VectorXcd& incBv);
+  VectorXcd DSolve(const VectorXcd& incBv);
+
+  VectorXcd IncVec(const InciCPtrs<T>& inc) const;
   VectorXcd Solve(const InciCPtrs<T>& inc, SolveMethod method);
   VectorXcd CSolve(const InciCPtrs<T>& inc);
   VectorXcd DSolve(const InciCPtrs<T>& inc);
@@ -244,7 +248,29 @@ void FiberConfig<StateIP>::com_CQ() {
   // TODO: tT of in-plane problem
 }
 template <typename T>
-VectorXcd FiberConfig<T>::InciVect(const InciCPtrs<T>& inc) const {
+VectorXcd FiberConfig<T>::Solve(const VectorXcd& incBv, SolveMethod method) {
+  switch (method) {
+    case COLLOCATION:
+      return CSolve(incBv);
+    case DFT:
+      return DSolve(incBv);
+    default:
+      error_msg({"Unknown method."});
+      exit(EXIT_FAILURE);
+  }
+}
+template <typename T>
+VectorXcd FiberConfig<T>::CSolve(const VectorXcd& incBv) {
+  return ColloMat()
+      .jacobiSvd(Eigen::ComputeThinU | Eigen::ComputeThinV)
+      .solve(incBv);
+}
+template <typename T>
+VectorXcd FiberConfig<T>::DSolve(const VectorXcd& incBv) {
+  return TransMat() * incBv;
+}
+template <typename T>
+VectorXcd FiberConfig<T>::IncVec(const InciCPtrs<T>& inc) const {
   VectorXcd rst(NumBv());
   rst.setZero();
   for (auto& i : inc) rst += i->EffectBv(Node());
@@ -252,25 +278,15 @@ VectorXcd FiberConfig<T>::InciVect(const InciCPtrs<T>& inc) const {
 }
 template <typename T>
 VectorXcd FiberConfig<T>::Solve(const InciCPtrs<T>& inc, SolveMethod method) {
-  switch (method) {
-    case COLLOCATION:
-      return CSolve(inc);
-    case DFT:
-      return DSolve(inc);
-    default:
-      error_msg({"Unknown method."});
-      exit(EXIT_FAILURE);
-  }
+  return Solve(inciVect(inc), method);
 }
 template <typename T>
 VectorXcd FiberConfig<T>::CSolve(const InciCPtrs<T>& inc) {
-  return ColloMat()
-      .jacobiSvd(Eigen::ComputeThinU | Eigen::ComputeThinV)
-      .solve(InciVect(inc));
+  return CSolve(inciVect(inc));
 }
 template <typename T>
 VectorXcd FiberConfig<T>::DSolve(const InciCPtrs<T>& inc) {
-  return TransMat() * InciVect(inc);
+  return DSolve(inciVect(inc));
 }
 
 }  // namespace mss
