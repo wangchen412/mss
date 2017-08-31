@@ -111,6 +111,7 @@ class AssemblyConfig {
 
   VectorXcd trans_inVec(const InciCPtrs<T>& incident) const;
   VectorXcd trans_inVec(const VectorXcd& incBv) const;
+  MatrixXcd trans_biMat(const MatrixXcd& B) const;
   void dist_solution(const VectorXcd& solution);
 };
 
@@ -214,7 +215,30 @@ VectorXcd AssemblyConfig<T>::trans_inVec(const InciCPtrs<T>& incident) const {
 
 template <typename T>
 VectorXcd AssemblyConfig<T>::trans_inVec(const VectorXcd& incBv) const {
-  return com_trans_mat() * incBv;
+  VectorXcd rst(NumCoeff());
+  size_t u = 0, v = 0;
+  for (auto& i : inhomo_) {
+    rst.segment(u, i->NumCoeff()) =
+        i->TransMat() * incBv.segment(v, i->NumBv());
+    u += i->NumCoeff();
+    v += i->NumBv();
+  }
+  return rst;
+}
+
+template <typename T>
+MatrixXcd AssemblyConfig<T>::trans_biMat(const Eigen::MatrixXcd& B) const {
+  MatrixXcd rst(NumCoeff(), NumBv());
+  for (size_t u = 0; u < inhomo().size(); u++) {
+    size_t i = 0, j = 0;
+    for (size_t k = 0; k < u; k++) {
+      i += inhomo(k)->NumCoeff();
+      j += inhomo(k)->NumBv();
+    }
+    rst.block(i, 0, inhomo(u)->NumCoeff(), NumBv()) =
+        inhomo(u)->TransMat() * B.block(j, 0, inhomo(u)->NumBv(), NumBv());
+  }
+  return rst;
 }
 
 template <typename T>
