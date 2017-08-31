@@ -25,7 +25,7 @@
 
 namespace mss {
 
-template <typename T, int N = 4>
+template <typename T, int N = 2>
 class Panel {
  public:
   Panel(const CS* center, double length, const Matrix* matrix)
@@ -53,10 +53,10 @@ class Panel {
 template <typename T, int N>
 LegendreRoot<N> Panel<T, N>::l_;
 
-template <typename T, int N = 4>
+template <typename T, int N = 2>
 using PanelCPtrs = std::vector<const Panel<T, N>*>;
 
-template <typename T, int N = 4>
+template <typename T, int N = 2>
 using PanelPtrs = std::vector<Panel<T, N>*>;
 
 // ---------------------------------------------------------------------------

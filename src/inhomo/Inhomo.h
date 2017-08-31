@@ -68,8 +68,9 @@ class Inhomo {
   virtual size_t NumBv() const    = 0;
 
   virtual VectorXcd IncVec(const InciCPtrs<T>& inc) const = 0;
+  VectorXcd TransIncVec(const VectorXcd& incBv) { return TransMat() * incBv; }
   VectorXcd TransIncVec(const InciCPtrs<T>& inc) {
-    return TransMat() * IncVec(inc);
+    return TransIncVec(IncVec(inc));
   }
 
   virtual VectorXcd Solve(const VectorXcd& incBv,

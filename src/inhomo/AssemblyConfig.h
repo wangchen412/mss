@@ -21,6 +21,7 @@
 #define MSS_ASSEMBLYCONFIG_H
 
 #include "../pre/Input.h"
+#include "Boundary.h"
 #include "Fiber.h"
 #include "FiberConfig.h"
 #include "Inhomo.h"
@@ -43,6 +44,7 @@ class AssemblyConfig {
         width_(input.width),
         height_(input.height),
         matrix_(matrix),
+        boundary_(input.pointDensity, height_, width_, matrix),
         input_(input) {
     add_inhomo();
   }
@@ -50,14 +52,20 @@ class AssemblyConfig {
   virtual ~AssemblyConfig() { delete_inhomo(); }
 
   double CharLength() const { return height_ + width_; }
-  size_t NumNode() const;  // TODO
-  size_t NumBv() const;    // TODO
+  size_t NumNode() const { return Node().size(); }
+  size_t NumBv() const { return T::NumBv * NumNode(); }
   size_t NumCoeff() const { return num_coeff_; }
   size_t NumBv_in() const { return num_bv_in_; }
 
   double Height() const { return height_; }
   double Width() const { return width_; }
   const std::string& ID() const { return ID_; }
+  const CSCPtrs& Node() const { return boundary_.Node(); }
+  MatrixXcd BdIntMatT() const { return boundary_.EffectMatT(inhomoC_); }
+
+  void Solve(const VectorXcd& incBv, SolveMethod method);
+  void CSolve(const VectorXcd& incBv);
+  void DSolve(const VectorXcd& incBv);
 
   void Solve(const InciCPtrs<T>& incident, SolveMethod method);
   void CSolve(const InciCPtrs<T>& incident);
@@ -72,6 +80,7 @@ class AssemblyConfig {
 
   const InhomoCPtrs<T>& inhomo() const { return inhomoC_; }
   const Inhomo<T>* inhomo(size_t sn) const { return inhomoC_[sn]; }
+  VectorXcd inVec(const InciCPtrs<T>& incident) const;
 
  protected:
   const std::string ID_;
@@ -85,6 +94,7 @@ class AssemblyConfig {
   const double width_, height_;
 
   const class Matrix* matrix_;
+  Boundary<T> boundary_;
   const input::AssemblyConfig& input_;
 
   MatrixXcd cc_;
@@ -97,13 +107,45 @@ class AssemblyConfig {
   void delete_fiber_config();
   void compute_cc();
   void compute_dc();
-  VectorXcd inVec(const InciCPtrs<T>& incident);
-  VectorXcd trans_inVec(const InciCPtrs<T>& incident);
+  MatrixXcd com_trans_mat() const;  // Combined trans-matrix.
+
+  VectorXcd trans_inVec(const InciCPtrs<T>& incident) const;
+  VectorXcd trans_inVec(const VectorXcd& incBv) const;
   void dist_solution(const VectorXcd& solution);
 };
 
 // ---------------------------------------------------------------------------
 // Inline functions:
+
+template <typename T>
+void AssemblyConfig<T>::Solve(const VectorXcd& incBv, SolveMethod method) {
+  switch (method) {
+    case COLLOCATION:
+      CSolve(incBv);
+      break;
+    case DFT:
+      DSolve(incBv);
+      break;
+    default:
+      exit_error_msg({"Unknown method."});
+  }
+}
+
+template <typename T>
+void AssemblyConfig<T>::CSolve(const VectorXcd& incBv) {
+  // Jacobi SVD:
+  compute_cc();
+  auto svd = cc_.jacobiSvd(Eigen::ComputeThinU | Eigen::ComputeThinV);
+  VectorXcd solution = svd.solve(incBv);
+  dist_solution(solution);
+}
+
+template <typename T>
+void AssemblyConfig<T>::DSolve(const VectorXcd& incBv) {
+  compute_dc();
+  VectorXcd solution = dc_.lu().solve(trans_inVec(incBv));
+  dist_solution(solution);
+}
 
 template <typename T>
 void AssemblyConfig<T>::Solve(const InciCPtrs<T>& incident,
@@ -122,23 +164,31 @@ void AssemblyConfig<T>::Solve(const InciCPtrs<T>& incident,
 
 template <typename T>
 void AssemblyConfig<T>::CSolve(const InciCPtrs<T>& incident) {
-  // Jacobi SVD:
-  compute_cc();
-  auto svd = cc_.jacobiSvd(Eigen::ComputeThinU | Eigen::ComputeThinV);
-  VectorXcd solution = svd.solve(inVec(incident));
-  dist_solution(solution);
+  CSolve(inVec(incident));
 }
 
 template <typename T>
 void AssemblyConfig<T>::DSolve(const InciCPtrs<T>& incident) {
-  // CSolve(incident);
   compute_dc();
   VectorXcd solution = dc_.lu().solve(trans_inVec(incident));
   dist_solution(solution);
 }
 
 template <typename T>
-VectorXcd AssemblyConfig<T>::inVec(const InciCPtrs<T>& incident) {
+MatrixXcd AssemblyConfig<T>::com_trans_mat() const {
+  MatrixXcd rst(NumCoeff(), NumBv_in());
+  rst.setZero();
+  size_t u = 0, v = 0;
+  for (auto& i : inhomo_) {
+    rst.block(u, v, i->NumCoeff(), i->NumBv()) = i->TransMat();
+    u += i->NumCoeff();
+    v += i->NumBv();
+  }
+  return rst;
+}
+
+template <typename T>
+VectorXcd AssemblyConfig<T>::inVec(const InciCPtrs<T>& incident) const {
   // The effect vector of incident wave along all the interfaces inside the
   // assembly.
 
@@ -152,7 +202,7 @@ VectorXcd AssemblyConfig<T>::inVec(const InciCPtrs<T>& incident) {
 }
 
 template <typename T>
-VectorXcd AssemblyConfig<T>::trans_inVec(const InciCPtrs<T>& incident) {
+VectorXcd AssemblyConfig<T>::trans_inVec(const InciCPtrs<T>& incident) const {
   VectorXcd rst(NumCoeff());
   size_t u = 0;
   for (auto& i : inhomo_) {
@@ -160,6 +210,11 @@ VectorXcd AssemblyConfig<T>::trans_inVec(const InciCPtrs<T>& incident) {
     u += i->NumCoeff();
   }
   return rst;
+}
+
+template <typename T>
+VectorXcd AssemblyConfig<T>::trans_inVec(const VectorXcd& incBv) const {
+  return com_trans_mat() * incBv;
 }
 
 template <typename T>
@@ -282,32 +337,6 @@ void AssemblyConfig<T>::compute_cc() {
     }
   }
 }
-
-// template <typename T>
-// void AssemblyConfig<T>::add_node() {
-//   add_rect({0, height_}, {width_, 0});
-// }
-
-// template <typename T>
-// void AssemblyConfig<T>::add_rect(const PosiVect& p1, const PosiVect& p2) {
-//   // The contour should be counter-clock wise.
-
-//   add_line({p1.x, p1.y}, {p1.x, p2.y});
-//   add_line({p1.x, p2.y}, {p2.x, p2.y});
-//   add_line({p2.x, p2.y}, {p2.x, p1.y});
-//   add_line({p2.x, p1.y}, {p1.x, p1.y});
-// }
-
-// template <typename T>
-// void AssemblyConfig<T>::add_line(const PosiVect& p1, const PosiVect& p2) {
-//   // The contour is counter-clock wise. So the angle of the local CS
-//   // equals the vector angle minus pi/2.
-
-//   size_t N   = (p2 - p1).Length() * input_.pointDensity;
-//   PosiVect d = (p2 - p1) / N;
-//   double ang = d.Angle() - pi_2;
-//   for (size_t i = 0; i < N; i++) node_.push_back(new CS(p1 + d * i, ang));
-// }
 
 }  // namespace mss
 

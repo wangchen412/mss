@@ -24,13 +24,13 @@
 
 namespace mss {
 
-template <typename T, int N = 4>
+template <typename T, int N = 2>
 class Boundary {
  public:
   Boundary(double density, const std::vector<PosiVect>& positions,
-           const Matrix* matrix, Tessellation type = RECTANGULAR)
+           const Matrix* matrix, BoundaryShape shape = RECTANGULAR)
       : density_(density), matrix_(matrix) {
-    switch (type) {
+    switch (shape) {
       case RECTANGULAR:
         assert(positions.size() == 2);
         add_rect(positions[0], positions[1]);
@@ -40,6 +40,8 @@ class Boundary {
     }
     P_ = node_.size();
   }
+  Boundary(double density, double height, double width, const Matrix* matrix)
+      : Boundary(density, {{0, height}, {width, 0}}, matrix) {}
   virtual ~Boundary() {
     for (auto& i : node_) delete i;
     for (auto& i : panel_) delete i;
@@ -48,6 +50,7 @@ class Boundary {
   const CSCPtrs& Node() const { return node_; }
   MatrixXcd EffectMatT(const CS* objCS) const;
   MatrixXcd EffectMatT(const CSCPtrs& objCSs) const;
+  MatrixXcd EffectMatT(const InhomoCPtrs<T>& objs) const;
   VectorXcd EffectBvT(const Inhomo<T>* obj, const VectorXcd& psi) const;
 
  private:
@@ -82,6 +85,21 @@ MatrixXcd Boundary<T, N>::EffectMatT(const CSCPtrs& objCSs) const {
 #endif
   for (size_t i = 0; i < objCSs.size(); i++)
     rst.block(n_ * i, 0, n_, n_ * P_) = EffectMatT(objCSs[i]);
+  return rst;
+}
+
+template <typename T, int N>
+MatrixXcd Boundary<T, N>::EffectMatT(const InhomoCPtrs<T>& objs) const {
+  size_t m = 0;
+  for (auto& i : objs) m += i->NumBv();
+  MatrixXcd rst(m, n_ * P_);
+
+  for (size_t u = 0; u < objs.size(); u++) {
+    m = 0;
+    for (size_t k = 0; k < u; k++) m += objs[k]->NumBv();
+    rst.block(m, 0, objs[u]->NumBv(), n_ * P_) = EffectMatT(objs[u]->Node());
+  }
+
   return rst;
 }
 

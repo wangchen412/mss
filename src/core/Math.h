@@ -51,12 +51,12 @@ const double epsilon(1e-14);
 const auto setMaxPrecision =
     std::setprecision(std::numeric_limits<double>::digits10 + 1);
 
-using Eigen::MatrixXcd;
-using Eigen::VectorXcd;
 using Eigen::Matrix2cd;
 using Eigen::Matrix4cd;
+using Eigen::MatrixXcd;
 using Eigen::Vector2cd;
 using Eigen::Vector4cd;
+using Eigen::VectorXcd;
 
 template <typename T>
 using MatrixNcd = Eigen::Matrix<dcomp, T::NumBv, T::NumBv>;
@@ -65,7 +65,7 @@ template <typename T>
 using VectorNcd = Eigen::Matrix<dcomp, T::NumBv, 1>;
 
 enum SolveMethod { COLLOCATION, DFT };
-enum Tessellation { RECTANGULAR, HEXAGONAL };
+enum BoundaryShape { RECTANGULAR, HEXAGONAL };
 
 inline dcomp operator*(const dcomp& lhs, int rhs) {
   return lhs * double(rhs);
@@ -156,7 +156,9 @@ double RelativeDiff(const T& a, const T& b) {
 
 // Check if the two values are approximately equal with relative error.
 template <typename T>
-bool ApproxRv(const T& a, const T& b, double re = epsilon) {
+bool ApproxRv(const T& a, const T& b, double re = epsilon, bool v = false) {
+  if (v)
+    std::cout << a << "\t" << b << "\t" << RelativeDiff(a, b) << std::endl;
   return RelativeDiff(a, b) < re;
 }
 
@@ -165,10 +167,10 @@ bool ApproxRv(const T& a, const T& b, double re = epsilon) {
 template <typename T>
 bool ApproxVectRv(const Eigen::Matrix<T, Eigen::Dynamic, 1>& a,
                   const Eigen::Matrix<T, Eigen::Dynamic, 1>& b,
-                  double re = epsilon, int k = 0) {
+                  double re = epsilon, int k = 0, bool v = false) {
   assert(a.size() == b.size());
   for (long i = k; i < a.size() - k; i++)
-    if (!ApproxRv(a(i), b(i), re)) return false;
+    if (!ApproxRv(a(i), b(i), re, v)) return false;
   return true;
 }
 

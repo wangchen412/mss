@@ -58,6 +58,33 @@ TEST_F(BoundaryTest, Solve) {
       f2.DSolve(b1.EffectBvT(&f2, in1.EffectBv(b1.Node()))), 1e-4));
 }
 
+class AssemBoundaryTest : public Test {
+ protected:
+  AssemBoundaryTest() : Test(__FILE__, "boundary") {}
+
+  input::Solution s{path("input.txt")};
+  Matrix matrix{s};
+  AssemblyConfig<StateAP> c1{"Test1", s.config(), &matrix};
+  AssemblyConfig<StateAP> c2{"Test2", s.config(), &matrix};
+  IncidentPlaneSH inSH1{matrix, s.incident()[0]};
+};
+
+TEST_F(AssemBoundaryTest, CSolve) {
+  c1.CSolve({&inSH1});
+  c2.CSolve(c2.BdIntMatT() * inSH1.EffectBv(c2.Node()));
+  for (int i = 0; i < 3; i++)
+    EXPECT_TRUE(ApproxVectRv(c1.inhomo(i)->ScatterCoeff(),
+                             c2.inhomo(i)->ScatterCoeff(), 1e-4, 15));
+}
+
+TEST_F(AssemBoundaryTest, DSolve) {
+  c1.DSolve({&inSH1});
+  c2.DSolve(c2.BdIntMatT() * inSH1.EffectBv(c2.Node()));
+  for (int i = 0; i < 3; i++)
+    EXPECT_TRUE(ApproxVectRv(c1.inhomo(i)->ScatterCoeff(),
+                             c2.inhomo(i)->ScatterCoeff(), 1e-3, 15));
+}
+
 }  // namespace test
 
 }  // namespace mss

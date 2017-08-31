@@ -154,16 +154,15 @@ void Solution::add(std::vector<T>& vec, std::vector<Ts>&... vecs) {
 
 template <typename T>
 std::ostream& Solution::print(std::ostream& os,
-                                     const std::vector<T>& vec) const {
+                              const std::vector<T>& vec) const {
   os << separator("=") << keyword_.at(typeid(T)) << std::endl
      << separator("-") << header_.at(typeid(T)) << std::endl;
   for (const auto& i : vec) os << i << std::endl;
   return os << std::endl << std::endl;
 }
 template <typename T, typename... Ts>
-std::ostream& Solution::print(std::ostream& os,
-                                     const std::vector<T>& vec,
-                                     const std::vector<Ts>&... vecs) const {
+std::ostream& Solution::print(std::ostream& os, const std::vector<T>& vec,
+                              const std::vector<Ts>&... vecs) const {
   print(os, vec);
   return print(os, vecs...);
 }

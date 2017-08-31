@@ -202,8 +202,7 @@ VectorXcd Fiber<T>::IncVec(const InciCPtrs<T>& inc) const {
   return rst;
 }
 template <typename T>
-VectorXcd Fiber<T>::Solve(const InciCPtrs<T>& inc,
-                                 SolveMethod method) const {
+VectorXcd Fiber<T>::Solve(const InciCPtrs<T>& inc, SolveMethod method) const {
   return config_->Solve(IncVec(inc), method);
 }
 template <typename T>
