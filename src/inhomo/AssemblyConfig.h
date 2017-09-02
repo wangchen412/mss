@@ -63,6 +63,16 @@ class AssemblyConfig {
   const CSCPtrs& Node() const { return boundary_.Node(); }
   MatrixXcd BdIntMatT() const { return boundary_.EffectMatT(inhomoC_); }
 
+  const MatrixXcd& ColloMat();
+  const MatrixXcd& DcMat();
+  const MatrixXcd& TransMat() const;
+  MatrixXcd GramMat();
+
+  VectorXcd IncVec(const InciCPtrs<T>& incident) const;
+  VectorXcd Trans_IncVec(const InciCPtrs<T>& incident) const;
+  VectorXcd Trans_IncVec(const VectorXcd& incBv) const;
+  MatrixXcd Trans_BiMat(const MatrixXcd& B) const;
+
   void Solve(const VectorXcd& incBv, SolveMethod method);
   void CSolve(const VectorXcd& incBv);
   void DSolve(const VectorXcd& incBv);
@@ -80,7 +90,6 @@ class AssemblyConfig {
 
   const InhomoCPtrs<T>& inhomo() const { return inhomoC_; }
   const Inhomo<T>* inhomo(size_t sn) const { return inhomoC_[sn]; }
-  VectorXcd inVec(const InciCPtrs<T>& incident) const;
 
  protected:
   const std::string ID_;
@@ -99,6 +108,7 @@ class AssemblyConfig {
 
   MatrixXcd cc_;
   MatrixXcd dc_;
+  bool cc_nc_{true}, dc_nc_{true};
 
   void add_inhomo();
   void add_fiber();
@@ -108,10 +118,6 @@ class AssemblyConfig {
   void compute_cc();
   void compute_dc();
   MatrixXcd com_trans_mat() const;  // Combined trans-matrix.
-
-  VectorXcd trans_inVec(const InciCPtrs<T>& incident) const;
-  VectorXcd trans_inVec(const VectorXcd& incBv) const;
-  MatrixXcd trans_biMat(const MatrixXcd& B) const;
   void dist_solution(const VectorXcd& solution);
 };
 
@@ -135,16 +141,14 @@ void AssemblyConfig<T>::Solve(const VectorXcd& incBv, SolveMethod method) {
 template <typename T>
 void AssemblyConfig<T>::CSolve(const VectorXcd& incBv) {
   // Jacobi SVD:
-  compute_cc();
-  auto svd = cc_.jacobiSvd(Eigen::ComputeThinU | Eigen::ComputeThinV);
+  auto svd = ColloMat().jacobiSvd(Eigen::ComputeThinU | Eigen::ComputeThinV);
   VectorXcd solution = svd.solve(incBv);
   dist_solution(solution);
 }
 
 template <typename T>
 void AssemblyConfig<T>::DSolve(const VectorXcd& incBv) {
-  compute_dc();
-  VectorXcd solution = dc_.lu().solve(trans_inVec(incBv));
+  VectorXcd solution = DcMat().lu().solve(Trans_IncVec(incBv));
   dist_solution(solution);
 }
 
@@ -165,14 +169,30 @@ void AssemblyConfig<T>::Solve(const InciCPtrs<T>& incident,
 
 template <typename T>
 void AssemblyConfig<T>::CSolve(const InciCPtrs<T>& incident) {
-  CSolve(inVec(incident));
+  CSolve(IncVec(incident));
 }
 
 template <typename T>
 void AssemblyConfig<T>::DSolve(const InciCPtrs<T>& incident) {
-  compute_dc();
-  VectorXcd solution = dc_.lu().solve(trans_inVec(incident));
+  VectorXcd solution = DcMat().lu().solve(Trans_IncVec(incident));
   dist_solution(solution);
+}
+
+template <typename T>
+const MatrixXcd& AssemblyConfig<T>::ColloMat() {
+  if (cc_nc_) compute_cc();
+  return cc_;
+}
+
+template <typename T>
+const MatrixXcd& AssemblyConfig<T>::DcMat() {
+  if (dc_nc_) compute_dc();
+  return dc_;
+}
+
+template <typename T>
+MatrixXcd AssemblyConfig<T>::GramMat() {
+  return ColloMat().transpose() * ColloMat();
 }
 
 template <typename T>
@@ -189,7 +209,7 @@ MatrixXcd AssemblyConfig<T>::com_trans_mat() const {
 }
 
 template <typename T>
-VectorXcd AssemblyConfig<T>::inVec(const InciCPtrs<T>& incident) const {
+VectorXcd AssemblyConfig<T>::IncVec(const InciCPtrs<T>& incident) const {
   // The effect vector of incident wave along all the interfaces inside the
   // assembly.
 
@@ -203,7 +223,8 @@ VectorXcd AssemblyConfig<T>::inVec(const InciCPtrs<T>& incident) const {
 }
 
 template <typename T>
-VectorXcd AssemblyConfig<T>::trans_inVec(const InciCPtrs<T>& incident) const {
+VectorXcd AssemblyConfig<T>::Trans_IncVec(
+    const InciCPtrs<T>& incident) const {
   VectorXcd rst(NumCoeff());
   size_t u = 0;
   for (auto& i : inhomo_) {
@@ -214,7 +235,7 @@ VectorXcd AssemblyConfig<T>::trans_inVec(const InciCPtrs<T>& incident) const {
 }
 
 template <typename T>
-VectorXcd AssemblyConfig<T>::trans_inVec(const VectorXcd& incBv) const {
+VectorXcd AssemblyConfig<T>::Trans_IncVec(const VectorXcd& incBv) const {
   VectorXcd rst(NumCoeff());
   size_t u = 0, v = 0;
   for (auto& i : inhomo_) {
@@ -227,7 +248,7 @@ VectorXcd AssemblyConfig<T>::trans_inVec(const VectorXcd& incBv) const {
 }
 
 template <typename T>
-MatrixXcd AssemblyConfig<T>::trans_biMat(const Eigen::MatrixXcd& B) const {
+MatrixXcd AssemblyConfig<T>::Trans_BiMat(const Eigen::MatrixXcd& B) const {
   MatrixXcd rst(NumCoeff(), NumBv());
   for (size_t u = 0; u < inhomo().size(); u++) {
     size_t i = 0, j = 0;
@@ -322,6 +343,8 @@ void AssemblyConfig<T>::delete_fiber_config() {
 
 template <typename T>
 void AssemblyConfig<T>::compute_dc() {
+  if (!dc_nc_) return;
+
   dc_.resize(NumCoeff(), NumCoeff());
 
 #ifdef NDEBUG
@@ -340,10 +363,14 @@ void AssemblyConfig<T>::compute_dc() {
       i += Nu;
     }
   }
+
+  dc_nc_ = false;
 }
 
 template <typename T>
 void AssemblyConfig<T>::compute_cc() {
+  if (!cc_nc_) return;
+
   cc_.resize(NumBv_in(), NumCoeff());
 
 #ifdef NDEBUG
@@ -360,6 +387,8 @@ void AssemblyConfig<T>::compute_cc() {
       i += Nu;
     }
   }
+
+  cc_nc_ = false;
 }
 
 }  // namespace mss

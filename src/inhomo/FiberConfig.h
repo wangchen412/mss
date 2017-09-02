@@ -83,19 +83,19 @@ class FiberConfig {
   VectorXcd DSolve(const InciCPtrs<T>& inc);
 
  protected:
-  const std::string ID_;           // The ID.
-  const int N_;                    // The top order of the series.
-  const int NumCoeff_;             // Number of the scattering coefficients.
-  const size_t P_;                 // Number of the collocation points.
-  const double r_;                 // Radius of the fiber.
-  const class Material material_;  // Material of the fiber.
-  const double kl_, kt_;           // Wave numbers of the fiber.
-  const class Matrix* matrix_;     // The matrix.
-  CSCPtrs node_;                   // Nodes.
-  MatrixXcd Q_;                    // Transform matrix.
-  MatrixXcd R_;                    // Inner transform matrix.
-  MatrixXcd CQ_;                   // Collocation matrix.
-  bool QR_nc{true}, CQ_nc{true};   // Flag for the status of matrix.
+  const std::string ID_;            // The ID.
+  const int N_;                     // The top order of the series.
+  const int NumCoeff_;              // Number of the scattering coefficients.
+  const size_t P_;                  // Number of the collocation points.
+  const double r_;                  // Radius of the fiber.
+  const class Material material_;   // Material of the fiber.
+  const double kl_, kt_;            // Wave numbers of the fiber.
+  const class Matrix* matrix_;      // The matrix.
+  CSCPtrs node_;                    // Nodes.
+  MatrixXcd Q_;                     // Transform matrix.
+  MatrixXcd R_;                     // Inner transform matrix.
+  MatrixXcd CQ_;                    // Collocation matrix.
+  bool QR_nc_{true}, CQ_nc_{true};  // Flag for the status of matrix.
 
   void add_node();
   void del_node();
@@ -115,12 +115,12 @@ using FiberConfigCPtrs = std::vector<const FiberConfig<T>*>;
 
 template <typename T>
 const MatrixXcd& FiberConfig<T>::ColloMat() {
-  if (CQ_nc) com_CQ();
+  if (CQ_nc_) com_CQ();
   return CQ_;
 }
 template <typename T>
 const MatrixXcd& FiberConfig<T>::TransMat() {
-  if (QR_nc) com_QR();
+  if (QR_nc_) com_QR();
   return Q_;
 }
 
@@ -204,7 +204,7 @@ void FiberConfig<T>::com_QR() {
     R_.block((n + N_) * N, 0, N, NumBv()) = t.block(N, 0, N, 2 * N) * g;
   }
 
-  QR_nc = false;
+  QR_nc_ = false;
 }
 template <>
 dcomp FiberConfig<StateAP>::TT(int n) const {
@@ -233,7 +233,7 @@ void FiberConfig<StateAP>::com_CQ() {
     }
   }
 
-  CQ_nc = false;
+  CQ_nc_ = false;
 }
 template <>
 dcomp FiberConfig<StateIP>::TL(int) const {

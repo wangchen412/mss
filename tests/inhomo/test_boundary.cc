@@ -40,7 +40,6 @@ class BoundaryTest : public Test {
 TEST_F(BoundaryTest, Constructor) {
   EXPECT_EQ(b1.Node().size(), 10992);
 }
-
 TEST_F(BoundaryTest, EffectMat) {
   // The points with normal vector perpendicular to the incident plane wave
   // should have zero traction, which will cause large relative error.
@@ -48,7 +47,6 @@ TEST_F(BoundaryTest, EffectMat) {
   VectorXcd bv_bd = b1.EffectMatT(f1.Node()) * in1.EffectBv(b1.Node());
   EXPECT_TRUE(ApproxVectRv(bv_in, bv_bd, 1e-4));
 }
-
 TEST_F(BoundaryTest, Solve) {
   EXPECT_TRUE(ApproxVectRv(
       f1.CSolve({&in1}),
@@ -76,13 +74,52 @@ TEST_F(AssemBoundaryTest, CSolve) {
     EXPECT_TRUE(ApproxVectRv(c1.inhomo(i)->ScatterCoeff(),
                              c2.inhomo(i)->ScatterCoeff(), 1e-4, 15));
 }
-
 TEST_F(AssemBoundaryTest, DSolve) {
   c1.DSolve({&inSH1});
   c2.DSolve(c2.BdIntMatT() * inSH1.EffectBv(c2.Node()));
   for (int i = 0; i < 3; i++)
     EXPECT_TRUE(ApproxVectRv(c1.inhomo(i)->ScatterCoeff(),
                              c2.inhomo(i)->ScatterCoeff(), 1e-3, 15));
+}
+TEST_F(AssemBoundaryTest, CSolve_InvMat) {
+  c1.CSolve({&inSH1});
+  VectorXcd solution = c2.GramMat().inverse() * c2.ColloMat().transpose() *
+                       c2.IncVec({&inSH1});
+  for (int i = 0; i < 3; i++) {
+    VectorXcd rr = c1.inhomo(i)->ScatterCoeff();
+    VectorXcd cc = solution.segment(61 * i, 61);
+    EXPECT_TRUE(ApproxVectRv(rr, cc, 1e-3, 15));
+  }
+}
+TEST_F(AssemBoundaryTest, DSolve_InvMat) {
+  c1.DSolve({&inSH1});
+  VectorXcd solution = c2.DcMat().inverse() * c2.Trans_IncVec({&inSH1});
+  for (int i = 0; i < 3; i++) {
+    VectorXcd rr = c1.inhomo(i)->ScatterCoeff();
+    VectorXcd cc = solution.segment(61 * i, 61);
+    EXPECT_TRUE(ApproxVectRv(rr, cc));
+  }
+}
+TEST_F(AssemBoundaryTest, CSolve_InvMatBi) {
+  c1.CSolve({&inSH1});
+  VectorXcd solution = c2.GramMat().inverse() * c2.ColloMat().transpose() *
+                       c2.BdIntMatT() * inSH1.EffectBv(c2.Node());
+  for (int i = 0; i < 3; i++) {
+    VectorXcd rr = c1.inhomo(i)->ScatterCoeff();
+    VectorXcd cc = solution.segment(61 * i, 61);
+    EXPECT_TRUE(ApproxVectRv(rr, cc, 1e-3, 15));
+  }
+}
+TEST_F(AssemBoundaryTest, DSolve_InvMatBi) {
+  c1.DSolve({&inSH1});
+  VectorXcd solution =
+      c2.DcMat().inverse() *
+      c2.Trans_IncVec(c2.BdIntMatT() * inSH1.EffectBv(c2.Node()));
+  for (int i = 0; i < 3; i++) {
+    VectorXcd rr = c1.inhomo(i)->ScatterCoeff();
+    VectorXcd cc = solution.segment(61 * i, 61);
+    EXPECT_TRUE(ApproxVectRv(rr, cc, 1e-3, 15));
+  }
 }
 
 }  // namespace test
