@@ -43,6 +43,9 @@ class FiberTest : public Test {
   Fiber<StateIP> f1 = {&c1};
   Fiber<StateAP> f2 = {&c2, {1, 2}};
   Fiber<StateAP> f3 = {&c3};
+  Fiber<StateAP> f4 = {&c3, {3, 4}};
+  CS cs2            = {-3, -4, -atan(0.75)};
+  Fiber<StateAP> f5 = {&c3, {0, 10}, &cs2};
 };
 
 TEST_F(FiberTest, ConfigCtor) {
@@ -162,7 +165,7 @@ TEST_F(FiberTest, DScatter) {
   EXPECT_EQ(ref.size(), 100);
 
   f3.SetCoeff(f3.DSolve({&inSH}));
-  for (auto& i : SamplePts(0)) com.emplace_back(f3.Scatter(i));
+  for (auto& i : SamplePts()) com.emplace_back(f3.Scatter(i));
   EXPECT_EQ(com.size(), 100);
 
   for (size_t i = 0; i < 100; i++) EXPECT_TRUE(ref[i].isApprox(com[i], 1e-3));
@@ -173,10 +176,24 @@ TEST_F(FiberTest, CScatter) {
   EXPECT_EQ(ref.size(), 100);
 
   f3.SetCoeff(f3.CSolve({&inSH}));
-  for (auto& i : SamplePts(0)) com.emplace_back(f3.Scatter(i));
+  for (auto& i : SamplePts()) com.emplace_back(f3.Scatter(i));
   EXPECT_EQ(com.size(), 100);
 
   for (size_t i = 0; i < 100; i++) EXPECT_TRUE(ref[i].isApprox(com[i], 1e-5));
+}
+TEST_F(FiberTest, ScatterInAssembly) {
+  f4.SetCoeff(f4.CSolve({&inSH}));
+  f5.SetCoeff(f5.CSolve({&inSH}));
+
+  for (size_t i = 0; i < 100; i++) {
+    double a  = i * pi2 / 100;
+    CS* outer = new CS(PosiVect(3, a).Cartesian(), a);
+    CS* inner = new CS(PosiVect(3, 4) + PosiVect(5e-3, a).Cartesian(), a);
+    EXPECT_TRUE(f4.Scatter(outer).isApprox(f5.Scatter(outer), 1e-6));
+    EXPECT_TRUE(f4.Scatter(inner).isApprox(f5.Scatter(inner), 1e-6));
+    delete outer;
+    delete inner;
+  }
 }
 
 }  // namespace test

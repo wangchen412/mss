@@ -51,7 +51,7 @@ TEST_F(SolutionTest, SampleLine) {
   EXPECT_EQ(ref.size(), 100);
 
   s.Solve();
-  for (auto& i : SamplePts(0)) com.emplace_back(s.Resultant(i));
+  for (auto& i : SamplePts()) com.emplace_back(s.Resultant(i));
   EXPECT_EQ(com.size(), 100);
 
   const double re = 1e-4;
@@ -63,13 +63,13 @@ TEST_F(SolutionTest, MsSampleLine) {
   EXPECT_EQ(ref.size(), 100);
 
   Solution<StateAP> sc{input::Solution(path("Multiple.txt"))};
-  for (auto& i : SamplePts(0)) com1.emplace_back(sc.Solve().Resultant(i));
+  for (auto& i : SamplePts()) com1.emplace_back(sc.Solve().Resultant(i));
   EXPECT_EQ(com1.size(), 100);
   for (size_t i = 0; i < 100; i++)
     EXPECT_TRUE(ref[i].isApprox(com1[i], 1e-4));
 
   Solution<StateAP> sd{input::Solution(path("Multiple_DFT.txt"))};
-  for (auto& i : SamplePts(0)) com2.emplace_back(sd.Solve().Resultant(i));
+  for (auto& i : SamplePts()) com2.emplace_back(sd.Solve().Resultant(i));
   EXPECT_EQ(com2.size(), 100);
   for (size_t i = 0; i < 100; i++)
     EXPECT_TRUE(ref[i].isApprox(com2[i], 1e-3));

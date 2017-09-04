@@ -107,13 +107,13 @@ TEST_F(AssemblyTest, Scatter) {
   EXPECT_EQ(ref.size(), 100);
 
   c.Solve(incident, DFT);
-  for (auto& i : SamplePts(0)) com1.emplace_back(c.Resultant(i, incident));
+  for (auto& i : SamplePts()) com1.emplace_back(c.Resultant(i, incident));
   EXPECT_EQ(com1.size(), 100);
   for (size_t i = 0; i < 100; i++)
     EXPECT_TRUE(ref[i].isApprox(com1[i], 1e-3));
 
   c.Solve(incident, COLLOCATION);
-  for (auto& i : SamplePts(0)) com2.emplace_back(c.Resultant(i, incident));
+  for (auto& i : SamplePts()) com2.emplace_back(c.Resultant(i, incident));
   EXPECT_EQ(com2.size(), 100);
   for (size_t i = 0; i < 100; i++)
     EXPECT_TRUE(ref[i].isApprox(com2[i], 1e-5));

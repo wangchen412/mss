@@ -61,11 +61,13 @@ class AssemblyConfig {
   double Width() const { return width_; }
   const std::string& ID() const { return ID_; }
   const CSCPtrs& Node() const { return boundary_.Node(); }
+
+  // TODO: in-plane
   MatrixXcd BdIntMatT() const { return boundary_.EffectMatT(inhomoC_); }
 
   const MatrixXcd& ColloMat();
   const MatrixXcd& DcMat();
-  const MatrixXcd& TransMat() const;
+  const MatrixXcd& TransMat();
   MatrixXcd GramMat();
 
   VectorXcd IncVec(const InciCPtrs<T>& incident) const;
@@ -108,16 +110,15 @@ class AssemblyConfig {
 
   MatrixXcd cc_;
   MatrixXcd dc_;
-  bool cc_nc_{true}, dc_nc_{true};
+  MatrixXcd Q_;
+  bool cc_computed_{false}, dc_computed_{false}, Q_computed_{false};
 
   void add_inhomo();
   void add_fiber();
   void add_fiber_config();
   void delete_inhomo();
   void delete_fiber_config();
-  void compute_cc();
-  void compute_dc();
-  MatrixXcd com_trans_mat() const;  // Combined trans-matrix.
+  MatrixXcd comb_trans_mat() const;  // Combined trans-matrix.
   void dist_solution(const VectorXcd& solution);
 };
 
@@ -180,13 +181,61 @@ void AssemblyConfig<T>::DSolve(const InciCPtrs<T>& incident) {
 
 template <typename T>
 const MatrixXcd& AssemblyConfig<T>::ColloMat() {
-  if (cc_nc_) compute_cc();
+  if (cc_computed_) return cc_;
+
+  cc_.resize(NumBv_in(), NumCoeff());
+
+#ifdef NDEBUG
+#pragma omp parallel for
+#endif
+  for (size_t v = 0; v < inhomo_.size(); v++) {
+    int i = 0, j = 0, Nv = inhomo_[v]->NumCoeff();
+    for (size_t k = 0; k < v; k++) j += inhomo_[k]->NumCoeff();
+    for (size_t u = 0; u < inhomo_.size(); u++) {
+      int Nu = inhomo_[u]->NumBv();
+
+      cc_.block(i, j, Nu, Nv) =
+          u == v ? inhomo_[v]->ColloMat() : -inhomo_[v]->ModeMat(inhomo_[u]);
+      i += Nu;
+    }
+  }
+
+  cc_computed_ = true;
+
   return cc_;
 }
 
 template <typename T>
+const MatrixXcd& AssemblyConfig<T>::TransMat() {
+  if (Q_computed_) return Q_;
+  Q_ = DcMat().inverse() * comb_trans_mat() * BdIntMatT();  // TODO: in-plane
+  Q_computed_ = true;
+  return Q_;
+}
+
+template <typename T>
 const MatrixXcd& AssemblyConfig<T>::DcMat() {
-  if (dc_nc_) compute_dc();
+  if (dc_computed_) return dc_;
+
+  dc_.resize(NumCoeff(), NumCoeff());
+#ifdef NDEBUG
+#pragma omp parallel for
+#endif
+  for (size_t v = 0; v < inhomo_.size(); v++) {
+    int i = 0, j = 0, Nv = inhomo_[v]->NumCoeff();
+    MatrixXcd I(Nv, Nv);
+    I.setIdentity();
+    for (size_t k = 0; k < v; k++) j += inhomo_[k]->NumCoeff();
+    for (size_t u = 0; u < inhomo_.size(); u++) {
+      int Nu = inhomo_[u]->NumCoeff();
+      dc_.block(i, j, Nu, Nv) =
+          u == v ? I
+                 : -inhomo_[u]->TransMat() * inhomo_[v]->ModeMat(inhomo_[u]);
+      i += Nu;
+    }
+  }
+  dc_computed_ = true;
+
   return dc_;
 }
 
@@ -196,7 +245,7 @@ MatrixXcd AssemblyConfig<T>::GramMat() {
 }
 
 template <typename T>
-MatrixXcd AssemblyConfig<T>::com_trans_mat() const {
+MatrixXcd AssemblyConfig<T>::comb_trans_mat() const {
   MatrixXcd rst(NumCoeff(), NumBv_in());
   rst.setZero();
   size_t u = 0, v = 0;
@@ -339,56 +388,6 @@ void AssemblyConfig<T>::delete_inhomo() {
 template <typename T>
 void AssemblyConfig<T>::delete_fiber_config() {
   for (auto& i : fiber_config_) delete i;
-}
-
-template <typename T>
-void AssemblyConfig<T>::compute_dc() {
-  if (!dc_nc_) return;
-
-  dc_.resize(NumCoeff(), NumCoeff());
-
-#ifdef NDEBUG
-#pragma omp parallel for
-#endif
-  for (size_t v = 0; v < inhomo_.size(); v++) {
-    int i = 0, j = 0, Nv = inhomo_[v]->NumCoeff();
-    MatrixXcd I(Nv, Nv);
-    I.setIdentity();
-    for (size_t k = 0; k < v; k++) j += inhomo_[k]->NumCoeff();
-    for (size_t u = 0; u < inhomo_.size(); u++) {
-      int Nu = inhomo_[u]->NumCoeff();
-      dc_.block(i, j, Nu, Nv) =
-          u == v ? I
-                 : -inhomo_[u]->TransMat() * inhomo_[v]->ModeMat(inhomo_[u]);
-      i += Nu;
-    }
-  }
-
-  dc_nc_ = false;
-}
-
-template <typename T>
-void AssemblyConfig<T>::compute_cc() {
-  if (!cc_nc_) return;
-
-  cc_.resize(NumBv_in(), NumCoeff());
-
-#ifdef NDEBUG
-#pragma omp parallel for
-#endif
-  for (size_t v = 0; v < inhomo_.size(); v++) {
-    int i = 0, j = 0, Nv = inhomo_[v]->NumCoeff();
-    for (size_t k = 0; k < v; k++) j += inhomo_[k]->NumCoeff();
-    for (size_t u = 0; u < inhomo_.size(); u++) {
-      int Nu = inhomo_[u]->NumBv();
-
-      cc_.block(i, j, Nu, Nv) =
-          u == v ? inhomo_[v]->ColloMat() : -inhomo_[v]->ModeMat(inhomo_[u]);
-      i += Nu;
-    }
-  }
-
-  cc_nc_ = false;
 }
 
 }  // namespace mss

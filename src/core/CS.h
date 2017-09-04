@@ -28,11 +28,9 @@ namespace mss {
 
 class CS {
  public:
-  explicit CS(double x = 0, double y = 0, double angle = 0,
-              const CS* basis = nullptr)
+  CS(double x = 0, double y = 0, double angle = 0, const CS* basis = nullptr)
       : position_(x, y), angle_(angle), basis_(basis) {}
-  explicit CS(const PosiVect& position, double angle = 0,
-              const CS* basis = nullptr)
+  CS(const PosiVect& position, double angle = 0, const CS* basis = nullptr)
       : position_(position), angle_(angle), basis_(basis) {}
   CS(const CS& other)
       : position_(other.position_),

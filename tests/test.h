@@ -55,7 +55,7 @@ class Test : public testing::Test {
   void ReadCoeff(const std::string& fn, VectorXcd& ref);
 
   std::string path(const std::string& fn) const { return path_ + fn; }
-  const CSCPtrs& SamplePts(int i) const { return *sp_[i]; }
+  const CSCPtrs& SamplePts(int i = 0) const { return *sp_[i]; }
   const CSCPtrs& SamplePtsBack() const { return *sp_.back(); }
 
   std::string path_;          // The path to the data directory.

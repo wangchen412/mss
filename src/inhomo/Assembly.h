@@ -27,10 +27,16 @@ namespace mss {
 
 template <typename T>
 class Assembly : public Inhomo<T> {
+  using Inhomo<T>::LocalCS;
+
  public:
-  explicit Assembly(const AssemblyConfig<T>* config,
-                    const PosiVect& position = {0, 0}, double angle = 0)
-      : Inhomo<T>(position, angle), config_(config) {}
+  Assembly(const AssemblyConfig<T>* config, const PosiVect& position = {0, 0},
+           double angle = 0)
+      : Inhomo<T>(position, ASSEMBLY, angle), config_(config) {
+    add_node();
+  }
+
+  virtual ~Assembly() { del_node(); }
 
   // TODO: The interactions among assemblies
   bool Contain(const CS* objCS) const override;
@@ -43,10 +49,20 @@ class Assembly : public Inhomo<T> {
   T InnerModeL(const CS* local, int n) const;
   T InnerModeT(const CS* local, int n) const;
 
-  const CSCPtrs& Node() const override;
-  MatrixXcd ColloMat() const override;
-  MatrixXcd TransMat() const override;
-  MatrixXcd ModeMat(const Inhomo<T>* other) const override;
+  const CSCPtrs& Node() const override { return node_; }
+  const CS* Node(size_t i) const override { return node_[i]; }
+
+  // The collocation matrix for assemblies are only available when the nodes
+  // are the inner nodes, which are the nodes of the enclosed
+  // inhomogeneities. So, temporarily, the collocation matrix of assembly
+  // class is disabled. TODO: Add collocation matrix compatability.
+  // MatrixXcd ColloMat() const override { return config_->ColloMat(); }
+
+  MatrixXcd TransMat() const override { return config_->TransMat(); }
+  size_t NumNode() const override { return config_->NumNode(); }
+  size_t NumBv() const override { return config_->NumBv(); }
+  size_t NumCoeff() const override { return config_->NumCoeff(); }
+
   VectorXcd Solve(const VectorXcd& incBv, SolveMethod method) const override;
   VectorXcd CSolve(const VectorXcd& incBv) const override;
   VectorXcd DSolve(const VectorXcd& incBv) const override;
@@ -58,7 +74,23 @@ class Assembly : public Inhomo<T> {
  private:
   const AssemblyConfig<T>* config_;
   CSCPtrs node_;
+
+  void add_node();
+  void del_node();
 };
+
+// ---------------------------------------------------------------------------
+// Inline functions:
+
+template <typename T>
+void Assembly<T>::add_node() {
+  node_.reserve(config_->NumNode());
+  for (auto& i : config_->Node()) node_.push_back(new CS(*i, LocalCS()));
+}
+template <typename T>
+void Assembly<T>::del_node() {
+  for (auto& i : node_) delete i;
+}
 
 }  // namespace mss
 

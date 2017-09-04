@@ -30,15 +30,16 @@ class Fiber : public Inhomo<T> {
   using Inhomo<T>::LocalCS;
 
  public:
-  Fiber(FiberConfig<T>* config, const PosiVect& position = 0)
-      : Inhomo<T>(position, FIBER),
+  Fiber(FiberConfig<T>* config, const PosiVect& position = {0, 0},
+        const CS* basis = nullptr)
+      : Inhomo<T>(position, FIBER, 0, basis),
         config_(config),
         cSc_(NumCoeff()),
         cIn_(NumCoeff()) {
     add_node();
   }
 
-  virtual ~Fiber() { delete_node(); }
+  virtual ~Fiber() { del_node(); }
 
   const MatrixXcd& ColloMat() const override { return config_->ColloMat(); }
   const MatrixXcd& TransMat() const override { return config_->TransMat(); }
@@ -90,7 +91,7 @@ class Fiber : public Inhomo<T> {
   T innerModeT(const CS* objCS, int n) const;
 
   void add_node();
-  void delete_node();
+  void del_node();
   int od(size_t sn) const { return sn - config_->TopOrder(); }
 };
 
@@ -179,7 +180,7 @@ void Fiber<T>::add_node() {
   for (auto& i : config_->Node()) node_.push_back(new CS(*i, LocalCS()));
 }
 template <typename T>
-void Fiber<T>::delete_node() {
+void Fiber<T>::del_node() {
   for (auto& i : node_) delete i;
 }
 template <typename T>

@@ -32,12 +32,16 @@ enum InhomoType { FIBER, ASSEMBLY };
 template <typename T>
 class Inhomo {
  public:
-  explicit Inhomo(const PosiVect& position, InhomoType type, double angle = 0)
-      : localCS_(position, angle), type_(type) {}
+  explicit Inhomo(const PosiVect& position, InhomoType type, double angle = 0,
+                  const CS* basis = nullptr)
+      : localCS_(position, angle, basis), type_(type) {}
   virtual ~Inhomo() {}
 
   // Collocation matrix.
-  virtual const MatrixXcd& ColloMat() const = 0;
+  virtual const MatrixXcd& ColloMat() const {
+    print_error_msg({"The Collocation matrix is not available."});
+    exit(EXIT_FAILURE);
+  }
 
   // Transform matrix.
   virtual const MatrixXcd& TransMat() const = 0;
