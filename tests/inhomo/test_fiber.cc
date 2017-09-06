@@ -181,7 +181,11 @@ TEST_F(FiberTest, CScatter) {
 
   for (size_t i = 0; i < 100; i++) EXPECT_TRUE(ref[i].isApprox(com[i], 1e-5));
 }
-TEST_F(FiberTest, ScatterInAssembly) {
+TEST_F(FiberTest, DISABLED_ScatterInAssembly) {
+  // This test is for the Fiber with nodes in a basis. The Fiber then is
+  // modified to possesses no nodes when it is in an assembly, in which
+  // the fibers are only used as scatterers.
+
   f4.SetCoeff(f4.CSolve({&inSH}));
   f5.SetCoeff(f5.CSolve({&inSH}));
 

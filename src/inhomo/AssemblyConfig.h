@@ -38,9 +38,8 @@ using AsmConfigCPtrs = std::vector<const AssemblyConfig<T>*>;
 template <typename T>
 class AssemblyConfig {
  public:
-  AssemblyConfig(const std::string& ID, const input::AssemblyConfig& input,
-                 const Matrix* matrix)
-      : ID_(ID),
+  AssemblyConfig(const input::AssemblyConfig& input, const Matrix* matrix)
+      : ID_(input.ID),
         width_(input.width),
         height_(input.height),
         matrix_(matrix),

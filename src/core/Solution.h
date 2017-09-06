@@ -32,7 +32,7 @@ class Solution {
   Solution(const input::Solution& input)
       : matrix_(input.matrix()),
         method_(input.method()),
-        config_("root", input.config(), &matrix_),
+        config_(input.config(), &matrix_),
         input_(input) {
     add_incident();
   }

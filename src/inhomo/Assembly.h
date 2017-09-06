@@ -31,23 +31,22 @@ class Assembly : public Inhomo<T> {
 
  public:
   Assembly(const AssemblyConfig<T>* config, const PosiVect& position = {0, 0},
-           double angle = 0)
+           double angle = 0, const CS* basis = nullptr)
       : Inhomo<T>(position, ASSEMBLY, angle), config_(config) {
-    add_node();
+    if (!basis) add_node();
+  }
+  ~Assembly() {
+    for (auto& i : node_) delete i;
   }
 
-  virtual ~Assembly() { del_node(); }
-
-  // TODO: The interactions among assemblies
   bool Contain(const CS* objCS) const override;
-  T Scatter(const CS* objCS) const override;
+
   T Inner(const CS* objCS) const override;
+  T Scatter(const CS* objCS) const override;
   T ScatterMode(const CS* objCS, size_t sn) const override;
-  T InnerMode(const CS* objCS, size_t sn) const override;
-  T ScatterModeL(const CS* objCS, int n) const;
-  T ScatterModeT(const CS* objCS, int n) const;
-  T InnerModeL(const CS* local, int n) const;
-  T InnerModeT(const CS* local, int n) const;
+
+  // void SetCoeff(const VectorXcd& solution) override { cSc_ = solution; }
+  // const VectorXcd& ScatterCoeff() const override { return cSc_; }
 
   const CSCPtrs& Node() const override { return node_; }
   const CS* Node(size_t i) const override { return node_[i]; }
@@ -62,34 +61,47 @@ class Assembly : public Inhomo<T> {
   size_t NumNode() const override { return config_->NumNode(); }
   size_t NumBv() const override { return config_->NumBv(); }
   size_t NumCoeff() const override { return config_->NumCoeff(); }
-
-  VectorXcd Solve(const VectorXcd& incBv, SolveMethod method) const override;
-  VectorXcd CSolve(const VectorXcd& incBv) const override;
-  VectorXcd DSolve(const VectorXcd& incBv) const override;
-  VectorXcd IncVec(const InciCPtrs<T>& inc) const override;
-  VectorXcd Solve(const InciCPtrs<T>& inc, SolveMethod method) const override;
-  VectorXcd CSolve(const InciCPtrs<T>& inc) const override;
-  VectorXcd DSolve(const InciCPtrs<T>& inc) const override;
+  double Width() const override { return config_->Width(); }
+  double Height() const override { return config_->Height(); }
+  const InhomoCPtrs<T>& inhomo() { return config_->inhomo(); }
+  const Inhomo<T>* inhomo(size_t sn) const { return config_->inhomo(sn); }
 
  private:
   const AssemblyConfig<T>* config_;
   CSCPtrs node_;
+  InhomoPtrs<T> inhomo_;
 
   void add_node();
-  void del_node();
+  void add_inhomo();
 };
 
 // ---------------------------------------------------------------------------
 // Inline functions:
 
 template <typename T>
+bool Assembly<T>::Contain(const CS* objCS) const {
+  PosiVect r = objCS->PositionIn(LocalCS());
+  return r.x > 0 && r.x < Width() && r.y > 0 && r.y < Height();
+}
+// template <typename T>
+// T Assembly<T>::Scatter(const CS* objCS) const {
+
+// }
+template <typename T>
+T Assembly<T>::ScatterMode(const CS* objCS, size_t sn) const {
+  size_t n = 0;
+  while (sn > inhomo(n)->NumCoeff()) sn -= inhomo(n++)->NumCoeff();
+  return inhomo(n)->ScatterMode(objCS, sn);
+}
+template <typename T>
 void Assembly<T>::add_node() {
   node_.reserve(config_->NumNode());
   for (auto& i : config_->Node()) node_.push_back(new CS(*i, LocalCS()));
 }
 template <typename T>
-void Assembly<T>::del_node() {
-  for (auto& i : node_) delete i;
+void Assembly<T>::add_inhomo() {
+  inhomo_.reserve(config_->inhomo().size());
+  // for (auto& i : config_->inhomo()) inhomo_.push_back(new )
 }
 
 }  // namespace mss

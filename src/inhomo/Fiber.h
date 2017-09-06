@@ -28,6 +28,7 @@ namespace mss {
 template <typename T>
 class Fiber : public Inhomo<T> {
   using Inhomo<T>::LocalCS;
+  using Inhomo<T>::IncVec;
 
  public:
   Fiber(FiberConfig<T>* config, const PosiVect& position = {0, 0},
@@ -36,10 +37,11 @@ class Fiber : public Inhomo<T> {
         config_(config),
         cSc_(NumCoeff()),
         cIn_(NumCoeff()) {
-    add_node();
+    if (!basis) add_node();
   }
-
-  virtual ~Fiber() { del_node(); }
+  ~Fiber() {
+    for (auto& i : node_) delete i;
+  }
 
   const MatrixXcd& ColloMat() const override { return config_->ColloMat(); }
   const MatrixXcd& TransMat() const override { return config_->TransMat(); }
@@ -49,12 +51,10 @@ class Fiber : public Inhomo<T> {
   double Radius() const { return config_->Radius(); }
 
   void SetCoeff(const VectorXcd& solution) override;
-  void PrintCoeff(std::ostream& os) const override;
 
   // Check if the position of the objective CS is inside the fiber.
   bool Contain(const CS* objCS) const override;
 
-  // Resultant states.
   T Scatter(const CS* objCS) const override;
   T Inner(const CS* objCS) const override;
 
@@ -63,17 +63,15 @@ class Fiber : public Inhomo<T> {
   // the derived class.
   // n starts at zero.
   T ScatterMode(const CS* objCS, size_t sn) const override;
-  T InnerMode(const CS* objCS, size_t sn) const override;
+  T InnerMode(const CS* objCS, size_t sn) const;
 
-  VectorXcd Solve(const VectorXcd& incBv, SolveMethod method) const override;
-  VectorXcd CSolve(const VectorXcd& incBv) const override;
-  VectorXcd DSolve(const VectorXcd& incBv) const override;
+  VectorXcd Solve(const VectorXcd& incBv, SolveMethod method) const;
+  VectorXcd CSolve(const VectorXcd& incBv) const;
+  VectorXcd DSolve(const VectorXcd& incBv) const;
 
-  VectorXcd IncVec(const InciCPtrs<T>& incident) const override;
-  VectorXcd Solve(const InciCPtrs<T>& incident,
-                  SolveMethod method) const override;
-  VectorXcd CSolve(const InciCPtrs<T>& incident) const override;
-  VectorXcd DSolve(const InciCPtrs<T>& incident) const override;
+  VectorXcd Solve(const InciCPtrs<T>& incident, SolveMethod method) const;
+  VectorXcd CSolve(const InciCPtrs<T>& incident) const;
+  VectorXcd DSolve(const InciCPtrs<T>& incident) const;
 
   FiberConfig<T>* Config() const { return config_; }
   const CSCPtrs& Node() const override { return node_; }
@@ -91,7 +89,6 @@ class Fiber : public Inhomo<T> {
   T innerModeT(const CS* objCS, int n) const;
 
   void add_node();
-  void del_node();
   int od(size_t sn) const { return sn - config_->TopOrder(); }
 };
 
@@ -123,10 +120,6 @@ void Fiber<T>::SetCoeff(const VectorXcd& solution) {
     cSc_(i) = solution(i);
     cIn_(i) = cSc_(i) * config_->TT(od(i));  // TODO: in-plane problem.
   }
-}
-template <typename T>
-void Fiber<T>::PrintCoeff(std::ostream& os) const {
-  os << setMaxPrecision << cSc_ << std::endl;
 }
 template <>
 inline StateIP Fiber<StateIP>::ScatterMode(const CS* objCS, size_t sn) const {
@@ -180,10 +173,6 @@ void Fiber<T>::add_node() {
   for (auto& i : config_->Node()) node_.push_back(new CS(*i, LocalCS()));
 }
 template <typename T>
-void Fiber<T>::del_node() {
-  for (auto& i : node_) delete i;
-}
-template <typename T>
 VectorXcd Fiber<T>::Solve(const VectorXcd& incBv, SolveMethod method) const {
   return config_->Solve(incBv, method);
 }
@@ -194,13 +183,6 @@ VectorXcd Fiber<T>::CSolve(const VectorXcd& incBv) const {
 template <typename T>
 VectorXcd Fiber<T>::DSolve(const VectorXcd& incBv) const {
   return config_->DSolve(incBv);
-}
-template <typename T>
-VectorXcd Fiber<T>::IncVec(const InciCPtrs<T>& inc) const {
-  VectorXcd rst(NumBv());
-  rst.setZero();
-  for (auto& i : inc) rst += i->EffectBv(Node());
-  return rst;
 }
 template <typename T>
 VectorXcd Fiber<T>::Solve(const InciCPtrs<T>& inc, SolveMethod method) const {

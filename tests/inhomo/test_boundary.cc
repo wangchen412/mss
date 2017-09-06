@@ -62,8 +62,8 @@ class AssemBoundaryTest : public Test {
 
   input::Solution s{path("input.txt")};
   Matrix matrix{s};
-  AssemblyConfig<StateAP> c1{"Test1", s.config(), &matrix};
-  AssemblyConfig<StateAP> c2{"Test2", s.config(), &matrix};
+  AssemblyConfig<StateAP> c1{s.config(), &matrix};
+  AssemblyConfig<StateAP> c2{s.config(), &matrix};
   IncidentPlaneSH inSH1{matrix, s.incident()[0]};
 };
 

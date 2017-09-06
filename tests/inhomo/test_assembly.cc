@@ -32,7 +32,7 @@ class AssemblyTest : public Test {
 
   input::Solution s{path("input.txt")};
   Matrix matrix{s};
-  AssemblyConfig<StateAP> c{"Test", s.config(), &matrix};
+  AssemblyConfig<StateAP> c{s.config(), &matrix};
   IncidentPlaneSH inSH1{matrix, s.incident()[0]};
   IncidentPlaneSH inSH2{matrix, s.incident()[1]};
   InciCPtrs<StateAP> incident{&inSH1, &inSH2};
@@ -40,7 +40,7 @@ class AssemblyTest : public Test {
 };
 
 TEST_F(AssemblyTest, Constructor) {
-  EXPECT_EQ(c.ID(), "Test");
+  EXPECT_EQ(c.ID(), "Assembly_1");
   EXPECT_EQ(c.inhomo(0)->Position(), PosiVect(0, 0));
   EXPECT_EQ(c.inhomo(1)->Position(), PosiVect(18e-3, 18e-3));
   EXPECT_EQ(c.inhomo(2)->Position(), PosiVect(-18e-3, -18e-3));
