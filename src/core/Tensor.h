@@ -56,6 +56,7 @@ template <typename T>
 struct Vector {
   Vector(const T& x = 0, const T& y = 0) : x(x), y(y) {}
   Vector(const Vector& other) : x(other.x), y(other.y) {}
+  Vector(const Eigen::Matrix<T, 2, 1>& v) : x(v(0)), y(v(1)) {}
   ~Vector() {}
 
   Vector& operator+=(const Vector& other);

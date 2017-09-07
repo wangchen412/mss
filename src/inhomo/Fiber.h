@@ -27,10 +27,7 @@ namespace mss {
 
 template <typename T>
 class Fiber : public Inhomo<T> {
-  using Inhomo<T>::LocalCS;
-  using Inhomo<T>::IncVec;
-
- public:
+public:
   Fiber(FiberConfig<T>* config, const PosiVect& position = {0, 0},
         const CS* basis = nullptr)
       : Inhomo<T>(position, FIBER, 0, basis),
@@ -39,6 +36,11 @@ class Fiber : public Inhomo<T> {
         cIn_(NumCoeff()) {
     if (!basis) add_node();
   }
+  Fiber(const Fiber* p, const CS* basis)
+      : Inhomo<T>(p->Position(), FIBER, 0, basis),
+        config_(p->config_),
+        cSc_(p->NumCoeff()),
+        cIn_(p->NumCoeff()) {}
   ~Fiber() {
     for (auto& i : node_) delete i;
   }
@@ -77,6 +79,9 @@ class Fiber : public Inhomo<T> {
   const CSCPtrs& Node() const override { return node_; }
   const CS* Node(size_t i) const override { return node_[i]; }
   const VectorXcd& ScatterCoeff() const override { return cSc_; }
+
+  using Inhomo<T>::LocalCS;
+  using Inhomo<T>::IncVec;
 
  private:
   FiberConfig<T>* config_;

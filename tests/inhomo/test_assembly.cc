@@ -23,9 +23,9 @@ namespace mss {
 
 namespace test {
 
-class AssemblyTest : public Test {
+class AssemConfigTest : public Test {
  protected:
-  AssemblyTest() : Test(__FILE__, "assembly") {
+  AssemConfigTest() : Test(__FILE__, "assembly") {
     for (auto& i : c.inhomo())
       fiberPtrs.push_back(dynamic_cast<const Fiber<StateAP>*>(i));
   }
@@ -39,7 +39,7 @@ class AssemblyTest : public Test {
   std::vector<const Fiber<StateAP>*> fiberPtrs;
 };
 
-TEST_F(AssemblyTest, Constructor) {
+TEST_F(AssemConfigTest, Constructor) {
   EXPECT_EQ(c.ID(), "Assembly_1");
   EXPECT_EQ(c.inhomo(0)->Position(), PosiVect(0, 0));
   EXPECT_EQ(c.inhomo(1)->Position(), PosiVect(18e-3, 18e-3));
@@ -71,7 +71,7 @@ TEST_F(AssemblyTest, Constructor) {
   EXPECT_EQ(fiberPtrs[3]->Config()->Radius(), 8e-3);
   EXPECT_EQ(fiberPtrs[4]->Config()->Radius(), 10e-3);
 }
-TEST_F(AssemblyTest, InWhich) {
+TEST_F(AssemConfigTest, InWhich) {
   CS p1(0, 0), p2(12e-3, 0), p3(17e-3, 17e-3), p4(-11e-3, -11e-3),
       p5(15e-3, -15e-3), p6(50e-3, 50e-3),
       p7(21e-3 - epsilon, 22e-3 - epsilon),
@@ -86,7 +86,7 @@ TEST_F(AssemblyTest, InWhich) {
   EXPECT_EQ(c.InWhich(&p7), c.inhomo(1));
   EXPECT_EQ(c.InWhich(&p8), nullptr);
 }
-TEST_F(AssemblyTest, Solve) {
+TEST_F(AssemConfigTest, Solve) {
   VectorXcd ref(305);
   ReadCoeff("Coeff_SH.dat", ref);
 
@@ -101,7 +101,7 @@ TEST_F(AssemblyTest, Solve) {
     EXPECT_TRUE(ApproxVectRv(rr, cc, 1e-5, 10));
   }
 }
-TEST_F(AssemblyTest, Scatter) {
+TEST_F(AssemConfigTest, Scatter) {
   std::vector<StateAP> ref, com1, com2;
   ReadSample("line_1.dat", ref);
   EXPECT_EQ(ref.size(), 100);
@@ -117,6 +117,47 @@ TEST_F(AssemblyTest, Scatter) {
   EXPECT_EQ(com2.size(), 100);
   for (size_t i = 0; i < 100; i++)
     EXPECT_TRUE(ref[i].isApprox(com2[i], 1e-5));
+}
+
+class AssemblyTest : public AssemConfigTest {
+ protected:
+  AssemblyConfig<StateAP> c1{s.assembly_config()[1], &matrix};
+  Assembly<StateAP> a1{&c1};
+  Assembly<StateAP> a2{&c1, {40e-3, 30e-3}, pi / 6};
+};
+
+TEST_F(AssemblyTest, Constructor) {
+  EXPECT_EQ(c1.Node().size(), 87962);
+  EXPECT_EQ(c1.Node().size(), a1.Node().size());
+  EXPECT_EQ(c1.Node().size(), a2.Node().size());
+
+  double a = pi / 6;
+  Eigen::Matrix2d rot;
+  rot << cos(a), -sin(a), sin(a), cos(a);
+  Eigen::Vector2d r0(40e-3, 30e-3);
+  Eigen::Vector2d f1(20e-3, 15e-3), f2(60e-3, 15e-3);
+  Eigen::Vector2d f3(20e-3, 45e-3), f4(60e-3, 45e-3);
+
+  EXPECT_EQ(a2.inhomo(0)->PositionGLB(), PosiVect(r0 + rot * f1));
+  EXPECT_EQ(a2.inhomo(1)->PositionGLB(), PosiVect(r0 + rot * f2));
+  EXPECT_EQ(a2.inhomo(2)->PositionGLB(), PosiVect(r0 + rot * f3));
+  EXPECT_EQ(a2.inhomo(3)->PositionGLB(), PosiVect(r0 + rot * f4));
+}
+TEST_F(AssemblyTest, Contain) {
+  PosiVect cp(0.0792820323027551, 0.1219615242270663);
+  CS cs1(cp + PosiVect(0, -1e-10));
+  CS cs2(cp + PosiVect(0, 1e-10));
+  EXPECT_TRUE(a2.Contain(&cs1));
+  EXPECT_FALSE(a2.Contain(&cs2));
+}
+TEST_F(AssemblyTest, DISABLED_Solve) {
+  c1.DSolve({&inSH1});
+  VectorXcd solution = a1.DSolve({&inSH1});
+  for (int i = 0; i < 4; i++) {
+    VectorXcd rr = c1.inhomo(i)->ScatterCoeff();
+    VectorXcd cc = solution.segment(61 * i, 61);
+    EXPECT_TRUE(ApproxVectRv(rr, cc, 1e-3, 15));
+  }
 }
 
 }  // namespace test

@@ -27,13 +27,14 @@ namespace mss {
 
 template <typename T>
 class Assembly : public Inhomo<T> {
-  using Inhomo<T>::LocalCS;
-
  public:
-  Assembly(const AssemblyConfig<T>* config, const PosiVect& position = {0, 0},
+  Assembly(AssemblyConfig<T>* config, const PosiVect& position = {0, 0},
            double angle = 0, const CS* basis = nullptr)
-      : Inhomo<T>(position, ASSEMBLY, angle), config_(config) {
+      : Inhomo<T>(position, ASSEMBLY, angle, basis),
+        config_(config),
+        cSc_(config->NumCoeff()) {
     if (!basis) add_node();
+    add_inhomo();
   }
   ~Assembly() {
     for (auto& i : node_) delete i;
@@ -41,7 +42,7 @@ class Assembly : public Inhomo<T> {
 
   bool Contain(const CS* objCS) const override;
 
-  T Inner(const CS* objCS) const override;
+  T Inner(const CS* objCS) const override { return T(objCS); }
   T Scatter(const CS* objCS) const override;
   T ScatterMode(const CS* objCS, size_t sn) const override;
 
@@ -57,41 +58,68 @@ class Assembly : public Inhomo<T> {
   // class is disabled. TODO: Add collocation matrix compatability.
   // MatrixXcd ColloMat() const override { return config_->ColloMat(); }
 
-  MatrixXcd TransMat() const override { return config_->TransMat(); }
+  const MatrixXcd& TransMat() const override { return config_->TransMat(); }
   size_t NumNode() const override { return config_->NumNode(); }
   size_t NumBv() const override { return config_->NumBv(); }
   size_t NumCoeff() const override { return config_->NumCoeff(); }
-  double Width() const override { return config_->Width(); }
-  double Height() const override { return config_->Height(); }
-  const InhomoCPtrs<T>& inhomo() { return config_->inhomo(); }
-  const Inhomo<T>* inhomo(size_t sn) const { return config_->inhomo(sn); }
+  double Width() const { return config_->Width(); }
+  double Height() const { return config_->Height(); }
+  const InhomoCPtrs<T>& inhomo() { return inhomo_; }
+  const Inhomo<T>* inhomo(size_t sn) const { return inhomo_[sn]; }
+
+  VectorXcd DSolve(const InciCPtrs<T>& incident) const;
+
+  void SetCoeff(const VectorXcd& solution) override;
+  const VectorXcd& ScatterCoeff() const override { return cSc_; }
+
+  using Inhomo<T>::LocalCS;
+  using Inhomo<T>::IncVec;
 
  private:
-  const AssemblyConfig<T>* config_;
+  AssemblyConfig<T>* config_;
   CSCPtrs node_;
   InhomoPtrs<T> inhomo_;
+  InhomoCPtrs<T> inhomoC_;
+  VectorXcd cSc_;
 
   void add_node();
   void add_inhomo();
+  void add_fiber(const Inhomo<T>* p);
 };
 
 // ---------------------------------------------------------------------------
 // Inline functions:
 
 template <typename T>
+VectorXcd Assembly<T>::DSolve(const InciCPtrs<T> &incident) const {
+  return config_->TransMat() * IncVec(incident);
+}
+
+template <typename T>
 bool Assembly<T>::Contain(const CS* objCS) const {
   PosiVect r = objCS->PositionIn(LocalCS());
   return r.x > 0 && r.x < Width() && r.y > 0 && r.y < Height();
 }
-// template <typename T>
-// T Assembly<T>::Scatter(const CS* objCS) const {
-
-// }
+template <typename T>
+T Assembly<T>::Scatter(const CS* objCS) const {
+  T rst(objCS);
+  for (auto& i : inhomo_) rst += i->Scatter(objCS);
+  return rst;
+}
 template <typename T>
 T Assembly<T>::ScatterMode(const CS* objCS, size_t sn) const {
   size_t n = 0;
   while (sn > inhomo(n)->NumCoeff()) sn -= inhomo(n++)->NumCoeff();
   return inhomo(n)->ScatterMode(objCS, sn);
+}
+template <typename T>
+void Assembly<T>::SetCoeff(const VectorXcd& solution) {
+  size_t j = 0;
+  for (auto& i : inhomo_) {
+    i->SetCoeff(solution.segment(j, i->NumCoeff()));
+    j += i->NumCoeff();
+  }
+  cSc_ = solution;
 }
 template <typename T>
 void Assembly<T>::add_node() {
@@ -100,8 +128,28 @@ void Assembly<T>::add_node() {
 }
 template <typename T>
 void Assembly<T>::add_inhomo() {
+  // For now, the Assembly is defined as the assembly of fibers.
+  // TODO Include Assembly in Assembly.
+
   inhomo_.reserve(config_->inhomo().size());
-  // for (auto& i : config_->inhomo()) inhomo_.push_back(new )
+  for (auto& i : config_->inhomo()) {
+    switch (i->Type()) {
+      case FIBER:
+        add_fiber(i);
+        break;
+      // case ASSEMBLY:
+      //   add_assembly(i);
+      //   break;
+      default:
+        exit_error_msg({"Unknown type."});
+    }
+  }
+  for (auto& i : inhomo_) inhomoC_.push_back(i);
+}
+template <typename T>
+void Assembly<T>::add_fiber(const Inhomo<T>* p) {
+  const Fiber<T>* fp = dynamic_cast<const Fiber<T>*>(p);
+  inhomo_.push_back(new Fiber<T>(fp, LocalCS()));
 }
 
 }  // namespace mss

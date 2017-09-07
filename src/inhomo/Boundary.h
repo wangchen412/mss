@@ -92,8 +92,8 @@ template <typename T, int N>
 MatrixXcd Boundary<T, N>::EffectMatT(const InhomoCPtrs<T>& objs) const {
   size_t m = 0;
   for (auto& i : objs) m += i->NumBv();
-  MatrixXcd rst(m, n_ * P_);
 
+  MatrixXcd rst(m, n_ * P_);
   for (size_t u = 0; u < objs.size(); u++) {
     m = 0;
     for (size_t k = 0; k < u; k++) m += objs[k]->NumBv();
