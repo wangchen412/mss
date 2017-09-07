@@ -20,5 +20,6 @@
 include(${CMAKE_MODULE_PATH}/AddTest.cmake)
 
 mss_add_test(fiber)
+mss_add_test(assembly_config)
 mss_add_test(assembly)
 mss_add_test(boundary)

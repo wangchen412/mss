@@ -82,7 +82,8 @@ class State {
   State operator*(const dcomp& n) const { return State(*this) *= n; }
   State operator/(const dcomp& n) const { return State(*this) /= n; }
   bool operator==(const State& other) const { return isApprox(other); }
-  bool isApprox(const State& other, double re = epsilon) const;
+  bool isApprox(const State& other, double re = epsilon,
+                bool verbose = false) const;
 
   friend std::ostream& operator<<(std::ostream& os, const State& st) {
     return os << st.AngleGLB() << "\t" << st.displacement_ << "\t"
@@ -153,13 +154,20 @@ template <typename T1, typename T2>
 State<T1, T2> State<T1, T2>::in(const mss::CS* otherBasis) const {
   if (otherBasis == basis_) return *this;
   double d = 0;
-  if (otherBasis) d= otherBasis->AngleGLB();
+  if (otherBasis) d = otherBasis->AngleGLB();
   return State<T1, T2>(displacement_, stress_, otherBasis)
       .rotate(d - AngleGLB());
 }
 template <typename T1, typename T2>
-bool State<T1, T2>::isApprox(const State& other, double re) const {
+bool State<T1, T2>::isApprox(const State& other, double re,
+                             bool verbose) const {
   State tmp(in(other.basis_));
+  if (verbose) {
+    std::cout << "The first:" << std::endl;
+    std::cout << tmp << std::endl;
+    std::cout << "The second:" << std::endl;
+    std::cout << other << std::endl;
+  }
   return (tmp.displacement_.isApprox(other.displacement_, re)) &&
          (tmp.stress_.isApprox(other.stress_, re));
 }

@@ -83,8 +83,9 @@ class AssemblyConfig {
   void DSolve(const InciCPtrs<T>& incident);
 
   Inhomo<T>* InWhich(const CS* objCS) const;
-  T Resultant(const CS* objCS, const Inhomo<T>* inhomo,
-              const InciCPtrs<T>& incident) const;
+  T Resultant(
+      const CS* objCS, const Inhomo<T>* inhomo,
+      const InciCPtrs<T>& incident) const;  // TODO incident maybe not needed.
   T Resultant(const CS* objCS, const InciCPtrs<T>& incident) const;
 
   void PrintCoeff(std::ostream& os) const;
