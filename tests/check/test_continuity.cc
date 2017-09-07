@@ -33,13 +33,13 @@ class ContinuityTest : public Test {
 
 TEST_F(ContinuityTest, FiberCheck) {
   for (auto& i : s.inhomo()) {
-    post::CC_Fiber<StateAP> cf(&s, dynamic_cast<const Fiber<StateAP>*>(i));
+    post::CC_Fiber<AP> cf(&s, dynamic_cast<const Fiber<AP>*>(i));
     EXPECT_FALSE(cf.NC());
   }
 }
 
 TEST_F(ContinuityTest, SolutionCheck) {
-  post::CC_Solution<StateAP> cc{&s};
+  post::CC_Solution<AP> cc{&s};
   EXPECT_TRUE(cc.isCont());
   cc.Write();
 }

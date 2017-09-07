@@ -27,16 +27,16 @@ class AssemConfigTest : public Test {
  protected:
   AssemConfigTest() : Test(__FILE__, "assembly") {
     for (auto& i : c.inhomo())
-      fiberPtrs.push_back(dynamic_cast<const Fiber<StateAP>*>(i));
+      fiberPtrs.push_back(dynamic_cast<const Fiber<AP>*>(i));
   }
 
   input::Solution s{path("input.txt")};
   Matrix matrix{s};
-  AssemblyConfig<StateAP> c{s.config(), &matrix};
+  AssemblyConfig<AP> c{s.config(), &matrix};
   IncidentPlaneSH inSH1{matrix, s.incident()[0]};
   IncidentPlaneSH inSH2{matrix, s.incident()[1]};
-  InciCPtrs<StateAP> incident{&inSH1, &inSH2};
-  std::vector<const Fiber<StateAP>*> fiberPtrs;
+  InciCPtrs<AP> incident{&inSH1, &inSH2};
+  std::vector<const Fiber<AP>*> fiberPtrs;
 };
 
 TEST_F(AssemConfigTest, Constructor) {
@@ -102,7 +102,7 @@ TEST_F(AssemConfigTest, Solve) {
   }
 }
 TEST_F(AssemConfigTest, Scatter) {
-  std::vector<StateAP> ref, com1, com2;
+  std::vector<AP> ref, com1, com2;
   ReadSample("line_1.dat", ref);
   EXPECT_EQ(ref.size(), 100);
 
@@ -121,9 +121,9 @@ TEST_F(AssemConfigTest, Scatter) {
 
 class AssemblyTest : public AssemConfigTest {
  protected:
-  AssemblyConfig<StateAP> c1{s.assembly_config()[1], &matrix};
-  Assembly<StateAP> a1{&c1};
-  Assembly<StateAP> a2{&c1, {40e-3, 30e-3}, pi / 6};
+  AssemblyConfig<AP> c1{s.assembly_config()[1], &matrix};
+  Assembly<AP> a1{&c1};
+  Assembly<AP> a2{&c1, {40e-3, 30e-3}, pi / 6};
 };
 
 }  // namespace test

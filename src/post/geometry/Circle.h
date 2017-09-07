@@ -52,8 +52,8 @@ class Circle : public PointSet<T> {
   const double R_;
 };
 
-typedef Circle<StateIP> CircleIP;
-typedef Circle<StateAP> CircleAP;
+typedef Circle<IP> CircleIP;
+typedef Circle<AP> CircleAP;
 
 }  // namespace post
 

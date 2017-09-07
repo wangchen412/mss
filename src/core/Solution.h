@@ -66,8 +66,8 @@ class Solution {
   void delete_incident();
 };
 
-typedef Solution<StateAP> SolutionAP;
-typedef Solution<StateIP> SolutionIP;
+typedef Solution<AP> SolutionAP;
+typedef Solution<IP> SolutionIP;
 
 // ---------------------------------------------------------------------------
 // Inline functions:

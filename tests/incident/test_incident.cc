@@ -72,8 +72,8 @@ TEST_F(IncidentTest, Constructors) {
   EXPECT_EQ(h3.Phase(), 0);
 }
 TEST_F(IncidentTest, EffectSH) {
-  std::vector<StateAP> ref1, ref2, ref3;
-  std::vector<StateAP> com1, com2, com3;
+  std::vector<AP> ref1, ref2, ref3;
+  std::vector<AP> com1, com2, com3;
 
   RnC(&h1, "SH1.dat", ref1, com1);
   RnC(&h2, "SH2.dat", ref2, com2);
@@ -88,8 +88,8 @@ TEST_F(IncidentTest, EffectSH) {
   EXPECT_THAT(com3, testing::ContainerEq(ref3));
 }
 TEST_F(IncidentTest, EffectP) {
-  std::vector<StateIP> ref1, ref2, ref3;
-  std::vector<StateIP> com1, com2, com3;
+  std::vector<IP> ref1, ref2, ref3;
+  std::vector<IP> com1, com2, com3;
 
   RnC(&p1, "P1.dat", ref1, com1);
   RnC(&p2, "P2.dat", ref2, com2);
@@ -104,8 +104,8 @@ TEST_F(IncidentTest, EffectP) {
   EXPECT_THAT(com3, testing::ContainerEq(ref3));
 }
 TEST_F(IncidentTest, EffectSV) {
-  std::vector<StateIP> ref1, ref2, ref3;
-  std::vector<StateIP> com1, com2, com3;
+  std::vector<IP> ref1, ref2, ref3;
+  std::vector<IP> com1, com2, com3;
 
   RnC(&v1, "SV1.dat", ref1, com1);
   RnC(&v2, "SV2.dat", ref2, com2);

@@ -25,13 +25,13 @@
 
 namespace mss {
 
-class IncidentPlaneSV : public IncidentPlane<StateIP>,
-                        public IncidentS<StateIP> {
+class IncidentPlaneSV : public IncidentPlane<IP>,
+                        public IncidentS<IP> {
  public:
   IncidentPlaneSV(const Matrix& matrix, double angle = 0,
                   double amplitude = 1, double phase = 0)
-      : Incident<StateIP>(matrix, amplitude, phase),
-        IncidentPlane<StateIP>(matrix, angle, amplitude, phase),
+      : Incident<IP>(matrix, amplitude, phase),
+        IncidentPlane<IP>(matrix, angle, amplitude, phase),
         IncidentS(matrix, amplitude, phase) {}
   IncidentPlaneSV(const Matrix& matrix, const input::IncidentPlane& input)
       : IncidentPlaneSV(matrix, input.angle, input.amplitude, input.phase) {}

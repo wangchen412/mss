@@ -57,8 +57,8 @@ class Area : public PointSet<T> {
   const double Nx_, Ny_;
 };
 
-typedef Area<StateIP> AreaIP;
-typedef Area<StateAP> AreaAP;
+typedef Area<IP> AreaIP;
+typedef Area<AP> AreaAP;
 
 }  // namespace post
 

@@ -36,7 +36,7 @@ TEST_F(LineTest, Constructor) {
   EXPECT_EQ(l1.Points().size(), 100);
 }
 TEST_F(LineTest, Computation) {
-  std::vector<StateAP> ref, com;
+  std::vector<AP> ref, com;
   ReadSample("Line_r1.dat", ref);
   EXPECT_EQ(ref.size(), 100);
 

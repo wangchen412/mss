@@ -35,17 +35,17 @@ class FiberTest : public Test {
   input::Solution s2{path("input.txt")};
   Matrix matrix2{s2};
 
-  FiberConfig<StateIP> c1 = {"c1", 30, 300, 1e-3, lead, &matrix};
-  FiberConfig<StateAP> c2 = {"c2", 30, 300, 1e-3, lead, &matrix};
-  FiberConfig<StateAP> c3 = {s2.fiber_config()[0], &matrix2};
+  FiberConfig<IP> c1 = {"c1", 30, 300, 1e-3, lead, &matrix};
+  FiberConfig<AP> c2 = {"c2", 30, 300, 1e-3, lead, &matrix};
+  FiberConfig<AP> c3 = {s2.fiber_config()[0], &matrix2};
   IncidentPlaneSH inSH{matrix2, s2.incident()[0]};
 
-  Fiber<StateIP> f1 = {&c1};
-  Fiber<StateAP> f2 = {&c2, {1, 2}};
-  Fiber<StateAP> f3 = {&c3};
-  Fiber<StateAP> f4 = {&c3, {3, 4}};
+  Fiber<IP> f1 = {&c1};
+  Fiber<AP> f2 = {&c2, {1, 2}};
+  Fiber<AP> f3 = {&c3};
+  Fiber<AP> f4 = {&c3, {3, 4}};
   CS cs2            = {-3, -4, -atan(0.75)};
-  Fiber<StateAP> f5 = {&c3, {0, 10}, &cs2};
+  Fiber<AP> f5 = {&c3, {0, 10}, &cs2};
 };
 
 TEST_F(FiberTest, ConfigCtor) {
@@ -160,7 +160,7 @@ TEST_F(FiberTest, Modes) {
   }
 }
 TEST_F(FiberTest, DScatter) {
-  std::vector<StateAP> ref, com;
+  std::vector<AP> ref, com;
   ReadSample("Line_sc_SH1.dat", ref);
   EXPECT_EQ(ref.size(), 100);
 
@@ -171,7 +171,7 @@ TEST_F(FiberTest, DScatter) {
   for (size_t i = 0; i < 100; i++) EXPECT_TRUE(ref[i].isApprox(com[i], 1e-3));
 }
 TEST_F(FiberTest, CScatter) {
-  std::vector<StateAP> ref, com;
+  std::vector<AP> ref, com;
   ReadSample("Line_sc_SH1.dat", ref);
   EXPECT_EQ(ref.size(), 100);
 

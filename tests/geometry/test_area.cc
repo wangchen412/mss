@@ -36,7 +36,7 @@ TEST_F(AreaTest, Constructor) {
   EXPECT_EQ(a1.Points().size(), 100);
 }
 TEST_F(AreaTest, Computation) {
-  std::vector<StateAP> ref, com;
+  std::vector<AP> ref, com;
   ReadSample("Area_r1.dat", ref);
   EXPECT_EQ(ref.size(), 100);
 

@@ -137,7 +137,7 @@ void FiberConfig<T>::del_node() {
 }
 
 template <>
-Matrix4cd FiberConfig<StateIP>::tm(int n) const {
+Matrix4cd FiberConfig<IP>::tm(int n) const {
   double lm        = Matrix()->Material().Lambda();
   double mm        = Matrix()->Material().Mu();
   double lf        = Material().Lambda();
@@ -178,7 +178,7 @@ Matrix4cd FiberConfig<StateIP>::tm(int n) const {
   return Ti.inverse();
 }
 template <>
-Matrix2cd FiberConfig<StateAP>::tm(int n) const {
+Matrix2cd FiberConfig<AP>::tm(int n) const {
   BesselFunctor H(Hn, n, KT_m(), r_), J(Jn, n, KT(), r_);
   dcomp mH = H.dr(r_) * Matrix()->Material().Mu();
   dcomp mJ = J.dr(r_) * Material().Mu();
@@ -207,7 +207,7 @@ void FiberConfig<T>::com_QR() {
   QR_nc_ = false;
 }
 template <>
-dcomp FiberConfig<StateAP>::TT(int n) const {
+dcomp FiberConfig<AP>::TT(int n) const {
   BesselFunctor Jf(Jn, n, KT(), r_), Jm(Jn, n, KT_m(), r_);
   BesselFunctor Hm(Hn, n, KT_m(), r_);
   dcomp mJf = Jf.dr(r_) * Material().Mu();
@@ -217,7 +217,7 @@ dcomp FiberConfig<StateAP>::TT(int n) const {
   return (mJm * Hm(r_) - mHm * Jm(r_)) / (mJm * Jf(r_) - mJf * Jm(r_));
 }
 template <>
-void FiberConfig<StateAP>::com_CQ() {
+void FiberConfig<AP>::com_CQ() {
   CQ_.resize(NumBv(), NumCoeff());
 
 #ifdef NDEBUG
@@ -227,8 +227,8 @@ void FiberConfig<StateAP>::com_CQ() {
     dcomp tn = TT(n);
     EigenFunctor J(Jn, n, KT(), r_), H(Hn, n, KT_m(), r_);
     for (size_t i = 0; i < P_; i++) {
-      StateAP s = ModeT<StateAP>(nullptr, node_[i], J, Material()) * tn -
-                  ModeT<StateAP>(nullptr, node_[i], H, Material_m());
+      StateAP s = ModeT<AP>(nullptr, node_[i], J, Material()) * tn -
+                  ModeT<AP>(nullptr, node_[i], H, Material_m());
       CQ_.block<2, 1>(2 * i, n + N_) = s.Bv();
     }
   }
@@ -236,15 +236,15 @@ void FiberConfig<StateAP>::com_CQ() {
   CQ_nc_ = false;
 }
 template <>
-dcomp FiberConfig<StateIP>::TL(int) const {
+dcomp FiberConfig<IP>::TL(int) const {
   return 0;  // TODO: tL of in-plane problem
 }
 template <>
-dcomp FiberConfig<StateIP>::TT(int) const {
+dcomp FiberConfig<IP>::TT(int) const {
   return 0;  // TODO: tT of in-plane problem
 }
 template <>
-void FiberConfig<StateIP>::com_CQ() {
+void FiberConfig<IP>::com_CQ() {
   // TODO: tT of in-plane problem
 }
 template <typename T>

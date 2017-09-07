@@ -78,11 +78,11 @@ using InciCPtrs = std::vector<const Incident<T>*>;
 // Inline functions:
 
 template <>
-StateIP Incident<StateIP>::Norm() const {
+StateIP Incident<IP>::Norm() const {
   return StateIP(1, 1, m.C(kl_, kl_, kl_)) * amp_;
 }
 template <>
-StateAP Incident<StateAP>::Norm() const {
+StateAP Incident<AP>::Norm() const {
   return StateAP(1, m.C(kt_, kt_)) * amp_;
 }
 

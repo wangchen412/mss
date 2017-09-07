@@ -123,6 +123,8 @@ class State {
 
 typedef State<DispAP, StressAP> StateAP;
 typedef State<DispIP, StressIP> StateIP;
+typedef StateAP AP;
+typedef StateIP IP;
 
 template <>
 const size_t StateAP::NumBv = 2;

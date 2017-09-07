@@ -49,8 +49,8 @@ class Line : public PointSet<T> {
   const PosiVect p1_, p2_;
 };
 
-typedef Line<StateIP> LineIP;
-typedef Line<StateAP> LineAP;
+typedef Line<IP> LineIP;
+typedef Line<AP> LineAP;
 
 }  // namespace post
 

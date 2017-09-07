@@ -41,7 +41,7 @@ class IncidentInput {
 };
 
 template <>
-IncidentInput<StateIP>::IncidentInput(const Matrix& matrix)
+IncidentInput<IP>::IncidentInput(const Matrix& matrix)
     : matrix_(matrix) {
   funcMap["PlaneP"] = [this](const input::IncidentPlane& input) {
     return new IncidentPlaneP(matrix_, input);
@@ -52,7 +52,7 @@ IncidentInput<StateIP>::IncidentInput(const Matrix& matrix)
 }
 
 template <>
-IncidentInput<StateAP>::IncidentInput(const Matrix& matrix)
+IncidentInput<AP>::IncidentInput(const Matrix& matrix)
     : matrix_(matrix) {
   funcMap["PlaneSH"] = [this](const input::IncidentPlane& input) {
     return new IncidentPlaneSH(matrix_, input);

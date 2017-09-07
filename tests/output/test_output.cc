@@ -37,7 +37,7 @@ class OutputTest : public Test {
 
   template <typename T>
   void extract_state(const post::Geometry<T>* p,
-                     std::vector<StateAP>& c) const {
+                     std::vector<AP>& c) const {
     const post::PointSet<T>* sp = dynamic_cast<const post::PointSet<T>*>(p);
     for (auto& i : sp->Points()) c.push_back(i->State());
   }
@@ -56,7 +56,7 @@ TEST_F(OutputTest, Write) {
   post::OutputAP o2(&s);
   o2.Write();
   std::ifstream f1("Line_1.dat"), f2("Circle_1.dat"), f3("Area_1.dat");
-  std::vector<StateAP> r1, r2, r3;
+  std::vector<AP> r1, r2, r3;
   ReadSample(f1, r1, 5);
   ReadSample(f2, r2, 5);
   ReadSample(f3, r3, 5);
@@ -65,7 +65,7 @@ TEST_F(OutputTest, Write) {
   ASSERT_EQ(r2.size(), 100);
   ASSERT_EQ(r3.size(), 100);
 
-  std::vector<StateAP> c1, c2, c3;
+  std::vector<AP> c1, c2, c3;
   extract_state(o2.Geo(1), c1);
   extract_state(o2.Geo(2), c2);
   extract_state(o2.Geo(3), c3);

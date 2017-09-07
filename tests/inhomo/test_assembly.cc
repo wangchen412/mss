@@ -29,14 +29,14 @@ class AssemblyTest : public Test {
 
   input::Solution s{path("input2.txt")};
   Matrix matrix{s};
-  AssemblyConfig<StateAP> c1{s.config(), &matrix};
-  AssemblyConfig<StateAP> c2{s.assembly_config()[1], &matrix};
+  AssemblyConfig<AP> c1{s.config(), &matrix};
+  AssemblyConfig<AP> c2{s.assembly_config()[1], &matrix};
   IncidentPlaneSH inSH1{matrix, s.incident()[0]};
   IncidentPlaneSH inSH2{matrix, s.incident()[1]};
-  InciCPtrs<StateAP> incident{&inSH1, &inSH2};
+  InciCPtrs<AP> incident{&inSH1, &inSH2};
 
-  Assembly<StateAP> a1{&c1};
-  Assembly<StateAP> a2{&c1, {40e-3, 30e-3}, pi / 6};
+  Assembly<AP> a1{&c1};
+  Assembly<AP> a2{&c1, {40e-3, 30e-3}, pi / 6};
 };
 
 TEST_F(AssemblyTest, Constructor) {
@@ -74,8 +74,8 @@ TEST_F(AssemblyTest, Solve) {
 }
 TEST_F(AssemblyTest, Scatter) {
   // To create a fiber and use its nodes as sample points. R = 5e-3.
-  FiberConfig<StateAP> fc1{s.fiber_config()[1], &matrix};
-  Fiber<StateAP> f1{&fc1, {-10e-3, -10e-3}};
+  FiberConfig<AP> fc1{s.fiber_config()[1], &matrix};
+  Fiber<AP> f1{&fc1, {-10e-3, -10e-3}};
 
   c2.DSolve({&inSH1});
   a2.SetCoeff(a2.DSolve({&inSH1}));

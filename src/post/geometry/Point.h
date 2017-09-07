@@ -60,8 +60,8 @@ using PtPtrs = std::vector<Point<T>*>;
 template <typename T>
 using PtCPtrs = std::vector<const Point<T>*>;
 
-typedef Point<StateIP> PointIP;
-typedef Point<StateAP> PointAP;
+typedef Point<IP> PointIP;
+typedef Point<AP> PointAP;
 
 // ---------------------------------------------------------------------------
 // Inline functions:

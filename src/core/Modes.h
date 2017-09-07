@@ -33,7 +33,7 @@ template <typename T>
 T ModeT(const CS*, const CS*, const EigenFunctor&, const Material&);
 
 template <>
-inline StateIP ModeL<StateIP>(const CS* localCS, const CS* objCS,
+inline StateIP ModeL<IP>(const CS* localCS, const CS* objCS,
                               const EigenFunctor& f, const Material& m) {
   /// Return the effect of the longitude mode in in-plane problems.
 
@@ -57,7 +57,7 @@ inline StateIP ModeL<StateIP>(const CS* localCS, const CS* objCS,
   return StateIP(ur, ut, t, &cs).in(objCS);
 }
 template <>
-inline StateIP ModeT<StateIP>(const CS* localCS, const CS* objCS,
+inline StateIP ModeT<IP>(const CS* localCS, const CS* objCS,
                               const EigenFunctor& f,
                               const class Material& m) {
   /// Return the effect of the transverse mode in in-plane problems.
@@ -82,7 +82,7 @@ inline StateIP ModeT<StateIP>(const CS* localCS, const CS* objCS,
   return StateIP(ur, ut, t, &cs).in(objCS);
 }
 template <>
-inline StateAP ModeT<StateAP>(const CS* localCS, const CS* objCS,
+inline StateAP ModeT<AP>(const CS* localCS, const CS* objCS,
                               const EigenFunctor& f,
                               const class Material& m) {
   /// Return the effect of the transverse mode in antiplane problems.
@@ -111,7 +111,7 @@ template <typename T>
 MatrixNcd<T> GreenT(const CS* localCS, const CS* objCS, const Matrix* matrix);
 
 template <>
-inline Matrix2cd GreenT<StateAP>(const CS* localCS, const CS* objCS,
+inline Matrix2cd GreenT<AP>(const CS* localCS, const CS* objCS,
                                  const Matrix* matrix) {
   Matrix2cd rst;
 

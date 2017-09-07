@@ -49,8 +49,8 @@ class Output {
   void add_geo();
 };
 
-typedef Output<StateIP> OutputIP;
-typedef Output<StateAP> OutputAP;
+typedef Output<IP> OutputIP;
+typedef Output<AP> OutputAP;
 
 // ---------------------------------------------------------------------------
 // Inline functions:

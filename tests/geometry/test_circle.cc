@@ -36,7 +36,7 @@ TEST_F(CircleTest, Constructor) {
   EXPECT_EQ(c1.Points().size(), 100);
 }
 TEST_F(CircleTest, Computation) {
-  std::vector<StateAP> ref, com;
+  std::vector<AP> ref, com;
   ReadSample("Circle_r1.dat", ref);
   EXPECT_EQ(ref.size(), 100);
 

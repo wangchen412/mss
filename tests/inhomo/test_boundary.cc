@@ -29,10 +29,10 @@ class BoundaryTest : public Test {
   Material rubber{1300, 1.41908e9, 0.832e9}, lead{11400, 36.32496e9, 8.43e9};
   Matrix m{rubber, 1.25664e6};
   IncidentPlaneSH in1{m, pi / 3, 1, 2};
-  FiberConfig<StateAP> fc1{"1", 20, 213, 3e-3, lead, &m};
-  Fiber<StateAP> f1{&fc1, {10e-3, 6e-3}};
-  Fiber<StateAP> f2{&fc1, {10e-3, 6e-3}};
-  Fiber<StateAP> f3{&fc1, {50e-3, 50e-3}};
+  FiberConfig<AP> fc1{"1", 20, 213, 3e-3, lead, &m};
+  Fiber<AP> f1{&fc1, {10e-3, 6e-3}};
+  Fiber<AP> f2{&fc1, {10e-3, 6e-3}};
+  Fiber<AP> f3{&fc1, {50e-3, 50e-3}};
 
   Boundary<StateAP, 2> b1{100 * m.KT(), {{0, 12e-3}, {23e-3, 0}}, &m};
 };
@@ -62,8 +62,8 @@ class AssemBoundaryTest : public Test {
 
   input::Solution s{path("input.txt")};
   Matrix matrix{s};
-  AssemblyConfig<StateAP> c1{s.config(), &matrix};
-  AssemblyConfig<StateAP> c2{s.config(), &matrix};
+  AssemblyConfig<AP> c1{s.config(), &matrix};
+  AssemblyConfig<AP> c2{s.config(), &matrix};
   IncidentPlaneSH inSH1{matrix, s.incident()[0]};
 };
 

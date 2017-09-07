@@ -127,25 +127,25 @@ void Fiber<T>::SetCoeff(const VectorXcd& solution) {
   }
 }
 template <>
-inline StateIP Fiber<StateIP>::ScatterMode(const CS* objCS, size_t sn) const {
+inline StateIP Fiber<IP>::ScatterMode(const CS* objCS, size_t sn) const {
   if (sn <= NumCoeff() / 2)
     return scatterModeL(objCS, od(sn));
   else
     return scatterModeT(objCS, od(sn));
 }
 template <>
-inline StateAP Fiber<StateAP>::ScatterMode(const CS* objCS, size_t sn) const {
+inline StateAP Fiber<AP>::ScatterMode(const CS* objCS, size_t sn) const {
   return scatterModeT(objCS, od(sn));
 }
 template <>
-inline StateIP Fiber<StateIP>::InnerMode(const CS* objCS, size_t sn) const {
+inline StateIP Fiber<IP>::InnerMode(const CS* objCS, size_t sn) const {
   if (sn <= NumCoeff() / 2)
     return innerModeL(objCS, od(sn));
   else
     return innerModeT(objCS, od(sn));
 }
 template <>
-inline StateAP Fiber<StateAP>::InnerMode(const CS* objCS, size_t sn) const {
+inline StateAP Fiber<AP>::InnerMode(const CS* objCS, size_t sn) const {
   return innerModeT(objCS, od(sn));
 }
 template <typename T>

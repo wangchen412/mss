@@ -28,7 +28,7 @@ class SolutionTest : public Test {
   SolutionTest() : Test(__FILE__) {}
 
   input::Solution inS{path("Single.txt")};
-  Solution<StateAP> s{inS};
+  Solution<AP> s{inS};
 };
 
 TEST_F(SolutionTest, Constructor) {
@@ -46,7 +46,7 @@ TEST_F(SolutionTest, Coefficient) {
   EXPECT_TRUE(ApproxVectRv(ref, s.Config().inhomo(0)->ScatterCoeff(), 1e-4));
 }
 TEST_F(SolutionTest, SampleLine) {
-  std::vector<StateAP> ref, com;
+  std::vector<AP> ref, com;
   ReadSample("SampleLine_SH1.dat", ref);
   EXPECT_EQ(ref.size(), 100);
 
@@ -58,17 +58,17 @@ TEST_F(SolutionTest, SampleLine) {
   for (size_t i = 0; i < 100; i++) EXPECT_TRUE(ref[i].isApprox(com[i], re));
 }
 TEST_F(SolutionTest, MsSampleLine) {
-  std::vector<StateAP> ref, com1, com2;
+  std::vector<AP> ref, com1, com2;
   ReadSample("SampleLine_SH2.dat", ref);
   EXPECT_EQ(ref.size(), 100);
 
-  Solution<StateAP> sc{input::Solution(path("Multiple.txt"))};
+  Solution<AP> sc{input::Solution(path("Multiple.txt"))};
   for (auto& i : SamplePts()) com1.emplace_back(sc.Solve().Resultant(i));
   EXPECT_EQ(com1.size(), 100);
   for (size_t i = 0; i < 100; i++)
     EXPECT_TRUE(ref[i].isApprox(com1[i], 1e-4));
 
-  Solution<StateAP> sd{input::Solution(path("Multiple_DFT.txt"))};
+  Solution<AP> sd{input::Solution(path("Multiple_DFT.txt"))};
   for (auto& i : SamplePts()) com2.emplace_back(sd.Solve().Resultant(i));
   EXPECT_EQ(com2.size(), 100);
   for (size_t i = 0; i < 100; i++)
