@@ -55,21 +55,21 @@ struct Fiber {
   PosiVect position;
   const FiberConfig* config;
 };
-// TODO
-// struct Assembly {
-//   std::string configID;
-//   PosiVect position;
-//   double angle;
-// };
+struct Assembly;
 struct AssemblyConfig {
   std::string ID;
   double pointDensity;  // Point density.
   double width, height;
   std::vector<Fiber> fiber;
+  std::vector<Assembly> assembly;
   const std::vector<FiberConfig>* fiber_config;
-  bool nsolve;
-  // std::vector<AssemblyConfig> a;   // TODO
-  // std::vector<Assembly> assembly;  // TODO
+  const std::vector<AssemblyConfig>* assembly_config;
+};
+struct Assembly {
+  std::string configID;
+  PosiVect position;
+  double angle;
+  const AssemblyConfig* config;
 };
 struct Solve {
   std::string configID;
@@ -118,13 +118,31 @@ inline std::ostream& operator<<(std::ostream& os, const Fiber& f) {
   return os << f.position << "\t\t" << f.configID;
 }
 
+inline void operator>>(std::istream& is, Assembly& a) {
+  is >> a.position >> a.angle >> a.configID;
+}
+inline std::ostream& operator<<(std::ostream& os, const Assembly& a) {
+  return os << a.position << "\t\t" << a.angle << "\t\t" << a.configID;
+}
+
 inline std::ostream& operator<<(std::ostream& os, const AssemblyConfig& c) {
-  os << separator("=", 45);
+  os << separator("=", 61);
   os << "ID              Width           Height" << std::endl;
   os << c.ID << "\t\t" << c.width << "\t\t" << c.height << std::endl;
-  os << separator("-", 45) << "[Fibers]" << std::endl << separator("-", 45);
-  os << "X               Y               Configuration" << std::endl;
-  for (const auto& i : c.fiber) os << i << std::endl;
+  if (!c.fiber.empty()) {
+    os << separator("-", 61) << "[Fibers]" << std::endl << separator("-", 61);
+    os << "X               Y               Configuration" << std::endl;
+    for (const auto& i : c.fiber) os << i << std::endl;
+    os << std::endl;
+  }
+  if (!c.assembly.empty()) {
+    os << separator("-", 61) << "[Assemblies]" << std::endl
+       << separator("-", 61);
+    os << "X               Y               Angle           Configuration"
+       << std::endl;
+    for (const auto& i : c.assembly) os << i << std::endl;
+    os << std::endl;
+  }
   return os;
 }
 

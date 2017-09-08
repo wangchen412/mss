@@ -64,10 +64,13 @@ TEST_P(InputTest, Constructors) {
   EXPECT_EQ(s_->incident().size(), 2);
   EXPECT_EQ(s_->fiber_config().size(), 3);
   EXPECT_EQ(s_->fiber_config()[2].material->lambda, 68.5472e9);
+  EXPECT_EQ(s_->assembly_config().size(), 2);
   EXPECT_EQ(s_->config().fiber.size(), 5);
   EXPECT_EQ(s_->config().fiber[2].config->radius, 8e-3);
   EXPECT_EQ(s_->config().width, 80e-3);
   EXPECT_EQ(s_->config().height, 60e-3);
+  EXPECT_EQ(s_->assembly_config()[1].assembly[0].config->fiber.size(), 5);
+  EXPECT_EQ(s_->assembly_config()[1].fiber[0].config->radius, 10e-3);
 }
 
 INSTANTIATE_TEST_CASE_P(ioCtorsTest, InputTest,

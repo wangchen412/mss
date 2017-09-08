@@ -79,6 +79,7 @@ class Solution {
 
   // Add parsing keywords to the dictionary.
   void add_keyword();
+  bool is_keyword(const std::string& val);
 
   template <typename T>
   void add_header(std::ifstream& file);
@@ -106,6 +107,14 @@ class Solution {
 // ---------------------------------------------------------------------------
 // Inline functions:
 
+bool Solution::is_keyword(const std::string& val) {
+  for (auto& i : keyword_) {
+    if (i.first == typeid(Fiber) || i.first == typeid(Assembly)) continue;
+    if (iequals(i.second, val)) return true;
+  }
+  return false;
+}
+
 template <typename T>
 void Solution::add_header(std::ifstream& file) {
   std::string tmp;
@@ -123,19 +132,42 @@ void Solution::add_entry(std::ifstream& file, std::vector<T>& vec) {
     std::stringstream(tmp) >> vec.back();
   }
 }
+
+// Add AssemblyConfig:
 template <>
 inline void Solution::add_entry(std::ifstream& file,
                                 std::vector<AssemblyConfig>& vec) {
   std::string tmp;
-  skip(file, 2, &tmp);
-  while (iequals(tmp.substr(0, 2), "ID")) {
-    AssemblyConfig rst;
-    getline(file, tmp);
-    std::stringstream(tmp) >> rst.ID >> rst.width >> rst.height;
-    add_header<Fiber>(file);
-    add_entry(file, rst.fiber);
-    vec.push_back(rst);
-    skip(file, 2, &tmp);
+  bool new_config = false, read_extra = false;
+  while (getline(file, tmp)) {
+    if (is_keyword(tmp)) break;
+    if (iequals(tmp.substr(0, 2), "ID")) {
+      new_config = true;
+      read_extra = true;
+    }
+    if (new_config) {
+      new_config = false;
+      AssemblyConfig rst;
+      if (read_extra) getline(file, tmp);
+      std::stringstream(tmp) >> rst.ID >> rst.width >> rst.height;
+      while (getline(file, tmp)) {
+        if (is_keyword(tmp)) break;
+        if (iequals(tmp.substr(0, 2), "ID")) {
+          new_config = true;
+          read_extra = false;
+          break;
+        } else if (iequals(tmp, keyword_[typeid(Fiber)])) {
+          skip(file, 2, &tmp);
+          header_[typeid(Fiber)] = tmp;
+          add_entry(file, rst.fiber);
+        } else if (iequals(tmp, keyword_[typeid(Assembly)])) {
+          skip(file, 2, &tmp);
+          header_[typeid(Assembly)] = tmp;
+          add_entry(file, rst.assembly);
+        }
+      }
+      vec.push_back(rst);
+    }
   }
 }
 
@@ -184,8 +216,9 @@ inline void Solution::link() {
   for (auto& i : assembly_config_) {
     i.fiber_config = &fiber_config_;
     i.pointDensity = matrix().kt * matrix().delta;
-    for (auto& j : i.fiber) j.config= FindID(fiber_config_, j.configID);
-    i.nsolve = iequals(solve_[0].configID, i.ID) ? false : true;
+    for (auto& j : i.fiber) j.config = FindID(fiber_config_, j.configID);
+    for (auto& j : i.assembly)
+      j.config = FindID(assembly_config_, j.configID);
   }
 }
 
@@ -201,6 +234,7 @@ inline void Solution::add_keyword() {
   keyword_[typeid(FiberConfig)]    = "[Fiber Configurations]";
   keyword_[typeid(Fiber)]          = "[Fibers]";
   keyword_[typeid(AssemblyConfig)] = "[Assembly Configurations]";
+  keyword_[typeid(Assembly)]       = "[Assemblies]";
   keyword_[typeid(Solve)]          = "[Solve]";
 }
 

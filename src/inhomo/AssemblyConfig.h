@@ -116,6 +116,8 @@ class AssemblyConfig {
   void add_inhomo();
   void add_fiber();
   void add_fiber_config();
+  void add_assembly();
+  void add_assembly_config();
   void delete_inhomo();
   void delete_fiber_config();
   MatrixXcd comb_trans_mat() const;  // Combined trans-matrix.
@@ -377,6 +379,17 @@ template <typename T>
 void AssemblyConfig<T>::add_fiber_config() {
   for (auto& i : *input_.fiber_config)
     fiber_config_.push_back(new FiberConfig<T>(i, matrix_));
+}
+
+template <typename T>
+void AssemblyConfig<T>::add_assembly() {
+  add_assembly_config();
+}
+
+template <typename T>
+void AssemblyConfig<T>::add_assembly_config() {
+  for (auto& i : *input_.assembly_config)
+    ;
 }
 
 template <typename T>

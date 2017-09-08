@@ -24,6 +24,7 @@
 #include <cstring>
 #include <fstream>
 #include <iostream>
+#include <map>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -143,7 +144,6 @@ inline bool skipUntil(std::ifstream& inputFile, const std::string& obj,
       skip(inputFile, n, last);
       return true;
     }
-  print_error_msg({obj, " not found"});
   return false;
 }
 
