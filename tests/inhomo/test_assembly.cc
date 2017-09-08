@@ -31,9 +31,8 @@ class AssemblyTest : public Test {
   Matrix matrix{s};
   AssemblyConfig<AP> c1{s.config(), &matrix};
   AssemblyConfig<AP> c2{s.assembly_config()[1], &matrix};
+  AssemblyConfig<AP> c3{s.assembly_config()[2], &matrix};
   IncidentPlaneSH inSH1{matrix, s.incident()[0]};
-  IncidentPlaneSH inSH2{matrix, s.incident()[1]};
-  InciCPtrs<AP> incident{&inSH1, &inSH2};
 
   Assembly<AP> a1{&c1};
   Assembly<AP> a2{&c1, {40e-3, 30e-3}, pi / 6};
@@ -83,6 +82,17 @@ TEST_F(AssemblyTest, Scatter) {
   for (auto& i : f1.Node())
     EXPECT_TRUE(c2.Resultant(i, {&inSH1})
                     .isApprox(a2.Scatter(i) + inSH1.Effect(i), 1e-6));
+}
+TEST_F(AssemblyTest, DISABLED_AssemblyInAssembly) {
+  // To create a fiber and use its nodes as sample points. R = 5e-3.
+  FiberConfig<AP> fc1{s.fiber_config()[1], &matrix};
+  Fiber<AP> f1{&fc1, {-10e-3, -10e-3}};
+
+  c2.DSolve({&inSH1});
+  c3.DSolve({&inSH1});
+  for (auto& i : f1.Node())
+    EXPECT_TRUE(
+        c2.Resultant(i, {&inSH1}).isApprox(c3.Resultant(i, {&inSH1}), 1e-6));
 }
 
 }  // namespace test

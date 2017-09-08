@@ -76,6 +76,7 @@ class Assembly : public Inhomo<T> {
   using Inhomo<T>::IncVec;
 
  private:
+  // static AsmConfigPtrs<T> assembly_config_;
   AssemblyConfig<T>* config_;
   CSCPtrs node_;
   InhomoPtrs<T> inhomo_;

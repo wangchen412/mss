@@ -29,6 +29,9 @@
 namespace mss {
 
 template <typename T>
+class Assembly;
+
+template <typename T>
 class AssemblyConfig;
 template <typename T>
 using AsmConfigPtrs = std::vector<AssemblyConfig<T>*>;
@@ -48,7 +51,7 @@ class AssemblyConfig {
     add_inhomo();
   }
 
-  virtual ~AssemblyConfig() { delete_inhomo(); }
+  virtual ~AssemblyConfig() { del_inhomo(); }
 
   double CharLength() const { return height_ + width_; }
   size_t NumNode() const { return Node().size(); }
@@ -115,11 +118,10 @@ class AssemblyConfig {
 
   void add_inhomo();
   void add_fiber();
-  void add_fiber_config();
   void add_assembly();
-  void add_assembly_config();
-  void delete_inhomo();
-  void delete_fiber_config();
+  void del_inhomo();
+  void del_fiber();
+  void del_assembly();
   MatrixXcd comb_trans_mat() const;  // Combined trans-matrix.
   void dist_solution(const VectorXcd& solution);
 };
@@ -360,6 +362,7 @@ void AssemblyConfig<T>::PrintCoeff(std::ostream& os) const {
 template <typename T>
 void AssemblyConfig<T>::add_inhomo() {
   add_fiber();
+  add_assembly();
   for (auto& i : inhomo_) {
     num_coeff_ += i->NumCoeff();
     num_bv_in_ += i->NumBv();
@@ -369,38 +372,33 @@ void AssemblyConfig<T>::add_inhomo() {
 
 template <typename T>
 void AssemblyConfig<T>::add_fiber() {
-  add_fiber_config();
-  for (auto& i : input_.fiber)
-    inhomo_.push_back(
-        new Fiber<T>(FindPtrID(fiber_config_, i.configID), i.position));
-}
-
-template <typename T>
-void AssemblyConfig<T>::add_fiber_config() {
-  for (auto& i : *input_.fiber_config)
-    fiber_config_.push_back(new FiberConfig<T>(i, matrix_));
+  for (auto& i : input_.fiber) {
+    FiberConfig<T>* cp = FindPtrID(fiber_config_, i.configID);
+    if (cp == nullptr) {
+      cp = new FiberConfig<T>(*(i.config), matrix_);
+      fiber_config_.push_back(cp);
+    }
+    inhomo_.push_back(new Fiber<T>(cp, i.position));
+  }
 }
 
 template <typename T>
 void AssemblyConfig<T>::add_assembly() {
-  add_assembly_config();
+  for (auto& i : input_.assembly) {
+    AssemblyConfig<T>* cp = FindPtrID(assembly_config_, i.configID);
+    if (cp == nullptr) {
+      cp = new AssemblyConfig<T>(*(i.config), matrix_);
+      assembly_config_.push_back(cp);
+    }
+    inhomo_.push_back(new Assembly<T>(cp, i.position));
+  }
 }
 
 template <typename T>
-void AssemblyConfig<T>::add_assembly_config() {
-  for (auto& i : *input_.assembly_config)
-    ;
-}
-
-template <typename T>
-void AssemblyConfig<T>::delete_inhomo() {
+void AssemblyConfig<T>::del_inhomo() {
   for (auto& i : inhomo_) delete i;
-  delete_fiber_config();
-}
-
-template <typename T>
-void AssemblyConfig<T>::delete_fiber_config() {
   for (auto& i : fiber_config_) delete i;
+  for (auto& i : assembly_config_) delete i;
 }
 
 }  // namespace mss

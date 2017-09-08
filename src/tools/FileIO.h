@@ -86,16 +86,14 @@ const T* FindCPtrID(const std::vector<const T*>& vec,
                     const std::string& name) {
   for (const auto& t : vec)
     if (iequals(name, t->ID())) return t;
-  print_error_msg({"ID: ", name, " not found."});
-  exit(EXIT_FAILURE);
+  return nullptr;
 }
 
 template <typename T>
 T* FindPtrID(const std::vector<T*>& vec, const std::string& name) {
   for (const auto& t : vec)
     if (iequals(name, t->ID())) return t;
-  print_error_msg({"ID: ", name, " not found."});
-  exit(EXIT_FAILURE);
+  return nullptr;
 }
 
 // Generate file name that follows the existing files with same format.
