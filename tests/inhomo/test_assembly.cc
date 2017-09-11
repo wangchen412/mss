@@ -32,10 +32,15 @@ class AssemblyTest : public Test {
   AssemblyConfig<AP> c1{s.config(), &matrix};
   AssemblyConfig<AP> c2{s.assembly_config()[1], &matrix};
   AssemblyConfig<AP> c3{s.assembly_config()[2], &matrix};
+  AssemblyConfig<AP> c4{s.assembly_config()[3], &matrix};
+  AssemblyConfig<AP> c5{s.assembly_config()[4], &matrix};
   IncidentPlaneSH inSH1{matrix, s.incident()[0]};
 
   Assembly<AP> a1{&c1};
   Assembly<AP> a2{&c1, {40e-3, 30e-3}, pi / 6};
+
+  std::vector<Eigen::Vector2d> f{
+      {20e-3, 15e-3}, {60e-3, 15e-3}, {20e-3, 45e-3}, {60e-3, 45e-3}};
 };
 
 TEST_F(AssemblyTest, Constructor) {
@@ -47,13 +52,9 @@ TEST_F(AssemblyTest, Constructor) {
   Eigen::Matrix2d rot;
   rot << cos(a), -sin(a), sin(a), cos(a);
   Eigen::Vector2d r0(40e-3, 30e-3);
-  Eigen::Vector2d f1(20e-3, 15e-3), f2(60e-3, 15e-3);
-  Eigen::Vector2d f3(20e-3, 45e-3), f4(60e-3, 45e-3);
 
-  EXPECT_EQ(a2.inhomo(0)->PositionGLB(), PosiVect(r0 + rot * f1));
-  EXPECT_EQ(a2.inhomo(1)->PositionGLB(), PosiVect(r0 + rot * f2));
-  EXPECT_EQ(a2.inhomo(2)->PositionGLB(), PosiVect(r0 + rot * f3));
-  EXPECT_EQ(a2.inhomo(3)->PositionGLB(), PosiVect(r0 + rot * f4));
+  for (int i = 0; i < 4; i++)
+    EXPECT_EQ(a2.inhomo(i)->PositionGLB(), PosiVect(r0 + rot * f[i]));
 }
 TEST_F(AssemblyTest, Contain) {
   PosiVect cp(0.0792820323027551, 0.1219615242270663);
@@ -83,16 +84,58 @@ TEST_F(AssemblyTest, Scatter) {
     EXPECT_TRUE(c2.Resultant(i, {&inSH1})
                     .isApprox(a2.Scatter(i) + inSH1.Effect(i), 1e-6));
 }
-TEST_F(AssemblyTest, DISABLED_AssemblyInAssembly) {
-  // To create a fiber and use its nodes as sample points. R = 5e-3.
+TEST_F(AssemblyTest, AssemblyInAssembly) {
+  auto aa1 = dynamic_cast<const Assembly<AP>*>(c3.inhomo(0));
+  auto ff1 = dynamic_cast<const Fiber<AP>*>(aa1->inhomo(0));
+  EXPECT_EQ(ff1->Position(), PosiVect(20e-3, 15e-3));
+  EXPECT_EQ(ff1->Config()->ID(), "b-s");
+  EXPECT_EQ(ff1->Config()->Material().Mu(), 8.43e9);
+  EXPECT_EQ(ff1->Config()->Material_m().Mu(), 0.832e9);
+  EXPECT_EQ(ff1->Config()->Radius(), 10e-3);
+
+  // To create a fiber and use its nodes as sample points.R = 5e-3.
   FiberConfig<AP> fc1{s.fiber_config()[1], &matrix};
   Fiber<AP> f1{&fc1, {-10e-3, -10e-3}};
 
   c2.DSolve({&inSH1});
   c3.DSolve({&inSH1});
+
   for (auto& i : f1.Node())
     EXPECT_TRUE(
         c2.Resultant(i, {&inSH1}).isApprox(c3.Resultant(i, {&inSH1}), 1e-6));
+}
+TEST_F(AssemblyTest, Mixed_ctor) {
+  EXPECT_EQ(c4.inhomo().size(), 4);
+  auto aa1 = dynamic_cast<const Assembly<AP>*>(c4.inhomo(2));
+  auto aa2 = dynamic_cast<const Assembly<AP>*>(c4.inhomo(3));
+
+  double ang1 = 0.5, ang2 = -1;
+  Eigen::Matrix2d rot1, rot2;
+  rot1 << cos(ang1), -sin(ang1), sin(ang1), cos(ang1);
+  rot2 << cos(ang2), -sin(ang2), sin(ang2), cos(ang2);
+  Eigen::Vector2d r1(40e-3, 30e-3);
+  Eigen::Vector2d r2(20e-3, -40e-3);
+
+  for (int i = 0; i < 4; i++) {
+    EXPECT_EQ(aa1->inhomo(i)->PositionGLB(), PosiVect(r1 + rot1 * f[i]));
+    EXPECT_EQ(aa1->inhomo(i)->PositionGLB(), c5.inhomo(i)->PositionGLB());
+  }
+  for (int i = 0; i < 4; i++) {
+    EXPECT_EQ(aa2->inhomo(i)->PositionGLB(), PosiVect(r2 + rot2 * f[i]));
+    EXPECT_EQ(aa2->inhomo(i)->PositionGLB(), c5.inhomo(i + 4)->PositionGLB());
+  }
+}
+TEST_F(AssemblyTest, Mixed_Scatter) {
+  // To create a fiber and use its nodes as sample points. R = 5e-3.
+  FiberConfig<AP> fc1{s.fiber_config()[1], &matrix};
+  Fiber<AP> f1{&fc1, {-50e-3, -50e-3}};
+
+  c4.DSolve({&inSH1});
+  c5.DSolve({&inSH1});
+
+  for (auto& i : f1.Node())
+    EXPECT_TRUE(c4.Resultant(i, {&inSH1})
+                    .isApprox(c5.Resultant(i, {&inSH1}), 1e-6, true));
 }
 
 }  // namespace test

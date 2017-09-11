@@ -101,6 +101,7 @@ class AssemblyConfig {
   size_t num_coeff_{0}, num_bv_in_{0};
   InhomoPtrs<T> inhomo_;
   InhomoCPtrs<T> inhomoC_;
+
   FiberConfigPtrs<T> fiber_config_;
   AsmConfigPtrs<T> assembly_config_;
 
@@ -390,7 +391,7 @@ void AssemblyConfig<T>::add_assembly() {
       cp = new AssemblyConfig<T>(*(i.config), matrix_);
       assembly_config_.push_back(cp);
     }
-    inhomo_.push_back(new Assembly<T>(cp, i.position));
+    inhomo_.push_back(new Assembly<T>(cp, i.position, i.angle));
   }
 }
 

@@ -64,8 +64,8 @@ class Assembly : public Inhomo<T> {
   size_t NumCoeff() const override { return config_->NumCoeff(); }
   double Width() const { return config_->Width(); }
   double Height() const { return config_->Height(); }
-  const InhomoCPtrs<T>& inhomo() { return inhomo_; }
-  const Inhomo<T>* inhomo(size_t sn) const { return inhomo_[sn]; }
+  const InhomoCPtrs<T>& inhomo() const { return inhomoC_; }
+  const Inhomo<T>* inhomo(size_t sn) const { return inhomoC_[sn]; }
 
   VectorXcd DSolve(const InciCPtrs<T>& incident) const;
 
@@ -76,7 +76,6 @@ class Assembly : public Inhomo<T> {
   using Inhomo<T>::IncVec;
 
  private:
-  // static AsmConfigPtrs<T> assembly_config_;
   AssemblyConfig<T>* config_;
   CSCPtrs node_;
   InhomoPtrs<T> inhomo_;

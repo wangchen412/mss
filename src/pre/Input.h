@@ -71,7 +71,6 @@ class Solution {
   std::vector<FiberConfig> fiber_config_;
   std::vector<AssemblyConfig> assembly_config_;
   std::vector<Solve> solve_;
-  // std::vector<Assembly> assembly_;  // TODO
 
   std::string fn_;
   std::map<std::type_index, std::string> keyword_;

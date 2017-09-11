@@ -84,7 +84,6 @@ public:
   using Inhomo<T>::IncVec;
 
  private:
-  // static FiberConfigPtrs<T> fiber_config_;
   FiberConfig<T>* config_;
   CSCPtrs node_;
   VectorXcd cSc_, cIn_;
