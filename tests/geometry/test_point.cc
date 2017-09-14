@@ -27,12 +27,13 @@ namespace test {
 class PointTest : public Test {
  protected:
   PointTest() : Test(__FILE__) {}
-
   SolutionAP s{path("input.txt")};
-  post::PointAP p1{&s, {}}, p2{&s, {1, 2}, pi / 3, "p2"};
 };
 
-TEST_F(PointTest, Constructor) {
+TEST_F(PointTest, Ctor_Computation) {
+  s.Solve();
+  post::PointAP p1(&s, {}), p2(&s, {1, 2}, pi / 3, "p2");
+
   EXPECT_EQ(p1.LocalCS()->PositionGLB(), PosiVect(0, 0));
   EXPECT_EQ(p1.LocalCS()->AngleGLB(), 0);
   EXPECT_EQ(p1.LocalCS()->Basis(), nullptr);
@@ -40,9 +41,7 @@ TEST_F(PointTest, Constructor) {
   EXPECT_EQ(p2.LocalCS()->PositionGLB(), PosiVect(1, 2));
   EXPECT_EQ(p2.LocalCS()->AngleGLB(), pi / 3);
   EXPECT_EQ(p2.LocalCS()->Basis(), nullptr);
-}
-TEST_F(PointTest, Computation) {
-  s.Solve();
+
   post::PointAP p3(&s, {1, 1.03}, 1.5707963267948966);
   post::PointAP p4(&s, {0, 0});
   post::PointAP p5(&s, {18e-3, 18e-3});

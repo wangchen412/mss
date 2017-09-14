@@ -40,7 +40,7 @@ class Solution {
   virtual ~Solution() { delete_incident(); }
 
   const Solution& Solve();
-  Inhomo<T>* InWhich(const CS* objCS) const;
+  const Inhomo<T>* InWhich(const CS* objCS) const;
   T Resultant(const CS* objCS, const Inhomo<T>* inhomo) const;
   T Resultant(const CS* objCS) const;
 
@@ -97,7 +97,7 @@ void Solution<T>::delete_incident() {
 }
 
 template <typename T>
-Inhomo<T>* Solution<T>::InWhich(const CS* objCS) const {
+const Inhomo<T>* Solution<T>::InWhich(const CS* objCS) const {
   return config_.InWhich(objCS);
 }
 

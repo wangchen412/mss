@@ -27,20 +27,19 @@ namespace test {
 class LineTest : public Test {
  protected:
   LineTest() : Test(__FILE__) {}
-
   SolutionAP s{path("input.txt")};
-  post::LineAP l1{&s, {1, 2}, {3, 4}, 100};
 };
 
-TEST_F(LineTest, Constructor) {
-  EXPECT_EQ(l1.Points().size(), 100);
-}
 TEST_F(LineTest, Computation) {
   std::vector<AP> ref, com;
   ReadSample("Line_r1.dat", ref);
   EXPECT_EQ(ref.size(), 100);
 
   s.Solve();
+
+  post::LineAP l1{&s, {1, 2}, {3, 4}, 100};
+  EXPECT_EQ(l1.Points().size(), 100);
+
   post::LineAP t1(&s, {-50e-3, 50e-3}, {50e-3, 50e-3}, 100);
   std::string fn("Line_t1.dat");
   std::ofstream file(path(fn));

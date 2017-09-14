@@ -85,7 +85,7 @@ class AssemblyConfig {
   void CSolve(const InciCPtrs<T>& incident);
   void DSolve(const InciCPtrs<T>& incident);
 
-  Inhomo<T>* InWhich(const CS* objCS) const;
+  const Inhomo<T>* InWhich(const CS* objCS) const;
   T Resultant(
       const CS* objCS, const Inhomo<T>* inhomo,
       const InciCPtrs<T>& incident) const;  // TODO incident maybe not needed.
@@ -326,13 +326,12 @@ void AssemblyConfig<T>::dist_solution(const VectorXcd& solution) {
 }
 
 template <typename T>
-Inhomo<T>* AssemblyConfig<T>::InWhich(const CS* objCS) const {
-  // Return the pointer to the inhomogeneity in which the objCS is.
-  // The local CS is considered as the global CS.
-
-  Inhomo<T>* rst = nullptr;
-  for (auto& i : inhomo_)
-    if (i->Contain(objCS)) rst = i;
+const Inhomo<T>* AssemblyConfig<T>::InWhich(const CS* objCS) const {
+  const Inhomo<T>* rst = nullptr;
+  for (auto& i : inhomo_) {
+    rst = i->Contains(objCS);
+    if (rst) break;
+  }
   return rst;
 }
 

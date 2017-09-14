@@ -43,9 +43,6 @@ class FiberTest : public Test {
   Fiber<IP> f1 = {&c1};
   Fiber<AP> f2 = {&c2, {1, 2}};
   Fiber<AP> f3 = {&c3};
-  Fiber<AP> f4 = {&c3, {3, 4}};
-  CS cs2            = {-3, -4, -atan(0.75)};
-  Fiber<AP> f5 = {&c3, {0, 10}, &cs2};
 };
 
 TEST_F(FiberTest, ConfigCtor) {
@@ -92,24 +89,24 @@ TEST_F(FiberTest, FiberCtor) {
   EXPECT_EQ(f2.NumBv(), 600);
   EXPECT_EQ(f1.Node().size(), 300);
 }
-TEST_F(FiberTest, Contain) {
+TEST_F(FiberTest, Contains) {
   const double r = 1e-3;
   PosiVect s(1, 2);
   CS cs0;
   CS cs10(r + epsilon, 0), cs20(r - epsilon, 0);
   CS cs01(0, -r - epsilon), cs02(0, -r + epsilon);
 
-  EXPECT_TRUE(f1.Contain(&cs0));
-  EXPECT_FALSE(f1.Contain(&cs10));
-  EXPECT_TRUE(f1.Contain(&cs20));
-  EXPECT_FALSE(f1.Contain(&cs01));
-  EXPECT_TRUE(f1.Contain(&cs02));
+  EXPECT_TRUE(f1.Contains(&cs0));
+  EXPECT_FALSE(f1.Contains(&cs10));
+  EXPECT_TRUE(f1.Contains(&cs20));
+  EXPECT_FALSE(f1.Contains(&cs01));
+  EXPECT_TRUE(f1.Contains(&cs02));
 
-  EXPECT_TRUE(f2.Contain(&(cs0 += s)));
-  EXPECT_FALSE(f2.Contain(&(cs10 += s)));
-  EXPECT_TRUE(f2.Contain(&(cs20 += s)));
-  EXPECT_FALSE(f2.Contain(&(cs01 += s)));
-  EXPECT_TRUE(f2.Contain(&(cs02 += s)));
+  EXPECT_TRUE(f2.Contains(&(cs0 += s)));
+  EXPECT_FALSE(f2.Contains(&(cs10 += s)));
+  EXPECT_TRUE(f2.Contains(&(cs20 += s)));
+  EXPECT_FALSE(f2.Contains(&(cs01 += s)));
+  EXPECT_TRUE(f2.Contains(&(cs02 += s)));
 }
 TEST_F(FiberTest, DSolve) {
   VectorXcd ref(61);
@@ -125,6 +122,13 @@ TEST_F(FiberTest, TT) {
   for (int i = 0; i < 61; i++) ref(i) *= f3.Config()->TT(i - 30);
   EXPECT_TRUE(ApproxVectRv(VectorXcd(ref.segment(0, 61)),
                            VectorXcd(ref.segment(61, 61)), 1e-9));
+}
+TEST_F(FiberTest, RMatrix) {
+  VectorXcd ref(122);
+  ReadCoeff("Coeff_SH1.dat", ref);
+  VectorXcd com = f3.Config()->RefraMat() * inSH.EffectBv(f3.Node());
+  EXPECT_TRUE(
+      ApproxVectRv(VectorXcd(ref.segment(61, 61)), com, 1e-3, 10));
 }
 TEST_F(FiberTest, CSolve) {
   // The acceptable relative error is set as 1e-4.
@@ -180,24 +184,6 @@ TEST_F(FiberTest, CScatter) {
   EXPECT_EQ(com.size(), 100);
 
   for (size_t i = 0; i < 100; i++) EXPECT_TRUE(ref[i].isApprox(com[i], 1e-5));
-}
-TEST_F(FiberTest, DISABLED_ScatterInAssembly) {
-  // This test is for the Fiber with nodes in a basis. The Fiber then is
-  // modified to possesses no nodes when it is in an assembly, in which
-  // the fibers are only used as scatterers.
-
-  f4.SetCoeff(f4.CSolve({&inSH}));
-  f5.SetCoeff(f5.CSolve({&inSH}));
-
-  for (size_t i = 0; i < 100; i++) {
-    double a  = i * pi2 / 100;
-    CS* outer = new CS(PosiVect(3, a).Cartesian(), a);
-    CS* inner = new CS(PosiVect(3, 4) + PosiVect(5e-3, a).Cartesian(), a);
-    EXPECT_TRUE(f4.Scatter(outer).isApprox(f5.Scatter(outer), 1e-6));
-    EXPECT_TRUE(f4.Scatter(inner).isApprox(f5.Scatter(inner), 1e-6));
-    delete outer;
-    delete inner;
-  }
 }
 
 }  // namespace test

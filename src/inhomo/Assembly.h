@@ -30,17 +30,20 @@ class Assembly : public Inhomo<T> {
  public:
   Assembly(AssemblyConfig<T>* config, const PosiVect& position = {0, 0},
            double angle = 0, const CS* basis = nullptr)
-      : Inhomo<T>(position, ASSEMBLY, angle, basis),
-        config_(config),
-        cSc_(config->NumCoeff()) {
+      : Inhomo<T>(position, ASSEMBLY, angle, basis), config_(config) {
     if (!basis) add_node();
+    add_inhomo();
+  }
+  Assembly(const Assembly* p, const CS* basis)
+      : Inhomo<T>(p->Position(), ASSEMBLY, p->Angle(), basis),
+        config_(p->config_) {
     add_inhomo();
   }
   ~Assembly() {
     for (auto& i : node_) delete i;
   }
 
-  bool Contain(const CS* objCS) const override;
+  const Inhomo<T>* Contains(const CS* objCS) const override;
 
   T Inner(const CS* objCS) const override { return T(objCS); }
   T Scatter(const CS* objCS) const override;
@@ -85,20 +88,24 @@ class Assembly : public Inhomo<T> {
   void add_node();
   void add_inhomo();
   void add_fiber(const Inhomo<T>* p);
+  void add_assembly(const Inhomo<T>* p);
 };
 
 // ---------------------------------------------------------------------------
 // Inline functions:
 
 template <typename T>
-VectorXcd Assembly<T>::DSolve(const InciCPtrs<T> &incident) const {
+VectorXcd Assembly<T>::DSolve(const InciCPtrs<T>& incident) const {
   return config_->TransMat() * IncVec(incident);
 }
-
 template <typename T>
-bool Assembly<T>::Contain(const CS* objCS) const {
-  PosiVect r = objCS->PositionIn(LocalCS());
-  return r.x > 0 && r.x < Width() && r.y > 0 && r.y < Height();
+const Inhomo<T>* Assembly<T>::Contains(const CS* objCS) const {
+  const Inhomo<T>* rst = nullptr;
+  for (auto& i : inhomo()) {
+    rst = i->Contains(objCS);
+    if (rst) break;
+  }
+  return rst;
 }
 template <typename T>
 T Assembly<T>::Scatter(const CS* objCS) const {
@@ -128,18 +135,15 @@ void Assembly<T>::add_node() {
 }
 template <typename T>
 void Assembly<T>::add_inhomo() {
-  // For now, the Assembly is defined as the assembly of fibers.
-  // TODO Include Assembly in Assembly.
-
   inhomo_.reserve(config_->inhomo().size());
   for (auto& i : config_->inhomo()) {
     switch (i->Type()) {
       case FIBER:
         add_fiber(i);
         break;
-      // case ASSEMBLY:
-      //   add_assembly(i);
-      //   break;
+      case ASSEMBLY:
+        add_assembly(i);
+        break;
       default:
         exit_error_msg({"Unknown type."});
     }
@@ -150,6 +154,11 @@ template <typename T>
 void Assembly<T>::add_fiber(const Inhomo<T>* p) {
   const Fiber<T>* fp = dynamic_cast<const Fiber<T>*>(p);
   inhomo_.push_back(new Fiber<T>(fp, LocalCS()));
+}
+template <typename T>
+void Assembly<T>::add_assembly(const Inhomo<T>* p) {
+  const Assembly<T>* ap = dynamic_cast<const Assembly<T>*>(p);
+  inhomo_.push_back(new Assembly<T>(ap, LocalCS()));
 }
 
 }  // namespace mss

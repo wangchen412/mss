@@ -45,7 +45,7 @@ class Inhomo {
   }
 
   // Check if the position of the objective CS is inside the inhomogeneity.
-  virtual bool Contain(const CS* objCS) const = 0;
+  virtual const Inhomo* Contains(const CS* objCS) const = 0;
 
   // Transform matrix.
   virtual const MatrixXcd& TransMat() const = 0;
@@ -74,7 +74,10 @@ class Inhomo {
     return TransIncVec(IncVec(inc));
   }
 
-  virtual void SetCoeff(const VectorXcd&)       = 0;
+  // Pass the scattering coefficents and set the inner coefficients with
+  // T-matrix.
+  virtual void SetCoeff(const VectorXcd&) = 0;
+
   virtual const VectorXcd& ScatterCoeff() const = 0;
   virtual void PrintCoeff(std::ostream& os) const;
 
@@ -86,6 +89,8 @@ class Inhomo {
   const CS* Basis() const { return localCS_.Basis(); }
   const PosiVect& Position() const { return localCS_.Position(); }
   PosiVect PositionGLB() const { return localCS_.PositionGLB(); }
+  double Angle() const { return localCS_.Angle(); }
+  double AngleGLB() const { return localCS_.AngleGLB(); }
   const InhomoType& Type() const { return type_; }
 
  protected:

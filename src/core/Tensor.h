@@ -82,6 +82,7 @@ struct Vector {
   double Angle(double L) const;
   Vector Polar() const;
   Vector Cartesian() const;
+  Eigen::Matrix<T, 2, 1> ToEigen() const;
 
   T x, y;
 };
@@ -324,6 +325,10 @@ Vector<T> Vector<T>::Cartesian() const {
 
   assert(typeid(T) == typeid(double));
   return Vector<T>(x * cos(y), x * sin(y));
+}
+template <typename T>
+Eigen::Matrix<T, 2, 1> Vector<T>::ToEigen() const {
+  return Eigen::Matrix<T, 2, 1>(x, y);
 }
 
 // ----------------------------------------------------------------------

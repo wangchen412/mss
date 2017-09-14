@@ -56,12 +56,24 @@ TEST_F(AssemblyTest, Constructor) {
   for (int i = 0; i < 4; i++)
     EXPECT_EQ(a2.inhomo(i)->PositionGLB(), PosiVect(r0 + rot * f[i]));
 }
-TEST_F(AssemblyTest, Contain) {
-  PosiVect cp(0.0792820323027551, 0.1219615242270663);
-  CS cs1(cp + PosiVect(0, -1e-10));
-  CS cs2(cp + PosiVect(0, 1e-10));
-  EXPECT_TRUE(a2.Contain(&cs1));
-  EXPECT_FALSE(a2.Contain(&cs2));
+TEST_F(AssemblyTest, Contains) {
+  double a = pi / 6;
+  Eigen::Matrix2d rot;
+  rot << cos(a), -sin(a), sin(a), cos(a);
+  Eigen::Vector2d r0(40e-3, 30e-3);
+
+  std::vector<PosiVect> r{{10e-3 + epsilon},
+                          {5e-3 - epsilon},
+                          {8e-3 + epsilon},
+                          {10e-3 - epsilon}};
+  std::vector<CS> cs;
+  for (int i = 0; i < 4; i++)
+    cs.emplace_back(PosiVect(r0 + rot * (f[i] + r[i].Cartesian().ToEigen())));
+
+  EXPECT_FALSE(a2.Contains(&cs[0]));
+  EXPECT_TRUE(a2.Contains(&cs[1]));
+  EXPECT_FALSE(a2.Contains(&cs[2]));
+  EXPECT_TRUE(a2.Contains(&cs[3]));
 }
 TEST_F(AssemblyTest, Solve) {
   c1.DSolve({&inSH1});
@@ -84,7 +96,7 @@ TEST_F(AssemblyTest, Scatter) {
     EXPECT_TRUE(c2.Resultant(i, {&inSH1})
                     .isApprox(a2.Scatter(i) + inSH1.Effect(i), 1e-6));
 }
-TEST_F(AssemblyTest, AssemblyInAssembly) {
+TEST_F(AssemblyTest, AssemblyInSolution) {
   auto aa1 = dynamic_cast<const Assembly<AP>*>(c3.inhomo(0));
   auto ff1 = dynamic_cast<const Fiber<AP>*>(aa1->inhomo(0));
   EXPECT_EQ(ff1->Position(), PosiVect(20e-3, 15e-3));
@@ -134,8 +146,8 @@ TEST_F(AssemblyTest, Mixed_Scatter) {
   c5.DSolve({&inSH1});
 
   for (auto& i : f1.Node())
-    EXPECT_TRUE(c4.Resultant(i, {&inSH1})
-                    .isApprox(c5.Resultant(i, {&inSH1}), 1e-6, true));
+    EXPECT_TRUE(
+        c4.Resultant(i, {&inSH1}).isApprox(c5.Resultant(i, {&inSH1}), 1e-6));
 }
 
 }  // namespace test

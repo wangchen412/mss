@@ -27,20 +27,19 @@ namespace test {
 class CircleTest : public Test {
  protected:
   CircleTest() : Test(__FILE__) {}
-
   SolutionAP s{path("input.txt")};
-  post::CircleAP c1{&s, {1, 2}, 3, 100};
 };
 
-TEST_F(CircleTest, Constructor) {
-  EXPECT_EQ(c1.Points().size(), 100);
-}
 TEST_F(CircleTest, Computation) {
   std::vector<AP> ref, com;
   ReadSample("Circle_r1.dat", ref);
   EXPECT_EQ(ref.size(), 100);
 
   s.Solve();
+
+  post::CircleAP c1{&s, {1, 2}, 3, 100};
+  EXPECT_EQ(c1.Points().size(), 100);
+
   post::CircleAP t1(&s, {1, 1}, 30e-3, 100);
   std::string fn("Circle_t1.dat");
   std::ofstream file(path(fn));

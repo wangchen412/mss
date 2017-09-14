@@ -27,20 +27,15 @@ namespace mss {
 
 template <typename T>
 class Fiber : public Inhomo<T> {
-public:
+ public:
   Fiber(FiberConfig<T>* config, const PosiVect& position = {0, 0},
         const CS* basis = nullptr)
-      : Inhomo<T>(position, FIBER, 0, basis),
-        config_(config),
-        cSc_(NumCoeff()),
-        cIn_(NumCoeff()) {
+      : Inhomo<T>(position, FIBER, 0, basis), config_(config) {
     if (!basis) add_node();
   }
+  // For instantiation
   Fiber(const Fiber* p, const CS* basis)
-      : Inhomo<T>(p->Position(), FIBER, 0, basis),
-        config_(p->config_),
-        cSc_(p->NumCoeff()),
-        cIn_(p->NumCoeff()) {}
+      : Inhomo<T>(p->Position(), FIBER, 0, basis), config_(p->config_) {}
   ~Fiber() {
     for (auto& i : node_) delete i;
   }
@@ -55,7 +50,7 @@ public:
   void SetCoeff(const VectorXcd& solution) override;
 
   // Check if the position of the objective CS is inside the fiber.
-  bool Contain(const CS* objCS) const override;
+  const Inhomo<T>* Contains(const CS* objCS) const override;
 
   T Scatter(const CS* objCS) const override;
   T Inner(const CS* objCS) const override;
@@ -101,8 +96,11 @@ public:
 // Inline functions:
 
 template <typename T>
-bool Fiber<T>::Contain(const CS* objCS) const {
-  return objCS->PositionIn(LocalCS()).Length() < config_->Radius();
+const Inhomo<T>* Fiber<T>::Contains(const CS* objCS) const {
+  if (objCS->PositionIn(LocalCS()).Length() < config_->Radius())
+    return this;
+  else
+    return nullptr;
 }
 template <typename T>
 T Fiber<T>::Scatter(const CS* objCS) const {
@@ -121,11 +119,18 @@ T Fiber<T>::Inner(const CS* objCS) const {
 template <typename T>
 void Fiber<T>::SetCoeff(const VectorXcd& solution) {
   assert(solution.size() == long(NumCoeff()));
+  cSc_.resize(NumCoeff());
+  cIn_.resize(NumCoeff());
   for (long i = 0; i < solution.size(); i++) {
     cSc_(i) = solution(i);
     cIn_(i) = cSc_(i) * config_->TT(od(i));  // TODO: in-plane problem.
   }
 }
+// template <typename T>
+// void Fiber<T>::SetCoeff(const VectorXcd& solution, const VectorXcd& ps) {
+//   cSc_ = solution;
+//   cIn_ = config_->RefraMat() * ps;
+// }
 template <>
 inline StateIP Fiber<IP>::ScatterMode(const CS* objCS, size_t sn) const {
   if (sn <= NumCoeff() / 2)

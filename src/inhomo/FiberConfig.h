@@ -52,6 +52,7 @@ class FiberConfig {
 
   const MatrixXcd& ColloMat();
   const MatrixXcd& TransMat();
+  const MatrixXcd& RefraMat();
   size_t NumNode() const { return P_; }
   size_t NumBv() const { return P_ * T::NumBv; }
   size_t NumCoeff() const { return NumCoeff_; }
@@ -83,24 +84,23 @@ class FiberConfig {
   VectorXcd DSolve(const InciCPtrs<T>& inc);
 
  protected:
-  const std::string ID_;            // The ID.
-  const int N_;                     // The top order of the series.
-  const int NumCoeff_;              // Number of the scattering coefficients.
-  const size_t P_;                  // Number of the collocation points.
-  const double r_;                  // Radius of the fiber.
-  const class Material material_;   // Material of the fiber.
-  const double kl_, kt_;            // Wave numbers of the fiber.
-  const class Matrix* matrix_;      // The matrix.
-  CSCPtrs node_;                    // Nodes.
-  MatrixXcd Q_;                     // Transform matrix.
-  MatrixXcd R_;                     // Inner transform matrix.
-  MatrixXcd CQ_;                    // Collocation matrix.
-  bool QR_nc_{true}, CQ_nc_{true};  // Flag for the status of matrix.
+  const std::string ID_;           // The ID.
+  const int N_;                    // The top order of the series.
+  const int NumCoeff_;             // Number of the scattering coefficients.
+  const size_t P_;                 // Number of the collocation points.
+  const double r_;                 // Radius of the fiber.
+  const class Material material_;  // Material of the fiber.
+  const double kl_, kt_;           // Wave numbers of the fiber.
+  const class Matrix* matrix_;     // The matrix.
+  CSCPtrs node_;                   // Nodes.
+  MatrixXcd Q_;                    // Transform matrix.
+  MatrixXcd R_;                    // Inner transform matrix.
+  MatrixXcd CQ_;                   // Collocation matrix.
+  bool qr_computed_{false}, cq_computed_{false};
 
   void add_node();
   void del_node();
   void com_QR();
-  void com_CQ();
   MatrixNcd<T> tm(int n) const;
 };
 
@@ -115,15 +115,42 @@ using FiberConfigCPtrs = std::vector<const FiberConfig<T>*>;
 
 template <typename T>
 const MatrixXcd& FiberConfig<T>::ColloMat() {
-  if (CQ_nc_) com_CQ();
+  if (cq_computed_) return CQ_;
+
+  CQ_.resize(NumBv(), NumCoeff());
+
+#ifdef NDEBUG
+#pragma omp parallel for
+#endif
+  for (int n = -N_; n <= N_; n++) {
+    // For antiplane only. TODO: in-plane.
+    dcomp tn = TT(n);
+    EigenFunctor J(Jn, n, KT(), r_), H(Hn, n, KT_m(), r_);
+    for (size_t i = 0; i < P_; i++) {
+      StateAP s = ModeT<AP>(nullptr, node_[i], J, Material()) * tn -
+                  ModeT<AP>(nullptr, node_[i], H, Material_m());
+      CQ_.block<2, 1>(2 * i, n + N_) = s.Bv();
+    }
+  }
+
+  cq_computed_ = true;
+
   return CQ_;
 }
 template <typename T>
 const MatrixXcd& FiberConfig<T>::TransMat() {
-  if (QR_nc_) com_QR();
+  if (qr_computed_) return Q_;
+  com_QR();
+  qr_computed_ = true;
   return Q_;
 }
-
+template <typename T>
+const MatrixXcd& FiberConfig<T>::RefraMat() {
+  if (qr_computed_) return R_;
+  com_QR();
+  qr_computed_ = true;
+  return R_;
+}
 template <typename T>
 void FiberConfig<T>::add_node() {
   node_.reserve(P_);
@@ -135,7 +162,6 @@ template <typename T>
 void FiberConfig<T>::del_node() {
   for (auto i : node_) delete i;
 }
-
 template <>
 Matrix4cd FiberConfig<IP>::tm(int n) const {
   double lm        = Matrix()->Material().Lambda();
@@ -203,8 +229,6 @@ void FiberConfig<T>::com_QR() {
     Q_.block((n + N_) * N, 0, N, NumBv()) = t.block(0, 0, N, 2 * N) * g;
     R_.block((n + N_) * N, 0, N, NumBv()) = t.block(N, 0, N, 2 * N) * g;
   }
-
-  QR_nc_ = false;
 }
 template <>
 dcomp FiberConfig<AP>::TT(int n) const {
@@ -217,35 +241,12 @@ dcomp FiberConfig<AP>::TT(int n) const {
   return (mJm * Hm(r_) - mHm * Jm(r_)) / (mJm * Jf(r_) - mJf * Jm(r_));
 }
 template <>
-void FiberConfig<AP>::com_CQ() {
-  CQ_.resize(NumBv(), NumCoeff());
-
-#ifdef NDEBUG
-#pragma omp parallel for
-#endif
-  for (int n = -N_; n <= N_; n++) {
-    dcomp tn = TT(n);
-    EigenFunctor J(Jn, n, KT(), r_), H(Hn, n, KT_m(), r_);
-    for (size_t i = 0; i < P_; i++) {
-      StateAP s = ModeT<AP>(nullptr, node_[i], J, Material()) * tn -
-                  ModeT<AP>(nullptr, node_[i], H, Material_m());
-      CQ_.block<2, 1>(2 * i, n + N_) = s.Bv();
-    }
-  }
-
-  CQ_nc_ = false;
-}
-template <>
 dcomp FiberConfig<IP>::TL(int) const {
   return 0;  // TODO: tL of in-plane problem
 }
 template <>
 dcomp FiberConfig<IP>::TT(int) const {
   return 0;  // TODO: tT of in-plane problem
-}
-template <>
-void FiberConfig<IP>::com_CQ() {
-  // TODO: tT of in-plane problem
 }
 template <typename T>
 VectorXcd FiberConfig<T>::Solve(const VectorXcd& incBv, SolveMethod method) {

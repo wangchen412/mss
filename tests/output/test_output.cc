@@ -33,28 +33,25 @@ class OutputTest : public Test {
     std::remove("Area_1.dat");
   }
   SolutionAP s{path("input.txt")};
-  post::OutputAP o1{&s};
 
   template <typename T>
-  void extract_state(const post::Geometry<T>* p,
-                     std::vector<AP>& c) const {
+  void extract_state(const post::Geometry<T>* p, std::vector<AP>& c) const {
     const post::PointSet<T>* sp = dynamic_cast<const post::PointSet<T>*>(p);
     for (auto& i : sp->Points()) c.push_back(i->State());
   }
 };
 
-TEST_F(OutputTest, Constructor) {
+TEST_F(OutputTest, Write) {
+  s.Solve();
+
+  post::OutputAP o1{&s};
   EXPECT_EQ(o1.Geo().size(), 4);
   EXPECT_EQ(o1.Geo(0)->ID(), "Point_1");
   EXPECT_EQ(o1.Geo(1)->ID(), "Line_1");
   EXPECT_EQ(o1.Geo(2)->ID(), "Circle_1");
   EXPECT_EQ(o1.Geo(3)->ID(), "Area_1");
-}
 
-TEST_F(OutputTest, Write) {
-  s.Solve();
-  post::OutputAP o2(&s);
-  o2.Write();
+  o1.Write();
   std::ifstream f1("Line_1.dat"), f2("Circle_1.dat"), f3("Area_1.dat");
   std::vector<AP> r1, r2, r3;
   ReadSample(f1, r1, 5);
@@ -66,9 +63,9 @@ TEST_F(OutputTest, Write) {
   ASSERT_EQ(r3.size(), 100);
 
   std::vector<AP> c1, c2, c3;
-  extract_state(o2.Geo(1), c1);
-  extract_state(o2.Geo(2), c2);
-  extract_state(o2.Geo(3), c3);
+  extract_state(o1.Geo(1), c1);
+  extract_state(o1.Geo(2), c2);
+  extract_state(o1.Geo(3), c3);
 
   ASSERT_EQ(c1.size(), 100);
   ASSERT_EQ(c2.size(), 100);

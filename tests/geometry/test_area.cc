@@ -27,20 +27,19 @@ namespace test {
 class AreaTest : public Test {
  protected:
   AreaTest() : Test(__FILE__) {}
-
   SolutionAP s{path("input.txt")};
-  post::AreaAP a1{&s, {1, 2}, {3, 4}, 10, 10};
 };
 
-TEST_F(AreaTest, Constructor) {
-  EXPECT_EQ(a1.Points().size(), 100);
-}
 TEST_F(AreaTest, Computation) {
   std::vector<AP> ref, com;
   ReadSample("Area_r1.dat", ref);
   EXPECT_EQ(ref.size(), 100);
 
   s.Solve();
+
+  post::AreaAP a1{&s, {1, 2}, {3, 4}, 10, 10};
+  EXPECT_EQ(a1.Points().size(), 100);
+
   post::AreaAP t1(&s, {-50e-3, 50e-3}, {50e-3, -50e-3}, 10, 10);
   std::string fn("Area_t1.dat");
   std::ofstream file(path(fn));
