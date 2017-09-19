@@ -44,10 +44,12 @@ class Boundary {
       : Boundary(density, {{0, height}, {width, 0}}, matrix) {}
   virtual ~Boundary() {
     for (auto& i : node_) delete i;
+    for (auto& i : node_c_) delete i;
     for (auto& i : panel_) delete i;
   }
 
   const CSCPtrs& Node() const { return node_; }
+  const CSCPtrs& DNode();
   MatrixXcd EffectMatT(const CS* objCS) const;
   MatrixXcd EffectMatT(const CSCPtrs& objCSs) const;
   MatrixXcd EffectMatT(const InhomoCPtrs<T>& objs) const;
@@ -56,6 +58,8 @@ class Boundary {
  private:
   double density_;
   CSCPtrs node_;
+  CSCPtrs node_c_;  // Complementary nodes.
+  CSCPtrs node_d_;  // Doubled nodes.
   PanelCPtrs<T, N> panel_;
   size_t P_;
   const Matrix* matrix_;
@@ -67,6 +71,27 @@ class Boundary {
 
 // ---------------------------------------------------------------------------
 // Inline functions:
+
+template <typename T, int N>
+const CSCPtrs& Boundary<T, N>::DNode() {
+  if (!node_d_.empty()) return node_d_;
+
+  for (size_t i = 0; i < node_.size() - 1; i++) {
+    PosiVect p = (node_[i]->Position() + node_[i + 1]->Position()) / 2;
+    double ang = (node_[i]->Angle() + node_[i + 1]->Angle()) / 2;
+    node_c_.push_back(new CS(p, ang));
+  }
+  PosiVect p = (node_.back()->Position() + node_.begin()->Position()) / 2;
+  double ang = (node_.back()->Angle() + node_.begin()->Angle()) / 2;
+  node_c_.push_back(new CS(p, ang));
+
+  for (size_t i = 0; i < node_.size(); i++) {
+    node_d_.push_back(node_[i]);
+    node_d_.push_back(node_c_[i]);
+  }
+
+  return node_d_;
+}
 
 template <typename T, int N>
 MatrixXcd Boundary<T, N>::EffectMatT(const mss::CS* objCS) const {

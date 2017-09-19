@@ -57,6 +57,7 @@ class AssemblyConfig {
   size_t NumNode() const { return Node().size(); }
   size_t NumBv() const { return T::NumBv * NumNode(); }
   size_t NumCoeff() const { return num_coeff_; }
+  size_t NumCoeff(size_t i) const { return inhomo(i)->NumCoeff(); }
   size_t NumBv_in() const { return num_bv_in_; }
 
   double Height() const { return height_; }
@@ -70,6 +71,7 @@ class AssemblyConfig {
   const MatrixXcd& ColloMat();
   const MatrixXcd& DcMat();
   const MatrixXcd& TransMat();
+  const MatrixXcd& BoundaryModeMat();
   MatrixXcd GramMat();
 
   VectorXcd IncVec(const InciCPtrs<T>& incident) const;
@@ -115,7 +117,9 @@ class AssemblyConfig {
   MatrixXcd cc_;
   MatrixXcd dc_;
   MatrixXcd Q_;
-  bool cc_computed_{false}, dc_computed_{false}, Q_computed_{false};
+  MatrixXcd M_;
+  bool cc_computed_{false}, dc_computed_{false};
+  bool Q_computed_{false}, M_computed_{false};
 
   void add_inhomo();
   void add_fiber();
@@ -242,6 +246,25 @@ const MatrixXcd& AssemblyConfig<T>::DcMat() {
   dc_computed_ = true;
 
   return dc_;
+}
+
+template <typename T>
+const MatrixXcd& AssemblyConfig<T>::BoundaryModeMat() {
+  if (M_computed_) return M_;
+
+  M_.resize(NumCoeff(), NumBv());
+#ifdef NDEBUG
+#pragma omp parallel for
+#endif
+  for (size_t i = 0; i < inhomo().size(); i++) {
+    size_t k = 0;
+    for (size_t j = 0; j < i; j++) k += NumCoeff(i);
+    for (size_t sn = 0; sn < NumCoeff(i); sn++)
+      M_.col(k + sn) = inhomo(i)->ScatterBv(Node(), sn);
+  }
+  M_computed_ = true;
+
+  return M_;
 }
 
 template <typename T>
