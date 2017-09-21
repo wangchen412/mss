@@ -20,6 +20,7 @@
 #ifndef MSS_ASSEMBLYCONFIG_H
 #define MSS_ASSEMBLYCONFIG_H
 
+#include "../incident/IncidentPlane.h"
 #include "../pre/Input.h"
 #include "Boundary.h"
 #include "Fiber.h"
@@ -60,10 +61,13 @@ class AssemblyConfig {
   size_t NumCoeff(size_t i) const { return inhomo(i)->NumCoeff(); }
   size_t NumBv_in() const { return num_bv_in_; }
 
+  double KL_m() const { return matrix_->KL(); }
+  double KT_m() const { return matrix_->KT(); }
   double Height() const { return height_; }
   double Width() const { return width_; }
   const std::string& ID() const { return ID_; }
   const CSCPtrs& Node() const { return boundary_.Node(); }
+  const Boundary<T>& Boundary() const { return boundary_; }
 
   // TODO: in-plane
   MatrixXcd BdIntMatT() const { return boundary_.EffectMatT(inhomoC_); }
@@ -86,6 +90,9 @@ class AssemblyConfig {
   void Solve(const InciCPtrs<T>& incident, SolveMethod method);
   void CSolve(const InciCPtrs<T>& incident);
   void DSolve(const InciCPtrs<T>& incident);
+
+  double BlochK(const IncidentPlane<T>* incident);
+  dcomp CharPoly(const dcomp& psx, const dcomp& psy);
 
   const Inhomo<T>* InWhich(const CS* objCS) const;
   T Resultant(
@@ -111,15 +118,17 @@ class AssemblyConfig {
   const double width_, height_;
 
   const class Matrix* matrix_;
-  Boundary<T> boundary_;
+  mss::Boundary<T> boundary_;
   const input::AssemblyConfig& input_;
 
   MatrixXcd cc_;
   MatrixXcd dc_;
   MatrixXcd Q_;
   MatrixXcd M_;
+  MatrixXcd Z1_, Z2_;
   bool cc_computed_{false}, dc_computed_{false};
   bool Q_computed_{false}, M_computed_{false};
+  bool Z_computed_{false};
 
   void add_inhomo();
   void add_fiber();
@@ -128,6 +137,11 @@ class AssemblyConfig {
   void del_fiber();
   void del_assembly();
   MatrixXcd comb_trans_mat() const;  // Combined trans-matrix.
+  MatrixXcd inter_identity_mat() const;
+  void com_z_mat();
+  const MatrixXcd& z1_mat();
+  const MatrixXcd& z2_mat();
+
   void dist_solution(const VectorXcd& solution);
 };
 
@@ -186,6 +200,24 @@ template <typename T>
 void AssemblyConfig<T>::DSolve(const InciCPtrs<T>& incident) {
   VectorXcd solution = DcMat().lu().solve(Trans_IncVec(incident));
   dist_solution(solution);
+}
+
+template <typename T>
+double AssemblyConfig<T>::BlochK(const IncidentPlane<T>* incident) {
+  double angle = incident->Angle();
+}
+
+// Characteristic polynomial
+// Input phase shifts in x and y direction.
+template <typename T>
+dcomp AssemblyConfig<T>::CharPoly(const dcomp& psx, const dcomp& psy) {
+  size_t n1 = 2 * boundary_.NumNode(0) - 1;
+  size_t n2 = 2 * boundary_.NumNode(1) + 1;
+  MatrixXcd S(NumBv(), NumBv());
+  S.setIdentity();
+  for (size_t i = 0; i < n1; i++) S(i, i) *= psx;
+  for (size_t i = n1; i < n1 + n2; i++) S(i, i) *= psy;
+  return (S * z1_mat() - z2_mat()).determinant();
 }
 
 template <typename T>
@@ -252,15 +284,15 @@ template <typename T>
 const MatrixXcd& AssemblyConfig<T>::BoundaryModeMat() {
   if (M_computed_) return M_;
 
-  M_.resize(NumCoeff(), NumBv());
+  M_.resize(NumBv() * 2, NumCoeff());
 #ifdef NDEBUG
 #pragma omp parallel for
 #endif
   for (size_t i = 0; i < inhomo().size(); i++) {
     size_t k = 0;
-    for (size_t j = 0; j < i; j++) k += NumCoeff(i);
+    for (size_t j = 0; j < i; j++) k += NumCoeff(j);
     for (size_t sn = 0; sn < NumCoeff(i); sn++)
-      M_.col(k + sn) = inhomo(i)->ScatterBv(Node(), sn);
+      M_.col(k + sn) = inhomo(i)->ScatterBv(boundary_.DNode(), sn);
   }
   M_computed_ = true;
 
@@ -283,6 +315,55 @@ MatrixXcd AssemblyConfig<T>::comb_trans_mat() const {
     v += i->NumBv();
   }
   return rst;
+}
+
+template <typename T>
+const MatrixXcd& AssemblyConfig<T>::z1_mat() {
+  if (Z_computed_) return Z1_;
+  com_z_mat();
+  return Z1_;
+}
+
+template <typename T>
+const MatrixXcd& AssemblyConfig<T>::z2_mat() {
+  if (Z_computed_) return Z2_;
+  com_z_mat();
+  return Z2_;
+}
+
+template <typename T>
+void AssemblyConfig<T>::com_z_mat() {
+  Z1_.resize(NumBv(), NumBv());
+  Z2_.resize(NumBv(), NumBv());
+
+  // Compute matrix Z
+  MatrixXcd Z_ = BoundaryModeMat() * TransMat();
+  const int n  = T::NumBv;
+  auto I       = Eigen::Matrix<double, n, n>::Identity();
+  auto II      = Eigen::Matrix<double, n, n>::Identity() * 0.5;
+  Eigen::Matrix<double, n, 2 * n> III;
+  III << II, II;
+  for (size_t i = 0; i < NumNode(); i++) {
+    Z_.block(2 * n * i, n * i, n, n) += I;
+    if (i < NumNode() - 1) {
+      Z_.block(n + 2 * n * i, n * i, n, 2 * n) += III;
+    } else {
+      Z_.block(n + 2 * n * i, n * i, n, n) += II;
+      Z_.block(n + 2 * n * i, 0, n, n) += II;
+    }
+  }
+
+  // Z1
+  Z1_ = Z_.block(0, 0, NumBv(), NumBv());
+
+  // Z2
+  size_t n1 = 2 * boundary_.NumNode(0) - 1;
+  for (size_t i = 0; i < NumNode(); i++)
+    Z2_.block(n * i, 0, n, NumBv()) =
+        i < n1 ? Z_.block(NumBv() + n * (n1 - i - 1), 0, n, NumBv())
+               : Z_.block(2 * NumBv() + n * (n1 - i - 1), 0, n, NumBv());
+
+  Z_computed_ = true;
 }
 
 template <typename T>

@@ -81,7 +81,7 @@ TEST_F(AssemblyTest, Solve) {
   for (int i = 0; i < 4; i++) {
     VectorXcd rr = c1.inhomo(i)->ScatterCoeff();
     VectorXcd cc = sol1.segment(61 * i, 61);
-    EXPECT_TRUE(ApproxVectRv(rr, cc, 1e-4, 15));
+    EXPECT_TRUE(ApproxVectRv(rr, cc, 1e-4, 16));
   }
 }
 TEST_F(AssemblyTest, Scatter) {

@@ -71,6 +71,9 @@ struct Vector {
   Vector operator*(const T& n) const;
   Vector operator/(const T& n) const;
 
+  // Inner product
+  T operator*(const Vector& other) const;
+
   bool operator==(const Vector& other) const;
   bool isApprox(const Vector& other, double re = epsilon) const;
 
@@ -249,6 +252,10 @@ Vector<T> Vector<T>::operator*(const T& n) const {
 template <typename T>
 Vector<T> Vector<T>::operator/(const T& n) const {
   return Vector<T>(*this) /= n;
+}
+template <typename T>
+T Vector<T>::operator*(const Vector<T>& other) const {
+  return x * other.x + y * other.y;
 }
 template <typename T>
 bool Vector<T>::operator==(const Vector<T>& other) const {

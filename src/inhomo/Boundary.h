@@ -49,7 +49,8 @@ class Boundary {
   }
 
   const CSCPtrs& Node() const { return node_; }
-  const CSCPtrs& DNode();
+  const CSCPtrs& DNode() const { return node_d_; }
+  size_t NumNode(int i) const { return nn_[i]; }
   MatrixXcd EffectMatT(const CS* objCS) const;
   MatrixXcd EffectMatT(const CSCPtrs& objCSs) const;
   MatrixXcd EffectMatT(const InhomoCPtrs<T>& objs) const;
@@ -62,36 +63,16 @@ class Boundary {
   CSCPtrs node_d_;  // Doubled nodes.
   PanelCPtrs<T, N> panel_;
   size_t P_;
+  std::vector<size_t> nn_;  // The number of nodes along each edge.
   const Matrix* matrix_;
-  int n_{T::NumBv};
+  const int n_{T::NumBv};
 
   void add_rect(const PosiVect& p1, const PosiVect& p2);
-  void add_line(const PosiVect& p1, const PosiVect& p2);
+  size_t add_line(const PosiVect& p1, const PosiVect& p2);
 };
 
 // ---------------------------------------------------------------------------
 // Inline functions:
-
-template <typename T, int N>
-const CSCPtrs& Boundary<T, N>::DNode() {
-  if (!node_d_.empty()) return node_d_;
-
-  for (size_t i = 0; i < node_.size() - 1; i++) {
-    PosiVect p = (node_[i]->Position() + node_[i + 1]->Position()) / 2;
-    double ang = (node_[i]->Angle() + node_[i + 1]->Angle()) / 2;
-    node_c_.push_back(new CS(p, ang));
-  }
-  PosiVect p = (node_.back()->Position() + node_.begin()->Position()) / 2;
-  double ang = (node_.back()->Angle() + node_.begin()->Angle()) / 2;
-  node_c_.push_back(new CS(p, ang));
-
-  for (size_t i = 0; i < node_.size(); i++) {
-    node_d_.push_back(node_[i]);
-    node_d_.push_back(node_c_[i]);
-  }
-
-  return node_d_;
-}
 
 template <typename T, int N>
 MatrixXcd Boundary<T, N>::EffectMatT(const mss::CS* objCS) const {
@@ -136,22 +117,26 @@ VectorXcd Boundary<T, N>::EffectBvT(const Inhomo<T>* obj,
 
 template <typename T, int N>
 void Boundary<T, N>::add_rect(const PosiVect& p1, const PosiVect& p2) {
-  add_line({p1.x, p1.y}, {p1.x, p2.y});
-  add_line({p1.x, p2.y}, {p2.x, p2.y});
-  add_line({p2.x, p2.y}, {p2.x, p1.y});
-  add_line({p2.x, p1.y}, {p1.x, p1.y});
+  nn_.push_back(add_line({p1.x, p1.y}, {p1.x, p2.y}));
+  nn_.push_back(add_line({p1.x, p2.y}, {p2.x, p2.y}));
+  nn_.push_back(add_line({p2.x, p2.y}, {p2.x, p1.y}));
+  nn_.push_back(add_line({p2.x, p1.y}, {p1.x, p1.y}));
 }
 
 template <typename T, int N>
-void Boundary<T, N>::add_line(const PosiVect& p1, const PosiVect& p2) {
+size_t Boundary<T, N>::add_line(const PosiVect& p1, const PosiVect& p2) {
   size_t n   = (p2 - p1).Length() * density_;
   PosiVect d = (p2 - p1) / n;
   double len = d.Length();
   double ang = d.Angle() - pi_2;
   for (size_t i = 0; i < n; i++) {
     node_.push_back(new CS(p1 + d * (i + 0.5), ang));
+    node_c_.push_back(new CS(p1 + d * (i + 1), ang));
+    node_d_.push_back(node_.back());
+    node_d_.push_back(node_c_.back());
     panel_.push_back(new Panel<T, N>(node_.back(), len, matrix_));
   }
+  return n;
 }
 
 }  // namespace mss
