@@ -36,11 +36,13 @@ class PeriodicTest : public Test {
 TEST_F(PeriodicTest, BoundaryModeMat) {
   c.Solve({&inSH}, DFT);
 
-  Eigen::VectorXcd rst1(c.NumBv() * 2);
-  for (size_t i = 0; i < c.NumNode() * 2; i++)
+  // Reference:
+  Eigen::VectorXcd rst1(c.NumBv());
+  for (size_t i = 0; i < c.NumNode(); i++)
     rst1.segment(i * 2, 2) =
-        c.Resultant(c.Boundary().DNode()[i], {&inSH}).Bv();
+        c.Resultant(c.Boundary().Node()[i], {&inSH}).Bv();
 
+  // Computed by using BoundaryModeMat times scattering coefficients.
   Eigen::VectorXcd coeff(c.NumCoeff());
   size_t n = 0;
   for (size_t i = 0; i < c.inhomo().size(); i++) {
@@ -49,9 +51,39 @@ TEST_F(PeriodicTest, BoundaryModeMat) {
   }
 
   Eigen::VectorXcd rst2 =
-      c.BoundaryModeMat() * coeff + inSH.EffectBv(c.Boundary().DNode());
+      c.BoundaryModeMat() * coeff + inSH.EffectBv(c.Node());
 
-  EXPECT_TRUE(ApproxVectRv(rst1, rst2));
+  EXPECT_TRUE(ApproxVectRv(rst1, rst2, 1e-4));
+}
+
+TEST_F(PeriodicTest, InToRstMap) {
+  c.Solve({&inSH}, DFT);
+
+  // Reference:
+  Eigen::VectorXcd rst1(c.NumBv());
+  for (size_t i = 0; i < c.NumNode(); i++)
+    rst1.segment(i * 2, 2) =
+        c.Resultant(c.Boundary().Node()[i], {&inSH}).Bv();
+
+  // Computed by using BoundaryModeMat times TransMat times incident.
+  Eigen::MatrixXcd m = c.BoundaryModeMat() * c.TransMat();
+  MatrixXcd I(m.rows(), m.rows());
+  I.setIdentity();
+  Eigen::VectorXcd rst2 = (m + I) * inSH.EffectBv(c.Node());
+
+  EXPECT_TRUE(ApproxVectRv(rst1, rst2, 1e-6));
+  EXPECT_FALSE(ApproxVectRv(rst1, rst2, 1e-14));
+
+  std::cout << (m * m.inverse() - I).norm() << std::endl;
+
+  auto lu = m.partialPivLu();
+
+  MatrixXcd P = lu.permutationP();
+  MatrixXcd L = lu.matrixLU().triangularView<Eigen::Upper>();
+  MatrixXcd Li = L.inverse();
+
+  std::cout << (L*Li - I).norm() << std::endl;
+
 }
 
 TEST_F(PeriodicTest, DISABLED_CharPoly) {
@@ -76,11 +108,14 @@ TEST_F(PeriodicTest, DISABLED_CharPoly) {
   file.close();
 }
 
-TEST_F(PeriodicTest, InvMat2) {
-  MatrixXcd m = c.Y_mat(exp(ii * pi2), 1);
+TEST_F(PeriodicTest, DISABLED_InvMat2) {
+  // MatrixXcd m = c.Y_mat(exp(ii * pi2), 1);
+  // MatrixXcd m = c.z1_mat();  // Singular
+  MatrixXcd m = c.BoundaryModeMat() * c.TransMat();
+
   MatrixXcd I(m.rows(), m.rows());
   I.setIdentity();
-  std::cout << (m*m.inverse() - I).norm() << std::endl;
+  std::cout << (m * m.inverse() - I).norm() << std::endl;
 }
 
 TEST_F(PeriodicTest, DISABLED_InvMat) {
@@ -98,8 +133,8 @@ TEST_F(PeriodicTest, DISABLED_InvMat) {
   MatrixXcd I(Li.rows(), Li.rows());
   I.setIdentity();
 
-  //std::cout << L*Li << std::endl;
-  std::cout << (L*Li - I).norm() << std::endl;
+  // std::cout << L*Li << std::endl;
+  std::cout << (L * Li - I).norm() << std::endl;
 }
 
 }  // namespace test

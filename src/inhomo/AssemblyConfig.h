@@ -141,8 +141,11 @@ class AssemblyConfig {
   MatrixXcd comb_trans_mat() const;  // Combined trans-matrix.
   MatrixXcd inter_identity_mat() const;
   void com_z_mat();
+
+public:
   const MatrixXcd& z1_mat();
   const MatrixXcd& z2_mat();
+
   MatrixXcd phase_shift_mat(const dcomp& psx, const dcomp& psy) const;
 
   void dist_solution(const VectorXcd& solution);
@@ -292,7 +295,7 @@ template <typename T>
 const MatrixXcd& AssemblyConfig<T>::BoundaryModeMat() {
   if (M_computed_) return M_;
 
-  M_.resize(NumBv() * 2, NumCoeff());
+  M_.resize(NumBv(), NumCoeff());
 #ifdef NDEBUG
 #pragma omp parallel for
 #endif
@@ -300,12 +303,31 @@ const MatrixXcd& AssemblyConfig<T>::BoundaryModeMat() {
     size_t k = 0;
     for (size_t j = 0; j < i; j++) k += NumCoeff(j);
     for (size_t sn = 0; sn < NumCoeff(i); sn++)
-      M_.col(k + sn) = inhomo(i)->ScatterBv(boundary_.DNode(), sn);
+      M_.col(k + sn) = inhomo(i)->ScatterBv(boundary_.Node(), sn);
   }
   M_computed_ = true;
 
   return M_;
 }
+
+// template <typename T>
+// const MatrixXcd& AssemblyConfig<T>::BoundaryModeMat() {
+//   if (M_computed_) return M_;
+
+//   M_.resize(NumBv() * 2, NumCoeff());
+// #ifdef NDEBUG
+// #pragma omp parallel for
+// #endif
+//   for (size_t i = 0; i < inhomo().size(); i++) {
+//     size_t k = 0;
+//     for (size_t j = 0; j < i; j++) k += NumCoeff(j);
+//     for (size_t sn = 0; sn < NumCoeff(i); sn++)
+//       M_.col(k + sn) = inhomo(i)->ScatterBv(boundary_.DNode(), sn);
+//   }
+//   M_computed_ = true;
+
+//   return M_;
+// }
 
 template <typename T>
 MatrixXcd AssemblyConfig<T>::GramMat() {
@@ -359,19 +381,20 @@ void AssemblyConfig<T>::com_z_mat() {
   // Compute matrix Z
   MatrixXcd Z_ = BoundaryModeMat() * TransMat();
   const int n  = T::NumBv;
-  auto I       = Eigen::Matrix<double, n, n>::Identity();
-  auto II      = Eigen::Matrix<double, n, n>::Identity() * 0.5;
-  Eigen::Matrix<double, n, 2 * n> III;
-  III << II, II;
-  for (size_t i = 0; i < NumNode(); i++) {
-    Z_.block(2 * n * i, n * i, n, n) += I;
-    if (i < NumNode() - 1) {
-      Z_.block(n + 2 * n * i, n * i, n, 2 * n) += III;
-    } else {
-      Z_.block(n + 2 * n * i, n * i, n, n) += II;
-      Z_.block(n + 2 * n * i, 0, n, n) += II;
-    }
-  }
+
+  // auto I       = Eigen::Matrix<double, n, n>::Identity();
+  // auto II      = Eigen::Matrix<double, n, n>::Identity() * 0.5;
+  // Eigen::Matrix<double, n, 2 * n> III;
+  // III << II, II;
+  // for (size_t i = 0; i < NumNode(); i++) {
+  //   Z_.block(2 * n * i, n * i, n, n) += I;
+  //   if (i < NumNode() - 1) {
+  //     Z_.block(n + 2 * n * i, n * i, n, 2 * n) += III;
+  //   } else {
+  //     Z_.block(n + 2 * n * i, n * i, n, n) += II;
+  //     Z_.block(n + 2 * n * i, 0, n, n) += II;
+  //   }
+  // }
 
   // Z1
   Z1_ = Z_.block(0, 0, NumBv(), NumBv());
