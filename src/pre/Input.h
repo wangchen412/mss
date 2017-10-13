@@ -27,7 +27,7 @@ namespace mss {
 
 namespace input {
 
-const size_t P_MIN = 300;
+const size_t P_MIN = 150;
 
 class Solution {
  public:

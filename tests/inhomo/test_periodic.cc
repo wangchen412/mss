@@ -54,6 +54,54 @@ TEST_F(PeriodicTest, BoundaryModeMat) {
   EXPECT_TRUE(ApproxVectRv(rst1, rst2));
 }
 
+TEST_F(PeriodicTest, DISABLED_CharPoly) {
+  // std::cout << c.CharPoly(exp(ii * k * c.Width()), 1) << std::endl;
+  // std::cout << c.CharPoly(1, 1) << std::endl;
+
+  // std::cout << c.Z_mat(1, 1).size() << std::endl;
+  // std::cout << c.CharPoly(1, 1) << std::endl;
+
+  std::ofstream file("exp.dat");
+
+  int n     = 20;
+  double ll = 250, hh = 260;
+  double dk = (hh - ll) / n;
+
+  for (int i = 0; i < n; i++) {
+    double k  = i * dk + ll;
+    dcomp psx = exp(ii * k * c.Width());
+    file << k << "\t" << DeterExpon(c.Y_mat(psx, 1)) << std::endl;
+  }
+
+  file.close();
+}
+
+TEST_F(PeriodicTest, InvMat2) {
+  MatrixXcd m = c.Y_mat(exp(ii * pi2), 1);
+  MatrixXcd I(m.rows(), m.rows());
+  I.setIdentity();
+  std::cout << (m*m.inverse() - I).norm() << std::endl;
+}
+
+TEST_F(PeriodicTest, DISABLED_InvMat) {
+  MatrixXcd m = c.Y_mat(1, 1);
+
+  auto lu = m.partialPivLu();
+
+  MatrixXcd P = lu.permutationP();
+  MatrixXcd L = lu.matrixLU().triangularView<Eigen::Upper>();
+  MatrixXcd U = lu.matrixLU().triangularView<Eigen::UnitLower>();
+
+  MatrixXcd Li = L.inverse();
+  MatrixXcd Ui = U.inverse();
+
+  MatrixXcd I(Li.rows(), Li.rows());
+  I.setIdentity();
+
+  //std::cout << L*Li << std::endl;
+  std::cout << (L*Li - I).norm() << std::endl;
+}
+
 }  // namespace test
 
 }  // namespace mss

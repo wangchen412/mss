@@ -92,7 +92,9 @@ class AssemblyConfig {
   void DSolve(const InciCPtrs<T>& incident);
 
   double BlochK(const IncidentPlane<T>* incident);
-  dcomp CharPoly(const dcomp& psx, const dcomp& psy);
+  // dcomp CharPoly(const dcomp& psx, const dcomp& psy);
+  MatrixXcd Y_mat(const dcomp& psx, const dcomp& psy);
+  MatrixXcd Yp_mat(const dcomp& psx, const dcomp& psy);
 
   const Inhomo<T>* InWhich(const CS* objCS) const;
   T Resultant(
@@ -141,6 +143,7 @@ class AssemblyConfig {
   void com_z_mat();
   const MatrixXcd& z1_mat();
   const MatrixXcd& z2_mat();
+  MatrixXcd phase_shift_mat(const dcomp& psx, const dcomp& psy) const;
 
   void dist_solution(const VectorXcd& solution);
 };
@@ -209,15 +212,20 @@ double AssemblyConfig<T>::BlochK(const IncidentPlane<T>* incident) {
 
 // Characteristic polynomial
 // Input phase shifts in x and y direction.
+// template <typename T>
+// dcomp AssemblyConfig<T>::CharPoly(const dcomp& psx, const dcomp& psy) {
+//   return Determinant(Z_mat(psx, psy));
+// }
+
 template <typename T>
-dcomp AssemblyConfig<T>::CharPoly(const dcomp& psx, const dcomp& psy) {
-  size_t n1 = 2 * boundary_.NumNode(0) - 1;
-  size_t n2 = 2 * boundary_.NumNode(1) + 1;
-  MatrixXcd S(NumBv(), NumBv());
-  S.setIdentity();
-  for (size_t i = 0; i < n1; i++) S(i, i) *= psx;
-  for (size_t i = n1; i < n1 + n2; i++) S(i, i) *= psy;
-  return (S * z1_mat() - z2_mat()).determinant();
+MatrixXcd AssemblyConfig<T>::Y_mat(const dcomp& psx, const dcomp& psy) {
+  return phase_shift_mat(psx, psy) * z1_mat() - z2_mat();
+}
+
+template <typename T>
+MatrixXcd AssemblyConfig<T>::Yp_mat(const dcomp& psx, const dcomp& psy) {
+  dcomp a = log(psy) / log(psx);
+  return phase_shift_mat(1, a * pow(psx, a - 1)) * z1_mat();
 }
 
 template <typename T>
@@ -315,6 +323,18 @@ MatrixXcd AssemblyConfig<T>::comb_trans_mat() const {
     v += i->NumBv();
   }
   return rst;
+}
+
+template <typename T>
+MatrixXcd AssemblyConfig<T>::phase_shift_mat(const dcomp& psx,
+                                             const dcomp& psy) const {
+  size_t n1 = 2 * boundary_.NumNode(0) - 1;
+  size_t n2 = 2 * boundary_.NumNode(1) + 1;
+  MatrixXcd S(NumBv(), NumBv());
+  S.setIdentity();
+  for (size_t i = 0; i < n1; i++) S(i, i) *= psx;
+  for (size_t i = n1; i < n1 + n2; i++) S(i, i) *= psy;
+  return S;
 }
 
 template <typename T>

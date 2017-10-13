@@ -67,6 +67,22 @@ using VectorNcd = Eigen::Matrix<dcomp, T::NumBv, 1>;
 enum SolveMethod { COLLOCATION, DFT };
 enum BoundaryShape { RECTANGULAR, HEXAGONAL };
 
+inline dcomp operator+(const dcomp& lhs, int rhs) {
+  return lhs + double(rhs);
+}
+
+inline dcomp operator+(int lhs, const dcomp& rhs) {
+  return double(lhs) + rhs;
+}
+
+inline dcomp operator-(const dcomp& lhs, int rhs) {
+  return lhs - double(rhs);
+}
+
+inline dcomp operator-(int lhs, const dcomp& rhs) {
+  return double(lhs) - rhs;
+}
+
 inline dcomp operator*(const dcomp& lhs, int rhs) {
   return lhs * double(rhs);
 }
@@ -172,6 +188,53 @@ bool ApproxVectRv(const Eigen::Matrix<T, Eigen::Dynamic, 1>& a,
   for (long i = k; i < a.size() - k; i++)
     if (!ApproxRv(a(i), b(i), re, v)) return false;
   return true;
+}
+
+template <typename T>
+std::vector<T> DeterminantFactor(const Eigen::Matrix<T, -1, -1>& m) {
+  auto lu = m.partialPivLu();
+
+  Eigen::Matrix<T, -1, 1> diag = lu.matrixLU().diagonal();
+
+  T p = 0;
+  for (int i = 0; i < diag.size(); i++) p += std::log10(diag(i));
+  p /= diag.size();
+
+  std::vector<T> v;
+  for (int i = 0; i < diag.size(); i++) v.push_back(diag(i) / pow(10, p));
+  std::sort(v.begin(), v.end(),
+            [](const T& a, const T& b) { return std::abs(a) < std::abs(b); });
+
+  v.push_back(p);
+  v.push_back(lu.permutationP().determinant());
+
+  return v;
+}
+
+template <typename T>
+std::tuple<T, T> Determinant(const Eigen::Matrix<T, -1, -1>& m) {
+  auto v = DeterminantFactor(m);
+  T rst  = v.back();
+  v.pop_back();
+
+  T ave_p = v.back();
+  v.pop_back();
+
+  size_t i = 0, j = v.size() - 1;
+  while (i < j) rst *= v[i++] * v[j--];
+  if (i == j) rst *= v[i];
+
+  return std::make_tuple(rst, ave_p);
+}
+
+double DeterExpon(const MatrixXcd& m) {
+  VectorXcd diag = m.partialPivLu().matrixLU().diagonal();
+
+  dcomp p = 0;
+  for (long i = 0; i < diag.size(); i++) p += std::log10(diag(i));
+  p /= diag.size();
+
+  return p.real();
 }
 
 }  // namespace mss
