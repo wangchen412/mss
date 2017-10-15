@@ -49,6 +49,7 @@ class Boundary {
   }
 
   const CSCPtrs& Node() const { return node_; }
+  const CS* Node(size_t i) const { return node_[i]; }
   const CSCPtrs& DNode() const { return node_d_; }
   size_t NumNode(int i) const { return nn_[i]; }
   MatrixXcd EffectMatT(const CS* objCS) const;
