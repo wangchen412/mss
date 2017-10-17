@@ -376,7 +376,7 @@ void AssemblyConfig<T>::com_z_mat() {
   //              : Z_.block(2 * NumBv() + n * (n1 - i - 1), 0, n, NumBv());
 
   // Separate D and N:
-  for (size_t i = 0; i < NumNode(); i++) {
+  for (size_t i = 0; i < NumNode() * 2; i++) {
     Z1_.row(i) = Z.row(2 * i);
     Z2_.row(i) = Z.row(2 * i + 1);
   }

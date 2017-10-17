@@ -185,9 +185,16 @@ bool ApproxVectRv(const Eigen::Matrix<T, Eigen::Dynamic, 1>& a,
                   const Eigen::Matrix<T, Eigen::Dynamic, 1>& b,
                   double re = epsilon, int k = 0, bool v = false) {
   assert(a.size() == b.size());
+
+  bool rst = true;
   for (long i = k; i < a.size() - k; i++)
-    if (!ApproxRv(a(i), b(i), re, v)) return false;
-  return true;
+    if (!ApproxRv(a(i), b(i), re, v)) {
+      if (v)
+        rst = false;
+      else
+        return false;
+    }
+  return rst;
 }
 
 template <typename T>
