@@ -36,6 +36,7 @@ class Solution {
         input_(input) {
     add_incident();
   }
+  Solution(const std::string& fn) : Solution(input::Solution(fn)) {}
 
   virtual ~Solution() { delete_incident(); }
 
