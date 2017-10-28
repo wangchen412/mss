@@ -63,6 +63,14 @@ TEST(MathTest, LpTest) {
   EXPECT_EQ(Lp<1>({1, 2, 3}), 6);
   EXPECT_EQ(Lp<2>({12, 15, 16}), 25);
 }
+TEST(MathTest, PseudoInverse) {
+  MatrixXcd m(30, 15);
+  VectorXcd b(15);
+  m.setRandom();
+  b.setRandom();
+  VectorXcd bb = PseudoInverse(m) * (m * b);
+  EXPECT_TRUE(ApproxVectRv(b, bb));
+}
 
 TEST_F(VectorTest, ConstructorsTest) {
   EXPECT_EQ(a.x, 0.0);

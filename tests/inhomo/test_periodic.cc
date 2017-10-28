@@ -112,7 +112,9 @@ TEST_F(PeriodicTest, DtN_Map) {
   // MatrixXcd DtN    = c.z2_mat() * z1_inv;
   // VectorXcd com_t3 = DtN * com_w2;
 
-  VectorXcd com_t3 = c.z1_mat().fullPivLu().solve(c.z2_mat() * com_w2);
+  MatrixXcd z1_inv = PseudoInverse(c.z1_mat());
+  MatrixXcd DtN = c.z2_mat() * z1_inv;
+  VectorXcd com_t3 = DtN * com_w2;
 
   ApproxVectRv(com_t2, com_t3, 1e-2, 0, true);
 }

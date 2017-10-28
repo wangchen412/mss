@@ -244,6 +244,16 @@ double DeterExpon(const MatrixXcd& m) {
   return p.real();
 }
 
+MatrixXcd PseudoInverse(const MatrixXcd& m) {
+  auto svd = m.jacobiSvd(Eigen::ComputeFullU | Eigen::ComputeFullV);
+  auto& sv = svd.singularValues();
+  MatrixXcd svi(m.cols(), m.rows());
+  svi.setZero();
+  for (long i = 0; i < sv.size(); i++)
+    svi(i, i) = std::abs(sv(i)) > epsilon ? 1 / sv(i) : 0;
+  return svd.matrixV() * svi * svd.matrixU().adjoint();
+}
+
 }  // namespace mss
 
 #include "Integrators.h"
