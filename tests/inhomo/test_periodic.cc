@@ -33,7 +33,24 @@ class PeriodicTest : public Test {
   IncidentPlaneSH inSH{matrix, s.incident()[0]};
 };
 
-TEST_F(PeriodicTest, Matrices) {
+TEST_F(PeriodicTest, InvBdMat) {
+  VectorXcd ref_in = inSH.EffectBv(c.inhomo(0)->Node());
+
+  VectorXcd in0    = inSH.EffectBv(c.Boundary().Node());
+  VectorXcd com_in = c.BdIntMatT() * in0;
+
+  ApproxVectRv(ref_in, com_in, 1e-4, 0, true);
+
+  std::cout << c.BdIntMatT().rows() << "  " << c.BdIntMatT().cols()
+            << std::endl;
+
+  MatrixXcd bd_inv  = PseudoInverse(c.BdIntMatT());
+  VectorXcd com_in0 = bd_inv * com_in;
+
+  ApproxVectRv(in0, com_in0, 1e-4, 0, true);
+}
+
+TEST_F(PeriodicTest, DISABLED_Matrices) {
   c.Solve({&inSH}, DFT);
 
   // Reference:
@@ -66,7 +83,7 @@ TEST_F(PeriodicTest, Matrices) {
   EXPECT_TRUE(ApproxVectRv(ref, com3, 1e-5));
 }
 
-TEST_F(PeriodicTest, DtN_Map) {
+TEST_F(PeriodicTest, DISABLED_DtN_Map) {
   c.Solve({&inSH}, DFT);
 
   VectorXcd in_d = inSH.EffectBv(c.Boundary().DNode());
@@ -86,7 +103,6 @@ TEST_F(PeriodicTest, DtN_Map) {
   VectorXcd com_w = c.z1_mat() * in, com_t = c.z2_mat() * in;
   EXPECT_TRUE(ApproxVectRv(ref_w, com_w, 1e-5));
   EXPECT_TRUE(ApproxVectRv(ref_t, com_t, 1e-5));
-
 
   /// PseudoInverse:
   // MatrixXcd z1_inv = PseudoInverse(c.z1_mat());

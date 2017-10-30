@@ -174,7 +174,8 @@ double RelativeDiff(const T& a, const T& b) {
 template <typename T>
 bool ApproxRv(const T& a, const T& b, double re = epsilon, bool v = false) {
   if (v)
-    std::cout << a << "\t" << b << "\t" << RelativeDiff(a, b) << std::endl;
+    if (RelativeDiff(a, b) > re)
+      std::cout << a << "\t" << b << "\t" << RelativeDiff(a, b) << std::endl;
   return RelativeDiff(a, b) < re;
 }
 
