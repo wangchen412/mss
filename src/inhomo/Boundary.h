@@ -51,6 +51,8 @@ class Boundary {
   const CSCPtrs& Node() const { return node_; }
   const CS* Node(size_t i) const { return node_[i]; }
   const CSCPtrs& DNode() const { return node_d_; }
+  size_t NumDNode() const { return node_d_.size(); }
+  size_t NumDBv() const { return NumDNode() * T::NumBv; }
   size_t NumNode(int i) const { return nn_[i]; }
   MatrixXcd EffectMatT(const CS* objCS) const;
   MatrixXcd EffectMatT(const CSCPtrs& objCSs) const;
@@ -130,11 +132,25 @@ size_t Boundary<T, N>::add_line(const PosiVect& p1, const PosiVect& p2) {
   PosiVect d = (p2 - p1) / n;
   double len = d.Length();
   double ang = d.Angle() - pi_2;
+
+  // Quadral nodes.
   for (size_t i = 0; i < n; i++) {
+    if (i > 0) {
+      node_c_.push_back(new CS(p1 + d * (i + 0.25), ang));
+      node_d_.push_back(node_c_.back());
+    }
+
     node_.push_back(new CS(p1 + d * (i + 0.5), ang));
-    node_c_.push_back(new CS(p1 + d * (i + 1), ang));
     node_d_.push_back(node_.back());
-    node_d_.push_back(node_c_.back());
+
+    if (i < n - 1) {
+      node_c_.push_back(new CS(p1 + d * (i + 0.75), ang));
+      node_d_.push_back(node_c_.back());
+
+      node_c_.push_back(new CS(p1 + d * (i + 1), ang));
+      node_d_.push_back(node_c_.back());
+    }
+
     panel_.push_back(new Panel<T, N>(node_.back(), len, matrix_));
   }
   return n;

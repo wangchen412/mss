@@ -120,7 +120,6 @@ class AssemblyConfig {
 
   // const size_t P_;
   const double width_, height_;
-
   const class Matrix* matrix_;
   mss::Boundary<T> boundary_;
   const input::AssemblyConfig& input_;
@@ -298,7 +297,7 @@ template <typename T>
 const MatrixXcd& AssemblyConfig<T>::BoundaryModeMat() {
   if (M_computed_) return M_;
 
-  M_.resize(NumBv() * 2, NumCoeff());
+  M_.resize(NumBv() * 4, NumCoeff());
 #ifdef NDEBUG
 #pragma omp parallel for
 #endif
@@ -359,9 +358,8 @@ const MatrixXcd& AssemblyConfig<T>::z2_mat() {
 
 template <typename T>
 void AssemblyConfig<T>::com_z_mat() {
-  Z1_.resize(NumBv(), NumBv());
-  Z2_.resize(NumBv(), NumBv());
-
+  Z1_.resize(boundary_.NumDBv() / 2, NumBv());
+  Z2_.resize(boundary_.NumDBv() / 2, NumBv());
 
   auto Z = InToRstMat();
 
@@ -376,7 +374,7 @@ void AssemblyConfig<T>::com_z_mat() {
   //              : Z_.block(2 * NumBv() + n * (n1 - i - 1), 0, n, NumBv());
 
   // Separate D and N:
-  for (size_t i = 0; i < NumNode() * 2; i++) {
+  for (size_t i = 0; i < boundary_.NumDNode(); i++) {
     Z1_.row(i) = Z.row(2 * i);
     Z2_.row(i) = Z.row(2 * i + 1);
   }
@@ -388,23 +386,66 @@ template <typename T>
 const MatrixXcd& AssemblyConfig<T>::InToRstMat() {
   if (MQI_computed_) return MQI_;
 
-  MQI_ = BoundaryModeMat() * TransMat();
-  const int n  = T::NumBv;
+  MQI_        = BoundaryModeMat() * TransMat();
+  const int n = T::NumBv;
 
   // Add pseudo-incident itself
-  auto I  = Eigen::Matrix<double, n, n>::Identity();
-  auto II = Eigen::Matrix<double, n, n>::Identity() * 0.5;
-  Eigen::Matrix<double, n, 2 * n> III;
-  III << II, II;
-  for (size_t i = 0; i < NumNode(); i++) {
-    MQI_.block(2 * n * i, n * i, n, n) += I;
-    if (i < NumNode() - 1) {
-      MQI_.block(n + 2 * n * i, n * i, n, 2 * n) += III;
-    } else {
-      MQI_.block(n + 2 * n * i, n * i, n, n) += II;
-      MQI_.block(n + 2 * n * i, 0, n, n) += II;
+  auto I = Eigen::Matrix<double, n, n>::Identity();
+  auto J = Eigen::Matrix<double, n, n>::Identity() * 0.25;
+  auto K = Eigen::Matrix<double, n, n>::Identity() * 0.5;
+  auto L = Eigen::Matrix<double, n, n>::Identity() * 0.75;
+  Eigen::Matrix<double, n, 2 * n> LJ, KK, JL;
+  LJ << L, J;
+  KK << K, K;
+  JL << J, L;
+
+  // TODO The lattice must be square
+  size_t nnpe = NumNode() / 4;  // Number of nodes per edge.
+
+  for (size_t e = 0; e < 4; e++) {
+    size_t s = e * (nnpe * 4 - 3) * n;  // Number of passed rows.
+    size_t t = e * nnpe * n;            // Number of passed cols.
+    for (size_t i = 0; i < nnpe; i++) {
+      long u = s + i * n * 4, v = t + n * i;
+      MQI_.block(u, v, n, n) += I;
+      if (i < nnpe - 1) {
+        MQI_.block(u + 1 * n, v, n, 2 * n) += LJ;
+        MQI_.block(u + 2 * n, v, n, 2 * n) += KK;
+        MQI_.block(u + 3 * n, v, n, 2 * n) += JL;
+      }
     }
   }
+
+  // for (size_t i = 0; i < NumNode(); i++) {
+  //   long u = 4 * n * i, v = n * i;
+  //   if (i == 0) {
+  //     MQI_.block(0, n * (NumNode() - 1), n, n ) += J;
+  //     MQI_.block(0, 0, n, n) += L;
+  //   } else {
+  //     MQI_.block(u, v - n, n, 2 * n) += JL;
+  //   }
+  //   MQI_.block(u + n, v, n, n) += I;
+  //   if (i == NumNode() - 1) {
+  //     MQI_.block(u + 2 * n, v, n, n) += L;
+  //     MQI_.block(u + 2 * n, 0, n, n) += J;
+
+  //     MQI_.block(u + 3 * n, v, n, n) += K;
+  //     MQI_.block(u + 3 * n, 0, n, n) += K;
+  //   } else {
+  //     MQI_.block(u + 2 * n, v, n, 2 * n) += LJ;
+  //     MQI_.block(u + 3 * n, v, n, 2 * n) += KK;
+  //   }
+  // }
+
+  // for (size_t i = 0; i < NumNode(); i++) {
+  //   MQI_.block(2 * n * i, n * i, n, n) += I;
+  //   if (i < NumNode() - 1) {
+  //     MQI_.block(n + 2 * n * i, n * i, n, 2 * n) += III;
+  //   } else {
+  //     MQI_.block(n + 2 * n * i, n * i, n, n) += II;
+  //     MQI_.block(n + 2 * n * i, 0, n, n) += II;
+  //   }
+  // }
 
   MQI_computed_ = true;
   return MQI_;
