@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>15.0</VCProjectVersion>
+    <ProjectGuid>{AD013863-60A6-42BD-8834-5C0C2EA2503A}</ProjectGuid>
+    <RootNamespace>testmath</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>Intel C++ Compiler 18.0</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+    <UseIntelMKL>Sequential</UseIntelMKL>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>Intel C++ Compiler 18.0</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+    <UseIntelMKL>Parallel</UseIntelMKL>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup />
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <SDLCheck>true</SDLCheck>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <AdditionalIncludeDirectories>$(EIGEN_PATH);$(GOOGLE_TEST_PATH);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <Cpp0xSupport>true</Cpp0xSupport>
+      <PreprocessorDefinitions>_ITERATOR_DEBUG_LEVEL=2;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <AdditionalLibraryDirectories>$(GOOGLE_TEST_PATH);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>gtestd.lib;gmockd.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>MaxSpeedHighLevel</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <AdditionalIncludeDirectories>$(EIGEN_PATH);$(GOOGLE_TEST_PATH);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OpenMP>GenerateParallelCode</OpenMP>
+      <Cpp0xSupport>true</Cpp0xSupport>
+    </ClCompile>
+    <Link>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalLibraryDirectories>$(GOOGLE_TEST_PATH);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>gtest.lib;gmock.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\..\src\core\CS.h" />
+    <ClInclude Include="..\..\..\src\core\Functors.h" />
+    <ClInclude Include="..\..\..\src\core\Integrators.h" />
+    <ClInclude Include="..\..\..\src\core\Material.h" />
+    <ClInclude Include="..\..\..\src\core\Math.h" />
+    <ClInclude Include="..\..\..\src\core\Matrix.h" />
+    <ClInclude Include="..\..\..\src\core\Modes.h" />
+    <ClInclude Include="..\..\..\src\core\Solution.h" />
+    <ClInclude Include="..\..\..\src\core\State.h" />
+    <ClInclude Include="..\..\..\src\core\Tensor.h" />
+    <ClInclude Include="..\..\..\src\incident\Incident.h" />
+    <ClInclude Include="..\..\..\src\incident\IncidentInput.h" />
+    <ClInclude Include="..\..\..\src\incident\IncidentP.h" />
+    <ClInclude Include="..\..\..\src\incident\IncidentPlane.h" />
+    <ClInclude Include="..\..\..\src\incident\IncidentPlaneP.h" />
+    <ClInclude Include="..\..\..\src\incident\IncidentPlaneSH.h" />
+    <ClInclude Include="..\..\..\src\incident\IncidentPlaneSV.h" />
+    <ClInclude Include="..\..\..\src\incident\IncidentS.h" />
+    <ClInclude Include="..\..\..\src\incident\IncidentSV.h" />
+    <ClInclude Include="..\..\..\src\inhomo\Assembly.h" />
+    <ClInclude Include="..\..\..\src\inhomo\AssemblyConfig.h" />
+    <ClInclude Include="..\..\..\src\inhomo\Boundary.h" />
+    <ClInclude Include="..\..\..\src\inhomo\Fiber.h" />
+    <ClInclude Include="..\..\..\src\inhomo\FiberConfig.h" />
+    <ClInclude Include="..\..\..\src\inhomo\Inhomo.h" />
+    <ClInclude Include="..\..\..\src\inhomo\Panel.h" />
+    <ClInclude Include="..\..\..\src\post\check\Continuity.h" />
+    <ClInclude Include="..\..\..\src\post\geometry\Area.h" />
+    <ClInclude Include="..\..\..\src\post\geometry\Circle.h" />
+    <ClInclude Include="..\..\..\src\post\geometry\GeoInput.h" />
+    <ClInclude Include="..\..\..\src\post\geometry\Geometry.h" />
+    <ClInclude Include="..\..\..\src\post\geometry\Line.h" />
+    <ClInclude Include="..\..\..\src\post\geometry\Point.h" />
+    <ClInclude Include="..\..\..\src\post\geometry\PointSet.h" />
+    <ClInclude Include="..\..\..\src\post\Output.h" />
+    <ClInclude Include="..\..\..\src\pre\Input.h" />
+    <ClInclude Include="..\..\..\src\pre\InputData.h" />
+    <ClInclude Include="..\..\..\src\tools\FileIO.h" />
+    <ClInclude Include="..\..\..\tests\test.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\..\tests\check\test_continuity.cc" />
+    <ClCompile Include="..\gtest_main.cc" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

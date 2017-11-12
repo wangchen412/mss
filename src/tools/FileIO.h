@@ -20,7 +20,7 @@
 #ifndef MSS_FILEIO_H
 #define MSS_FILEIO_H
 
-#include <string.h>
+#include <string>
 #include <cstring>
 #include <fstream>
 #include <iostream>
@@ -43,7 +43,8 @@ inline bool iequals(const std::string& a, const std::string& b) {
 // Case insensitive comparison functor for std::map.
 struct ci_comp {
   bool operator()(const std::string& lhs, const std::string& rhs) const {
-    return strcasecmp(lhs.c_str(), rhs.c_str()) < 0;
+    //return strcasecmp(lhs.c_str(), rhs.c_str()) < 0;
+    return _stricmp(lhs.c_str(), rhs.c_str()) < 0;
   }
 };
 

@@ -29,7 +29,7 @@ typedef input::Solution* CreateInputFunc();
 
 input::Solution* ReadInput() {
   std::string path(__FILE__);
-  std::string fn = path.substr(0, path.rfind("/")) + "/../data/input.txt";
+  std::string fn = path.substr(0, path.find_last_of("/\\")) + "/../data/input.txt";
   return new input::Solution(fn);
 }
 

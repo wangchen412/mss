@@ -1,0 +1,168 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Header Files\core">
+      <UniqueIdentifier>{49208396-27db-432b-a96e-68c467fcaed8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\inhomo">
+      <UniqueIdentifier>{fb22c860-6dd0-42d3-972d-9a3f7a0bb5bc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\post">
+      <UniqueIdentifier>{8076338e-bbc3-4524-82ad-26d6c9c7acad}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\post\geometry">
+      <UniqueIdentifier>{a4ab3c90-42f4-4612-8475-f4808e90fcd4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\post\check">
+      <UniqueIdentifier>{5f420f03-f058-4fef-8e3e-52128b494f72}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\pre">
+      <UniqueIdentifier>{e6f0dff1-8305-448e-9906-46c254a7081f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\incident">
+      <UniqueIdentifier>{e5955534-2ad9-49f9-a0d5-70a872a98d1e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\tools">
+      <UniqueIdentifier>{491876a6-0e69-4847-91bf-d961934669ad}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\..\tests\test.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\core\CS.h">
+      <Filter>Header Files\core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\core\Functors.h">
+      <Filter>Header Files\core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\core\Integrators.h">
+      <Filter>Header Files\core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\core\Material.h">
+      <Filter>Header Files\core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\core\Math.h">
+      <Filter>Header Files\core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\core\Matrix.h">
+      <Filter>Header Files\core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\core\Modes.h">
+      <Filter>Header Files\core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\core\Solution.h">
+      <Filter>Header Files\core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\core\State.h">
+      <Filter>Header Files\core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\core\Tensor.h">
+      <Filter>Header Files\core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\inhomo\Assembly.h">
+      <Filter>Header Files\inhomo</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\inhomo\AssemblyConfig.h">
+      <Filter>Header Files\inhomo</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\inhomo\Boundary.h">
+      <Filter>Header Files\inhomo</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\inhomo\Fiber.h">
+      <Filter>Header Files\inhomo</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\inhomo\FiberConfig.h">
+      <Filter>Header Files\inhomo</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\inhomo\Inhomo.h">
+      <Filter>Header Files\inhomo</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\inhomo\Panel.h">
+      <Filter>Header Files\inhomo</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\post\Output.h">
+      <Filter>Header Files\post</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\post\geometry\Area.h">
+      <Filter>Header Files\post\geometry</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\post\geometry\Circle.h">
+      <Filter>Header Files\post\geometry</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\post\geometry\GeoInput.h">
+      <Filter>Header Files\post\geometry</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\post\geometry\Geometry.h">
+      <Filter>Header Files\post\geometry</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\post\geometry\Line.h">
+      <Filter>Header Files\post\geometry</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\post\geometry\Point.h">
+      <Filter>Header Files\post\geometry</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\post\geometry\PointSet.h">
+      <Filter>Header Files\post\geometry</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\post\check\Continuity.h">
+      <Filter>Header Files\post\check</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\pre\Input.h">
+      <Filter>Header Files\pre</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\pre\InputData.h">
+      <Filter>Header Files\pre</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\incident\Incident.h">
+      <Filter>Header Files\incident</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\incident\IncidentInput.h">
+      <Filter>Header Files\incident</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\incident\IncidentP.h">
+      <Filter>Header Files\incident</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\incident\IncidentPlane.h">
+      <Filter>Header Files\incident</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\incident\IncidentPlaneP.h">
+      <Filter>Header Files\incident</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\incident\IncidentPlaneSH.h">
+      <Filter>Header Files\incident</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\incident\IncidentPlaneSV.h">
+      <Filter>Header Files\incident</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\incident\IncidentS.h">
+      <Filter>Header Files\incident</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\incident\IncidentSV.h">
+      <Filter>Header Files\incident</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\tools\FileIO.h">
+      <Filter>Header Files\tools</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\gtest_main.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\tests\geometry\test_circle.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>
