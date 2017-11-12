@@ -106,7 +106,7 @@ class Solution {
 // ---------------------------------------------------------------------------
 // Inline functions:
 
-bool Solution::is_keyword(const std::string& val) {
+inline bool Solution::is_keyword(const std::string& val) {
   for (auto& i : keyword_) {
     if (i.first == typeid(Fiber) || i.first == typeid(Assembly)) continue;
     if (iequals(i.second, val)) return true;
@@ -173,6 +173,7 @@ inline void Solution::add_entry(std::ifstream& file,
 template <typename T>
 void Solution::add(std::vector<T>& vec) {
   std::ifstream file(fn_);
+  assert(file.is_open() && "File cannot be opened.");
   add_header<T>(file);
   add_entry(file, vec);
   file.close();
