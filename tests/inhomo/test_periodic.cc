@@ -33,7 +33,7 @@ class PeriodicTest : public Test {
   IncidentPlaneSH inSH{matrix, s.incident()[0]};
 };
 
-TEST_F(PeriodicTest, InvBdMat) {
+TEST_F(PeriodicTest, DISABLED_InvBdMat) {
   VectorXcd ref_in = inSH.EffectBv(c.inhomo(0)->Node());
 
   VectorXcd in0    = inSH.EffectBv(c.Boundary().Node());
@@ -50,7 +50,7 @@ TEST_F(PeriodicTest, InvBdMat) {
   ApproxVectRv(in0, com_in0, 1e-4, 0, true);
 }
 
-TEST_F(PeriodicTest, DISABLED_Matrices) {
+TEST_F(PeriodicTest, Matrices) {
   c.Solve({&inSH}, DFT);
 
   // Reference:

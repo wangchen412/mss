@@ -211,8 +211,7 @@ inline void Solution::link() {
   }
   for (auto& i : fiber_config_) {
     i.material = FindID(material_, i.materialID);
-    i.P =
-        std::max(size_t(matrix().kt * i.radius * matrix().delta), P_MIN) * 20;
+    i.P = std::max(size_t(matrix().kt * i.radius * matrix().delta), P_MIN);
   }
   for (auto& i : assembly_config_) {
     i.fiber_config = &fiber_config_;
