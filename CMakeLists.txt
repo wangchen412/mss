@@ -32,8 +32,8 @@ project(mss)
 # set(CMAKE_BUILD_TYPE Debug)
 set(CMAKE_BUILD_TYPE Release)
 
-set(DFLAGS "-Wall -mkl=sequential")
-set(RFLAGS "-Wall -mkl=parallel -fopenmp -parallel")
+set(DFLAGS "-Wall -mkl=sequential -fp-model precise")
+set(RFLAGS "-Wall -mkl=parallel -fopenmp -parallel -fp-model precise")
 
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} ${DFLAGS}")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} ${RFLAGS}")
