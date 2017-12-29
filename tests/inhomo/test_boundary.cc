@@ -35,6 +35,8 @@ class BoundaryTest : public Test {
   Fiber<AP> f3{&fc1, {50e-3, 50e-3}};
 
   Boundary<StateAP, 2> b1{100 * m.KT(), {{0, 12e-3}, {23e-3, 0}}, &m};
+  Boundary<StateAP, 2> b2{
+      100 * m.KT(), {{10e-3, 6e-3}, {0, 0}}, &m, CIRCULAR};
 };
 
 TEST_F(BoundaryTest, Constructor) {
@@ -55,6 +57,39 @@ TEST_F(BoundaryTest, Solve) {
       f1.DSolve({&in1}),
       f2.DSolve(b1.EffectBvT(&f2, in1.EffectBv(b1.Node()))), 1e-4));
 }
+TEST_F(BoundaryTest, DISABLED_ColloMat_Rectangular) {
+  MatrixXcd c = b1.ColloMatT();
+  // MatrixXcd d = PseudoInverse(c);
+  MatrixXcd m = b1.ModeMatT(f1.Node());
+
+  VectorXcd v = c.jacobiSvd(Eigen::ComputeThinU | Eigen::ComputeThinV)
+                    .solve(in1.EffectBv(b1.Node()));
+
+  VectorXcd bv_in = in1.EffectBv(f1.Node());
+  VectorXcd bv_bd = m * v;
+  // VectorXcd bv_bd = m * d * in1.EffectBv(b2.Node());
+  EXPECT_TRUE(ApproxVectRv(bv_in, bv_bd, 1e-4, 0, true));
+}
+TEST_F(BoundaryTest, ColloMat_Circular) {
+  MatrixXcd c = b2.ColloMatT();
+  MatrixXcd d = PseudoInverse(c);
+  MatrixXcd m = b2.ModeMatT(f1.Node());
+
+  VectorXcd bv_in = in1.EffectBv(f1.Node());
+  VectorXcd bv_bd = m * d * in1.EffectBv(b2.Node());
+  EXPECT_TRUE(ApproxVectRv(bv_in, bv_bd, 1e-4, 0, true));
+
+  // auto svd = c.jacobiSvd(Eigen::ComputeThinU | Eigen::ComputeThinV);
+  // std::cout << svd.singularValues() << std::endl;
+  // std::cout << "++++++++++++++++++++++++" << std::endl;
+  // std::cout << b1.ColloMatT()
+  //                  .jacobiSvd(Eigen::ComputeThinU | Eigen::ComputeThinV)
+  //                  .singularValues()
+  //           << std::endl;
+
+  std::cout << ConditionNum(b2.ColloMatT()) << std::endl;
+  std::cout << ConditionNum(b1.ColloMatT()) << std::endl;
+}
 
 class AssemBoundaryTest : public Test {
  protected:
@@ -66,7 +101,6 @@ class AssemBoundaryTest : public Test {
   AssemblyConfig<AP> c2{s.config(), &matrix};
   IncidentPlaneSH inSH1{matrix, s.incident()[0]};
 };
-
 TEST_F(AssemBoundaryTest, CSolve) {
   c1.CSolve({&inSH1});
   c2.CSolve(c2.BdIntMatT() * inSH1.EffectBv(c2.Node()));

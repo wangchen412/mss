@@ -65,7 +65,7 @@ template <typename T>
 using VectorNcd = Eigen::Matrix<dcomp, T::NumBv, 1>;
 
 enum SolveMethod { COLLOCATION, DFT };
-enum BoundaryShape { RECTANGULAR, HEXAGONAL };
+enum BoundaryShape { RECTANGULAR, HEXAGONAL, CIRCULAR };
 
 inline dcomp operator+(const dcomp& lhs, int rhs) {
   return lhs + double(rhs);
@@ -253,6 +253,12 @@ MatrixXcd PseudoInverse(const MatrixXcd& m) {
   for (long i = 0; i < sv.size(); i++)
     svi(i, i) = std::abs(sv(i)) > epsilon ? 1 / sv(i) : 0;
   return svd.matrixV() * svi * svd.matrixU().adjoint();
+}
+
+double ConditionNum(const MatrixXcd& m) {
+  auto svd = m.jacobiSvd(Eigen::ComputeThinU | Eigen::ComputeThinV);
+  auto& sv = svd.singularValues();
+  return sv(0) / sv(sv.size() - 1);
 }
 
 }  // namespace mss

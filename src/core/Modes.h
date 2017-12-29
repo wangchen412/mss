@@ -34,7 +34,7 @@ T ModeT(const CS*, const CS*, const EigenFunctor&, const Material&);
 
 template <>
 inline StateIP ModeL<IP>(const CS* localCS, const CS* objCS,
-                              const EigenFunctor& f, const Material& m) {
+                         const EigenFunctor& f, const Material& m) {
   /// Return the effect of the longitude mode in in-plane problems.
 
   // Position in the local CS, which is seen as a polar CS:
@@ -58,8 +58,7 @@ inline StateIP ModeL<IP>(const CS* localCS, const CS* objCS,
 }
 template <>
 inline StateIP ModeT<IP>(const CS* localCS, const CS* objCS,
-                              const EigenFunctor& f,
-                              const class Material& m) {
+                         const EigenFunctor& f, const class Material& m) {
   /// Return the effect of the transverse mode in in-plane problems.
 
   // Position in the local CS, which is seen as a polar CS:
@@ -83,8 +82,7 @@ inline StateIP ModeT<IP>(const CS* localCS, const CS* objCS,
 }
 template <>
 inline StateAP ModeT<AP>(const CS* localCS, const CS* objCS,
-                              const EigenFunctor& f,
-                              const class Material& m) {
+                         const EigenFunctor& f, const class Material& m) {
   /// Return the effect of the transverse mode in antiplane problems.
 
   // Position in the local CS, which is seen as a polar CS:
@@ -112,7 +110,7 @@ MatrixNcd<T> GreenT(const CS* localCS, const CS* objCS, const Matrix* matrix);
 
 template <>
 inline Matrix2cd GreenT<AP>(const CS* localCS, const CS* objCS,
-                                 const Matrix* matrix) {
+                            const Matrix* matrix) {
   Matrix2cd rst;
 
   CS X = objCS->inGLB(), Y = localCS->inGLB();
