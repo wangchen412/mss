@@ -73,6 +73,7 @@ class FiberConfig {
   // tL is for longitude modes and tT is for transverse modes.
   dcomp TL(int n) const;  // TODO: T-matrix for in-plane problem.
   dcomp TT(int n) const;
+  dcomp T_sc_in_T(int n) const;
 
   VectorXcd Solve(const VectorXcd& incBv, SolveMethod method);
   VectorXcd CSolve(const VectorXcd& incBv);
@@ -248,6 +249,21 @@ template <>
 dcomp FiberConfig<IP>::TT(int) const {
   return 0;  // TODO: tT of in-plane problem
 }
+template <>
+dcomp FiberConfig<AP>::T_sc_in_T(int n) const {
+  BesselFunctor Jf(Jn, n, KT(), r_), Jm(Jn, n, KT_m(), r_);
+  BesselFunctor Hm(Hn, n, KT_m(), r_);
+  dcomp mJf = Jf.dr(r_) * Material().Mu();
+  dcomp mJm = Jm.dr(r_) * Matrix()->Material().Mu();
+  dcomp mHm = Hm.dr(r_) * Matrix()->Material().Mu();
+
+  return (mJf * Hm(r_) - mHm * Jf(r_)) / (mJm * Jf(r_) - mJf * Jm(r_));
+}
+template <>
+dcomp FiberConfig<IP>::T_sc_in_T(int) const {
+  return 0;  // TODO: in-plane problem
+}
+
 template <typename T>
 VectorXcd FiberConfig<T>::Solve(const VectorXcd& incBv, SolveMethod method) {
   switch (method) {

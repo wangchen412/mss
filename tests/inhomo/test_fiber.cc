@@ -123,12 +123,22 @@ TEST_F(FiberTest, TT) {
   EXPECT_TRUE(ApproxVectRv(VectorXcd(ref.segment(0, 61)),
                            VectorXcd(ref.segment(61, 61)), 1e-9));
 }
+TEST_F(FiberTest, PseudoInciCoeff) {
+  f2.SetCoeff(f2.CSolve({&inSH}));
+
+  VectorXcd inner(600), outer(600);
+  for (size_t i = 0; i < f2.NumNode(); i++) {
+    inner.segment<2>(2 * i) = f2.Inner(f2.Node(i)).Bv();
+    outer.segment<2>(2 * i) =
+        f2.Scatter(f2.Node(i)).Bv() + f2.Pseudo(f2.Node(i)).Bv();
+  }
+  EXPECT_TRUE(ApproxVectRv(inner, outer));
+}
 TEST_F(FiberTest, RMatrix) {
   VectorXcd ref(122);
   ReadCoeff("Coeff_SH1.dat", ref);
   VectorXcd com = f3.Config()->RefraMat() * inSH.EffectBv(f3.Node());
-  EXPECT_TRUE(
-      ApproxVectRv(VectorXcd(ref.segment(61, 61)), com, 1e-3, 10));
+  EXPECT_TRUE(ApproxVectRv(VectorXcd(ref.segment(61, 61)), com, 1e-3, 10));
 }
 TEST_F(FiberTest, CSolve) {
   // The acceptable relative error is set as 1e-4.

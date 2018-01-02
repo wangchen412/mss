@@ -78,19 +78,7 @@ TEST_F(BoundaryTest, ColloMat_Circular) {
   VectorXcd bv_in = in1.EffectBv(f1.Node());
   VectorXcd bv_bd = m * d * in1.EffectBv(b2.Node());
   EXPECT_TRUE(ApproxVectRv(bv_in, bv_bd, 1e-4, 0, true));
-
-  // auto svd = c.jacobiSvd(Eigen::ComputeThinU | Eigen::ComputeThinV);
-  // std::cout << svd.singularValues() << std::endl;
-  // std::cout << "++++++++++++++++++++++++" << std::endl;
-  // std::cout << b1.ColloMatT()
-  //                  .jacobiSvd(Eigen::ComputeThinU | Eigen::ComputeThinV)
-  //                  .singularValues()
-  //           << std::endl;
-
-  std::cout << ConditionNum(b2.ColloMatT()) << std::endl;
-  std::cout << ConditionNum(b1.ColloMatT()) << std::endl;
 }
-
 class AssemBoundaryTest : public Test {
  protected:
   AssemBoundaryTest() : Test(__FILE__, "boundary") {}

@@ -54,6 +54,7 @@ class Fiber : public Inhomo<T> {
 
   T Scatter(const CS* objCS) const override;
   T Inner(const CS* objCS) const override;
+  T Pseudo(const CS* objCS) const;
 
   // The nth Modes. The n should be the serial number, instead of the order.
   // The transformation from the serial number to the order should be done in
@@ -61,6 +62,7 @@ class Fiber : public Inhomo<T> {
   // n starts at zero.
   T ScatterMode(const CS* objCS, size_t sn) const override;
   T InnerMode(const CS* objCS, size_t sn) const;
+  T PsiMode(const CS* objCS, size_t sn) const;
 
   VectorXcd Solve(const VectorXcd& incBv, SolveMethod method) const;
   VectorXcd CSolve(const VectorXcd& incBv) const;
@@ -81,12 +83,13 @@ class Fiber : public Inhomo<T> {
  private:
   FiberConfig<T>* config_;
   CSCPtrs node_;
-  VectorXcd cSc_, cIn_;
+  VectorXcd cSc_, cIn_, cPs_;
 
   T scatterModeL(const CS* objCS, int n) const;
   T scatterModeT(const CS* objCS, int n) const;
   T innerModeL(const CS* objCS, int n) const;
   T innerModeT(const CS* objCS, int n) const;
+  T psiModeT(const CS* objCS, int n) const;
 
   void add_node();
   int od(size_t sn) const { return sn - config_->TopOrder(); }
@@ -117,13 +120,22 @@ T Fiber<T>::Inner(const CS* objCS) const {
   return rst;
 }
 template <typename T>
+T Fiber<T>::Pseudo(const CS* objCS) const {
+  T rst(objCS);
+  for (size_t i = 0; i < NumCoeff(); i++)
+    rst += PsiMode(objCS, i) * cPs_(i);
+  return rst;
+}
+template <typename T>
 void Fiber<T>::SetCoeff(const VectorXcd& solution) {
   assert(solution.size() == long(NumCoeff()));
   cSc_.resize(NumCoeff());
   cIn_.resize(NumCoeff());
+  cPs_.resize(NumCoeff());
   for (long i = 0; i < solution.size(); i++) {
     cSc_(i) = solution(i);
     cIn_(i) = cSc_(i) * config_->TT(od(i));  // TODO: in-plane problem.
+    cPs_(i) = cSc_(i) * config_->T_sc_in_T(od(i));
   }
 }
 // template <typename T>
@@ -153,6 +165,10 @@ template <>
 inline StateAP Fiber<AP>::InnerMode(const CS* objCS, size_t sn) const {
   return innerModeT(objCS, od(sn));
 }
+template <>
+inline StateAP Fiber<AP>::PsiMode(const CS* objCS, size_t sn) const {
+  return psiModeT(objCS, od(sn));
+}
 template <typename T>
 T Fiber<T>::scatterModeL(const CS* objCS, int n) const {
   return ModeL<T>(LocalCS(), objCS,
@@ -176,6 +192,12 @@ T Fiber<T>::innerModeT(const CS* objCS, int n) const {
   return ModeT<T>(LocalCS(), objCS,
                   EigenFunctor(Jn, n, config_->KT(), Radius()),
                   config_->Material());
+}
+template <typename T>
+T Fiber<T>::psiModeT(const CS* objCS, int n) const {
+  return ModeT<T>(LocalCS(), objCS,
+                  EigenFunctor(Jn, n, config_->KT_m(), Radius()),
+                  config_->Material_m());
 }
 template <typename T>
 void Fiber<T>::add_node() {
