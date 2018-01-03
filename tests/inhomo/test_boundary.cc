@@ -30,13 +30,17 @@ class BoundaryTest : public Test {
   Matrix m{rubber, 1.25664e6};
   IncidentPlaneSH in1{m, pi / 3, 1, 2};
   FiberConfig<AP> fc1{"1", 20, 213, 3e-3, lead, &m};
+  FiberConfig<AP> fc2{"1", 30, 800, 3e-3, lead, &m};
   Fiber<AP> f1{&fc1, {10e-3, 6e-3}};
   Fiber<AP> f2{&fc1, {10e-3, 6e-3}};
   Fiber<AP> f3{&fc1, {50e-3, 50e-3}};
+  Fiber<AP> f4{&fc2, {0, 0}};
 
   Boundary<StateAP, 2> b1{100 * m.KT(), {{0, 12e-3}, {23e-3, 0}}, &m};
   Boundary<StateAP, 2> b2{
       100 * m.KT(), {{10e-3, 6e-3}, {0, 0}}, &m, CIRCULAR};
+  double a{4e-3};
+  Boundary<AP, 2> b3{10*m.KT(), {{-a, a}, {a, -a}}, &m};
 };
 
 TEST_F(BoundaryTest, Constructor) {
@@ -70,7 +74,7 @@ TEST_F(BoundaryTest, DISABLED_ColloMat_Rectangular) {
   // VectorXcd bv_bd = m * d * in1.EffectBv(b2.Node());
   EXPECT_TRUE(ApproxVectRv(bv_in, bv_bd, 1e-4, 0, true));
 }
-TEST_F(BoundaryTest, ColloMat_Circular) {
+TEST_F(BoundaryTest, DISABLED_ColloMat_Circular) {
   MatrixXcd c = b2.ColloMatT();
   MatrixXcd d = PseudoInverse(c);
   MatrixXcd m = b2.ModeMatT(f1.Node());
@@ -79,6 +83,34 @@ TEST_F(BoundaryTest, ColloMat_Circular) {
   VectorXcd bv_bd = m * d * in1.EffectBv(b2.Node());
   EXPECT_TRUE(ApproxVectRv(bv_in, bv_bd, 1e-4, 0, true));
 }
+TEST_F(BoundaryTest, Resultant_Interface) {
+  // Along the interface
+  f1.SetCoeff(f1.CSolve({&in1}));
+
+  VectorXcd ref(f1.NumNode() * 2), cal(f1.NumNode() * 2);
+  ref = in1.EffectBv(f1.Node());
+  for (size_t i = 0; i < f1.NumNode(); i++)
+    cal.segment<2>(2 * i) = f1.Pseudo(f1.Node(i)).Bv();
+
+  EXPECT_TRUE(ApproxVectRv(ref, cal, 1e-9));
+}
+TEST_F(BoundaryTest, Resultant_Boundary) {
+  // Along the outer boundary
+  f4.SetCoeff(f4.CSolve({&in1}));
+
+  VectorXcd ref(b3.NumNode()*2), cal(b3.NumNode()*2);
+  ref = in1.EffectBv(b3.Node());
+  for (size_t i = 0; i < b3.NumNode(); i++)
+    cal.segment<2>(2 * i) = f4.Pseudo(b3.Node(i)).Bv();
+
+  EXPECT_TRUE(ApproxVectRv(ref, cal, 1e-5, 0, true));
+  EXPECT_TRUE(ApproxVectRv(ref, cal, 1e-6, 0, true));
+  EXPECT_TRUE(ApproxVectRv(ref, cal, 1e-7, 0, true));
+  EXPECT_TRUE(ApproxVectRv(ref, cal, 1e-8, 0, true)); // Fail
+
+  //std::cout << f4.Radius() * m.KT() << std::endl;
+}
+
 class AssemBoundaryTest : public Test {
  protected:
   AssemBoundaryTest() : Test(__FILE__, "boundary") {}
