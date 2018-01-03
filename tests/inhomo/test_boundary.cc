@@ -40,7 +40,7 @@ class BoundaryTest : public Test {
   Boundary<StateAP, 2> b2{
       100 * m.KT(), {{10e-3, 6e-3}, {0, 0}}, &m, CIRCULAR};
   double a{4e-3};
-  Boundary<AP, 2> b3{10*m.KT(), {{-a, a}, {a, -a}}, &m};
+  Boundary<AP, 2> b3{10 * m.KT(), {{-a, a}, {a, -a}}, &m};
 };
 
 TEST_F(BoundaryTest, Constructor) {
@@ -83,7 +83,7 @@ TEST_F(BoundaryTest, DISABLED_ColloMat_Circular) {
   VectorXcd bv_bd = m * d * in1.EffectBv(b2.Node());
   EXPECT_TRUE(ApproxVectRv(bv_in, bv_bd, 1e-4, 0, true));
 }
-TEST_F(BoundaryTest, Resultant_Interface) {
+TEST_F(BoundaryTest, DISABLED_Resultant_Interface) {
   // Along the interface
   f1.SetCoeff(f1.CSolve({&in1}));
 
@@ -94,11 +94,11 @@ TEST_F(BoundaryTest, Resultant_Interface) {
 
   EXPECT_TRUE(ApproxVectRv(ref, cal, 1e-9));
 }
-TEST_F(BoundaryTest, Resultant_Boundary) {
+TEST_F(BoundaryTest, DISABLED_Resultant_Boundary) {
   // Along the outer boundary
   f4.SetCoeff(f4.CSolve({&in1}));
 
-  VectorXcd ref(b3.NumNode()*2), cal(b3.NumNode()*2);
+  VectorXcd ref(b3.NumNode() * 2), cal(b3.NumNode() * 2);
   ref = in1.EffectBv(b3.Node());
   for (size_t i = 0; i < b3.NumNode(); i++)
     cal.segment<2>(2 * i) = f4.Pseudo(b3.Node(i)).Bv();
@@ -106,9 +106,26 @@ TEST_F(BoundaryTest, Resultant_Boundary) {
   EXPECT_TRUE(ApproxVectRv(ref, cal, 1e-5, 0, true));
   EXPECT_TRUE(ApproxVectRv(ref, cal, 1e-6, 0, true));
   EXPECT_TRUE(ApproxVectRv(ref, cal, 1e-7, 0, true));
-  EXPECT_TRUE(ApproxVectRv(ref, cal, 1e-8, 0, true)); // Fail
+  EXPECT_TRUE(ApproxVectRv(ref, cal, 1e-8, 0, true));  // Fail
 
-  //std::cout << f4.Radius() * m.KT() << std::endl;
+  // std::cout << f4.Radius() * m.KT() << std::endl;
+}
+TEST_F(BoundaryTest, PseudoIncident) {
+  for (int n = 0; n < 10; n++) {
+    double k     = m.KT();
+    double r     = f1.Radius();
+    VectorXcd in = in1.EffectBv(f1.Node());
+    Vector2cd wt = DFT_m(2, f1.NumNode(), n) * in;
+
+    BesselFunctor H(Hn, n, k, r), H2(H2n, n, k, r);
+    dcomp mH = H.dr(r) * m.Material().Mu();
+    dcomp mH2 = H2.dr(r) * m.Material().Mu();
+    Matrix2cd C;
+    C << H(r), H2(r), mH, mH2;
+
+    Vector2cd ab = C.inverse() * wt;
+    std::cout << ab << std::endl;
+  }
 }
 
 class AssemBoundaryTest : public Test {

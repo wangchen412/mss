@@ -103,8 +103,16 @@ inline dcomp Jn(int n, double x) {
   return jn(n, x);
 }
 
+inline dcomp Yn(int n, double x) {
+  return yn(n, x);
+}
+
 inline dcomp Hn(int n, double x) {
   return jn(n, x) + ii * yn(n, x);
+}
+
+inline dcomp H2n(int n, double x) {
+  return jn(n, x) - ii * yn(n, x);
 }
 
 // The functor f returns the value of f(x) / f'(x).
