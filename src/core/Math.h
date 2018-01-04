@@ -107,6 +107,10 @@ inline dcomp Hn(int n, double x) {
   return jn(n, x) + ii * yn(n, x);
 }
 
+inline dcomp H2n(int n, double x) {
+  return jn(n, x) - ii * yn(n, x);
+}
+
 // The functor f returns the value of f(x) / f'(x).
 template <typename Func>
 double Newton(const Func& f, double x0, double e = 1e-16) {

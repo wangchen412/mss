@@ -196,7 +196,7 @@ T Fiber<T>::innerModeT(const CS* objCS, int n) const {
 template <typename T>
 T Fiber<T>::psiModeT(const CS* objCS, int n) const {
   return ModeT<T>(LocalCS(), objCS,
-                  EigenFunctor(Jn, n, config_->KT_m(), Radius()),
+                  EigenFunctor(H2n, n, config_->KT_m(), Radius()),
                   config_->Material_m());
 }
 template <typename T>

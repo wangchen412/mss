@@ -251,13 +251,13 @@ dcomp FiberConfig<IP>::TT(int) const {
 }
 template <>
 dcomp FiberConfig<AP>::T_sc_in_T(int n) const {
-  BesselFunctor Jf(Jn, n, KT(), r_), Jm(Jn, n, KT_m(), r_);
+  BesselFunctor Jf(Jn, n, KT(), r_), H2m(H2n, n, KT_m(), r_);
   BesselFunctor Hm(Hn, n, KT_m(), r_);
   dcomp mJf = Jf.dr(r_) * Material().Mu();
-  dcomp mJm = Jm.dr(r_) * Matrix()->Material().Mu();
+  dcomp mJm = H2m.dr(r_) * Matrix()->Material().Mu();
   dcomp mHm = Hm.dr(r_) * Matrix()->Material().Mu();
 
-  return (mJf * Hm(r_) - mHm * Jf(r_)) / (mJm * Jf(r_) - mJf * Jm(r_));
+  return (mJf * Hm(r_) - mHm * Jf(r_)) / (mJm * Jf(r_) - mJf * H2m(r_));
 }
 template <>
 dcomp FiberConfig<IP>::T_sc_in_T(int) const {
