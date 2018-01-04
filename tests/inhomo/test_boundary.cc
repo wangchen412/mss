@@ -28,9 +28,11 @@ class BoundaryTest : public Test {
  protected:
   Material rubber{1300, 1.41908e9, 0.832e9}, lead{11400, 36.32496e9, 8.43e9};
   Matrix m{rubber, 1.25664e6};
+  Matrix m2{rubber, 1.25664e6};
   IncidentPlaneSH in1{m, pi / 3, 1, 2};
+  IncidentPlaneSH in2{m2, pi / 3, 1, 2};
   FiberConfig<AP> fc1{"1", 20, 213, 3e-3, lead, &m};
-  FiberConfig<AP> fc2{"1", 30, 800, 3e-3, lead, &m};
+  FiberConfig<AP> fc2{"1", 25, 400, 3e-3, lead, &m2};
   Fiber<AP> f1{&fc1, {10e-3, 6e-3}};
   Fiber<AP> f2{&fc1, {10e-3, 6e-3}};
   Fiber<AP> f3{&fc1, {50e-3, 50e-3}};
@@ -39,8 +41,8 @@ class BoundaryTest : public Test {
   Boundary<StateAP, 2> b1{100 * m.KT(), {{0, 12e-3}, {23e-3, 0}}, &m};
   Boundary<StateAP, 2> b2{
       100 * m.KT(), {{10e-3, 6e-3}, {0, 0}}, &m, CIRCULAR};
-  double a{4e-3};
-  Boundary<AP, 2> b3{10*m.KT(), {{-a, a}, {a, -a}}, &m};
+  double a{6e-3};
+  Boundary<AP, 2> b3{10*m2.KT(), {{-a, a}, {a, -a}}, &m2};
 };
 
 TEST_F(BoundaryTest, Constructor) {
@@ -96,17 +98,21 @@ TEST_F(BoundaryTest, Resultant_Interface) {
 }
 TEST_F(BoundaryTest, Resultant_Boundary) {
   // Along the outer boundary
-  f4.SetCoeff(f4.CSolve({&in1}));
+  f4.SetCoeff(f4.CSolve({&in2}));
 
   VectorXcd ref(b3.NumNode()*2), cal(b3.NumNode()*2);
-  ref = in1.EffectBv(b3.Node());
+  ref = in2.EffectBv(b3.Node());
   for (size_t i = 0; i < b3.NumNode(); i++)
     cal.segment<2>(2 * i) = f4.Pseudo(b3.Node(i)).Bv();
 
-  EXPECT_TRUE(ApproxVectRv(ref, cal, 1e-5, 0, true));
-  EXPECT_TRUE(ApproxVectRv(ref, cal, 1e-6, 0, true));
-  EXPECT_TRUE(ApproxVectRv(ref, cal, 1e-7, 0, true));
-  EXPECT_TRUE(ApproxVectRv(ref, cal, 1e-8, 0, true)); // Fail
+  EXPECT_TRUE(ApproxVectRv(ref, cal, 1e-1));
+  EXPECT_TRUE(ApproxVectRv(ref, cal, 1e-2));
+  EXPECT_TRUE(ApproxVectRv(ref, cal, 1e-3));
+  EXPECT_TRUE(ApproxVectRv(ref, cal, 1e-4));
+  EXPECT_TRUE(ApproxVectRv(ref, cal, 1e-5));
+  EXPECT_TRUE(ApproxVectRv(ref, cal, 1e-6));
+  EXPECT_TRUE(ApproxVectRv(ref, cal, 1e-7));
+  EXPECT_TRUE(ApproxVectRv(ref, cal, 1e-8)); // Fail
 
   //std::cout << f4.Radius() * m.KT() << std::endl;
 }
