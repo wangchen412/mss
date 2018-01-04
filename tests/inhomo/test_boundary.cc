@@ -44,25 +44,24 @@ class BoundaryTest : public Test {
   double a{6e-3};
   Boundary<AP, 2> b3{10 * m2.KT(), {{-a, a}, {a, -a}}, &m2};
 
-  Vector2cd am(const CS* objCS, int n) const {
+  StateAP am(const CS* objCS, int n) const {
     return ModeT<AP>(f4.LocalCS(), objCS,
-                     EigenFunctor(Hn, n, m2.KT(), f4.Radius()), m2.Material())
-        .Bv();
+                     EigenFunctor(Jn, n, m2.KT(), f4.Radius()),
+                     m2.Material());
   }
-  Vector2cd bm(const CS* objCS, int n) const {
+  StateAP bm(const CS* objCS, int n) const {
     return ModeT<AP>(f4.LocalCS(), objCS,
-                     EigenFunctor(H2n, n, m2.KT(), f4.Radius()),
-                     m2.Material())
-        .Bv();
+                     EigenFunctor(Yn, n, m2.KT(), f4.Radius()),
+                     m2.Material());
   }
 
   MatrixXcd colloMat(CSCPtrs objCSs, int N) const {
-    MatrixXcd rst(objCSs.size() * 2, 4 * N + 2);
+    MatrixXcd rst(objCSs.size(), 4 * N + 2);
 
     for (size_t i = 0; i < objCSs.size(); i++) {
       for (int j = -N; j <= N; j++) {
-        rst.block(i * 2, j + N, 2, 1)             = am(objCSs[i], j);
-        rst.block(i * 2, 2 * N + 1 + j + N, 2, 1) = bm(objCSs[i], j);
+        rst(i, j + N)             = am(objCSs[i], j).Displacement().x;
+        rst(i, 2 * N + 1 + j + N) = bm(objCSs[i], j).Displacement().x;
       }
     }
 
@@ -147,26 +146,28 @@ TEST_F(BoundaryTest, Collocation) {
 
   CSCPtrs nodes(f4.Node());
   VectorXcd inv(in2.EffectBv(nodes));
+  VectorXcd b(f4.NumNode());
 
-  int N = 20;
+  for (long i = 0; i < b.size(); i++) b(i) = inv(2 * i);
+
+  int N  = 20;
   int NN = 2 * N + 1;
 
   MatrixXcd M = colloMat(nodes, N);
 
   VectorXcd c =
-      M.jacobiSvd(Eigen::ComputeThinU | Eigen::ComputeThinV).solve(inv);
+      M.jacobiSvd(Eigen::ComputeThinU | Eigen::ComputeThinV).solve(b);
 
-  CS tp(0, 3e-3);
+  CS tp(1.5e-3*sqrt(2), 1.5e-3*sqrt(2), pi/4);
 
-  Vector2cd ref = in2.Effect(&tp).Bv();
-  Vector2cd com;
+  StateAP ref = in2.Effect(&tp);
+  StateAP com(&tp);
 
   for (int n = -N; n <= N; n++)
-    com += am(&tp, n) * c(n+N) + bm(&tp, n) * c(NN + n + N);
+    com += am(&tp, n) * c(n + N) + bm(&tp, n) * c(NN + n + N);
 
   std::cout << ref << std::endl;
   std::cout << com << std::endl;
-
 }
 
 class AssemBoundaryTest : public Test {
