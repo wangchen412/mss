@@ -132,7 +132,7 @@ TEST_F(FiberTest, PseudoInciCoeff) {
     outer.segment<2>(2 * i) =
         f2.Scatter(f2.Node(i)).Bv() + f2.Pseudo(f2.Node(i)).Bv();
   }
-  EXPECT_TRUE(ApproxVectRv(inner, outer, 1, 0, true));
+  EXPECT_TRUE(ApproxVectRv(inner, outer));
 }
 TEST_F(FiberTest, RMatrix) {
   VectorXcd ref(122);
@@ -194,6 +194,26 @@ TEST_F(FiberTest, CScatter) {
   EXPECT_EQ(com.size(), 100);
 
   for (size_t i = 0; i < 100; i++) EXPECT_TRUE(ref[i].isApprox(com[i], 1e-5));
+}
+TEST_F(FiberTest, ScatterBvMat) {
+  std::vector<AP> ref_states;
+  ReadSample("Line_sc_SH1.dat", ref_states);
+  EXPECT_EQ(ref_states.size(), 100);
+
+  VectorXcd ref(200);
+  for (size_t i = 0; i < 100; i++) ref.segment<2>(i * 2) = ref_states[i].Bv();
+  VectorXcd com = f3.ScatterBvMat(*sp_[0]) * f3.DSolve({&inSH});
+  EXPECT_TRUE(ApproxVectRv(ref, com, 1e-3));
+}
+TEST_F(FiberTest, PsiBvMat) {
+  f2.SetCoeff(f2.CSolve({&inSH}));
+
+  VectorXcd ref(600);
+  for (size_t i = 0; i < f2.NumNode(); i++)
+    ref.segment<2>(2 * i) =
+        f2.Inner(f2.Node(i)).Bv() - f2.Scatter(f2.Node(i)).Bv();
+  VectorXcd com = f2.PsiBvMat(f2.Node()) * f2.PsiCoeff();
+  EXPECT_TRUE(ApproxVectRv(ref, com, 1e-12));
 }
 
 }  // namespace test
