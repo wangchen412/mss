@@ -191,9 +191,9 @@ class PeriodicTestExp : public Test {
   Matrix m{rubber, 8e5};
   IncidentPlaneSH inc{m, 0, 1e-5};
   double R{3e-3};
-  FiberConfig<AP> fc{"1", 25, 500, R, lead, &m};
+  FiberConfig<AP> fc{"1", 35, 1000, R, lead, &m};
   Fiber<AP> f{&fc};
-  double A{4 * R};
+  double A{6 * R};
   Boundary<AP, 2> b{10 * m.KT(), {{-A, A}, {A, -A}}, &m};
 };
 
