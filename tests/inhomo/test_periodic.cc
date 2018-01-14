@@ -188,27 +188,17 @@ TEST_F(PeriodicTest, DISABLED_InvMat) {
 class PeriodicTestExp : public Test {
  protected:
   Material rubber{1300, 1.41908e9, 0.832e9}, lead{11400, 36.32496e9, 8.43e9};
-  Matrix m{rubber, 1e6};
+  Matrix m{rubber, 8e5};
   IncidentPlaneSH inc{m, 0, 1e-5};
   double R{3e-3};
-  FiberConfig<AP> fc{"1", 20, 500, R, lead, &m};
+  FiberConfig<AP> fc{"1", 25, 500, R, lead, &m};
   Fiber<AP> f{&fc};
-  double A{2 * R};
+  double A{4 * R};
   Boundary<AP, 2> b{10 * m.KT(), {{-A, A}, {A, -A}}, &m};
 };
 
-TEST_F(PeriodicTestExp, Constructor) {
+TEST_F(PeriodicTestExp, DtN_single) {
   std::cout << "kr:\t" << m.KT() * R << std::endl;
-  std::cout << "np:\t";
-  for (int i = 0; i < 4; i++) std::cout << b.NumNode(i) << "\t";
-  std::cout << std::endl;
-}
-TEST_F(PeriodicTestExp, DtN) {
-  // MatrixXcd z(f.ScatterBvMat(b.Node()) + f.PsiBvMatT(b.Node()));
-  // f.SetCoeff(f.DSolve({&inc}));
-  // VectorXcd ref(b.NumBv()), com(b.NumBv());
-  // ref = f.ScatterBvMat(b.Node()) * f.ScatterCoeff() +
-  // inc.EffectBv(b.Node());
 
   MatrixXcd z(f.ScatterBvMat(b.Node()) + f.PsiBvMatT(b.Node()));
   MatrixXcd z1(z.rows() / 2, z.cols());
@@ -231,8 +221,10 @@ TEST_F(PeriodicTestExp, DtN) {
     t(i) = tmp(1);
   }
   VectorXcd tt = dtn * u;
-  EXPECT_TRUE(ApproxVectRv(t, tt, 1e-3));
+  EXPECT_TRUE(ApproxVectRv(t, tt, 1e-3, 0, true));
 }
+
+
 TEST_F(PeriodicTestExp, DISABLED_PBC) {
   MatrixXcd z(f.ScatterBvMat(b.Node()) + f.PsiBvMatT(b.Node()));
   MatrixXcd z1(z.rows() / 2, z.cols());
