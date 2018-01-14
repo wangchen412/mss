@@ -66,6 +66,7 @@ class Fiber : public Inhomo<T> {
 
   MatrixXcd ScatterBvMat(const CSCPtrs& objCSs) const;
   MatrixXcd PsiBvMat(const CSCPtrs& objCSs) const;
+  MatrixXcd PsiBvMatT(const CSCPtrs& objCSs) const;
 
   VectorXcd Solve(const VectorXcd& incBv, SolveMethod method) const;
   VectorXcd CSolve(const VectorXcd& incBv) const;
@@ -188,6 +189,13 @@ MatrixXcd Fiber<T>::PsiBvMat(const CSCPtrs& objCSs) const {
   for (size_t i = 0; i < objCSs.size(); i++)
     for (size_t n = 0; n < NumCoeff(); n++)
       rst.block(i * N, n, N, 1) = PsiMode(objCSs[i], n).Bv();
+  return rst;
+}
+template <typename T>
+MatrixXcd Fiber<T>::PsiBvMatT(const CSCPtrs& objCSs) const {
+  MatrixXcd rst(PsiBvMat(objCSs));
+  for (long i = 0; i < rst.cols(); i++)
+    rst.col(i) *= config_->T_sc_in_T(od(i));
   return rst;
 }
 template <typename T>

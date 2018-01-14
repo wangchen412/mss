@@ -49,8 +49,7 @@ TEST_F(PeriodicTest, DISABLED_InvBdMat) {
 
   ApproxVectRv(in0, com_in0, 1e-4, 0, true);
 }
-
-TEST_F(PeriodicTest, Matrices) {
+TEST_F(PeriodicTest, DISABLED_Matrices) {
   c.Solve({&inSH}, DFT);
 
   // Reference:
@@ -82,33 +81,29 @@ TEST_F(PeriodicTest, Matrices) {
   VectorXcd com3 = c.InToRstMat() * in;
   EXPECT_TRUE(ApproxVectRv(ref, com3, 1e-5));
 }
-
 // The SVD of matrix B, the boundary integral matrix.
-TEST_F(PeriodicTest, DISABLED_MatrixB) {
-  MatrixXcd A = c.BdIntMatT();
-  MatrixXcd B(A.rows(), A.cols() / 2);
-  MatrixXcd C(A.rows() / 2, A.cols() / 2);
+// TEST_F(PeriodicTest, DISABLED_MatrixB) {
+//   MatrixXcd A = c.BdIntMatT();
+//   MatrixXcd B(A.rows(), A.cols() / 2);
+//   MatrixXcd C(A.rows() / 2, A.cols() / 2);
 
-  for (long u = 0; u < A.cols() / 2; u += 2) B.col(u) = A.col(u * 2);
-  for (long u = 0; u < B.rows() / 2; u += 2) C.row(u) = B.row(u * 2);
+//   for (long u = 0; u < A.cols() / 2; u += 2) B.col(u) = A.col(u * 2);
+//   for (long u = 0; u < B.rows() / 2; u += 2) C.row(u) = B.row(u * 2);
 
+//   std::cout << A.rows() << "  " << A.cols() << std::endl;
+//   std::cout << B.rows() << "  " << B.cols() << std::endl;
+//   std::cout << C.rows() << "  " << C.cols() << std::endl;
 
-  std::cout << A.rows() << "  " << A.cols() << std::endl;
-  std::cout << B.rows() << "  " << B.cols() << std::endl;
-  std::cout << C.rows() << "  " << C.cols() << std::endl;
+//   Eigen::VectorXd svda = A.bdcSvd().singularValues();
+//   Eigen::VectorXd svdb = B.bdcSvd().singularValues();
+//   Eigen::VectorXd svdc = C.bdcSvd().singularValues();
 
-
-  Eigen::VectorXd svda = A.bdcSvd().singularValues();
-  Eigen::VectorXd svdb = B.bdcSvd().singularValues();
-  Eigen::VectorXd svdc = C.bdcSvd().singularValues();
-
-  std::cout << svda << std::endl;
-  std::cout << "++++++++++++++++++++++" << std::endl;
-  std::cout << svdb << std::endl;
-  std::cout << "++++++++++++++++++++++" << std::endl;
-  std::cout << svdc << std::endl;
-}
-
+//   std::cout << svda << std::endl;
+//   std::cout << "++++++++++++++++++++++" << std::endl;
+//   std::cout << svdb << std::endl;
+//   std::cout << "++++++++++++++++++++++" << std::endl;
+//   std::cout << svdc << std::endl;
+// }
 TEST_F(PeriodicTest, DISABLED_DtN_Map) {
   c.Solve({&inSH}, DFT);
 
@@ -141,7 +136,6 @@ TEST_F(PeriodicTest, DISABLED_DtN_Map) {
   VectorXcd com_in = svd.solve(com_w);
   ApproxVectRv(in, com_in, 1, 0, true);
 }
-
 TEST_F(PeriodicTest, DISABLED_CharPoly) {
   // std::cout << c.CharPoly(exp(ii * k * c.Width()), 1) << std::endl;
   // std::cout << c.CharPoly(1, 1) << std::endl;
@@ -163,7 +157,6 @@ TEST_F(PeriodicTest, DISABLED_CharPoly) {
 
   file.close();
 }
-
 TEST_F(PeriodicTest, DISABLED_InvMat2) {
   // MatrixXcd m = c.Y_mat(exp(ii * pi2), 1);
   // MatrixXcd m = c.z1_mat();  // Singular
@@ -173,7 +166,6 @@ TEST_F(PeriodicTest, DISABLED_InvMat2) {
   I.setIdentity();
   std::cout << (m * m.inverse() - I).norm() << std::endl;
 }
-
 TEST_F(PeriodicTest, DISABLED_InvMat) {
   MatrixXcd m = c.Y_mat(1, 1);
 
@@ -191,6 +183,85 @@ TEST_F(PeriodicTest, DISABLED_InvMat) {
 
   // std::cout << L*Li << std::endl;
   std::cout << (L * Li - I).norm() << std::endl;
+}
+
+class PeriodicTestExp : public Test {
+ protected:
+  Material rubber{1300, 1.41908e9, 0.832e9}, lead{11400, 36.32496e9, 8.43e9};
+  Matrix m{rubber, 1e6};
+  IncidentPlaneSH inc{m, 0, 1e-5};
+  double R{3e-3};
+  FiberConfig<AP> fc{"1", 20, 500, R, lead, &m};
+  Fiber<AP> f{&fc};
+  double A{2 * R};
+  Boundary<AP, 2> b{10 * m.KT(), {{-A, A}, {A, -A}}, &m};
+};
+
+TEST_F(PeriodicTestExp, Constructor) {
+  std::cout << "kr:\t" << m.KT() * R << std::endl;
+  std::cout << "np:\t";
+  for (int i = 0; i < 4; i++) std::cout << b.NumNode(i) << "\t";
+  std::cout << std::endl;
+}
+TEST_F(PeriodicTestExp, DtN) {
+  // MatrixXcd z(f.ScatterBvMat(b.Node()) + f.PsiBvMatT(b.Node()));
+  // f.SetCoeff(f.DSolve({&inc}));
+  // VectorXcd ref(b.NumBv()), com(b.NumBv());
+  // ref = f.ScatterBvMat(b.Node()) * f.ScatterCoeff() +
+  // inc.EffectBv(b.Node());
+
+  MatrixXcd z(f.ScatterBvMat(b.Node()) + f.PsiBvMatT(b.Node()));
+  MatrixXcd z1(z.rows() / 2, z.cols());
+  MatrixXcd z2(z.rows() / 2, z.cols());
+
+  for (long i = 0; i < z.rows() / 2; i++) {
+    z1.row(i) = z.row(i * 2);
+    z2.row(i) = z.row(i * 2 + 1);
+  }
+
+  MatrixXcd zz(z1.transpose() * z1);
+  MatrixXcd dtn(z2 * zz.inverse() * z1.transpose());
+
+  f.SetCoeff(f.DSolve({&inc}));
+  VectorXcd u(b.NumNode()), t(b.NumNode());
+  for (size_t i = 0; i < b.NumNode(); i++) {
+    Vector2cd tmp = f.Scatter(b.Node(i)).Bv() + inc.Effect(b.Node(i)).Bv();
+
+    u(i) = tmp(0);
+    t(i) = tmp(1);
+  }
+  VectorXcd tt = dtn * u;
+  EXPECT_TRUE(ApproxVectRv(t, tt, 1e-3));
+}
+TEST_F(PeriodicTestExp, DISABLED_PBC) {
+  MatrixXcd z(f.ScatterBvMat(b.Node()) + f.PsiBvMatT(b.Node()));
+  MatrixXcd z1(z.rows() / 2, z.cols());
+  MatrixXcd z2(z.rows() / 2, z.cols());
+
+  size_t N = b.NumNode() / 4;
+  z1       = z.block(0, 0, 4 * N, z.cols());
+  for (size_t i = 0; i < N; i++) {
+    z2.block(2 * i, 0, 2, z.cols()) =
+        z.block(2 * (3 * N - 1 - i), 0, 2, z.cols());
+    z2.block(2 * (i + N), 0, 2, z.cols()) =
+        z.block(2 * (4 * N - 1 - i), 0, 2, z.cols());
+  }
+
+  MatrixXcd zz(z2 - z1), uz(z1);
+  uz.block(uz.rows() / 2, 0, uz.rows() / 2, uz.cols()).setZero();
+
+  // std::cout << zz << std::endl;
+
+  MatrixXcd Z(zz.transpose() * zz);
+  MatrixXcd UZ(uz.transpose() * zz + zz.transpose() * uz);
+  MatrixXcd U(uz.transpose() * uz);
+
+  // std::cout << Z << std::endl;
+
+  dcomp eta_x = 1;
+  MatrixXcd ZZZ(Z - UZ * eta_x + U * eta_x * eta_x);
+  // std::cout << ZZZ.determinant() << std::endl;
+  // std::cout << ZZZ << std::endl;
 }
 
 }  // namespace test

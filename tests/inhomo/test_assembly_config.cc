@@ -119,12 +119,12 @@ TEST_F(AssemConfigTest, Scatter) {
     EXPECT_TRUE(ref[i].isApprox(com2[i], 1e-5));
 }
 
-class AssemblyTest : public AssemConfigTest {
- protected:
-  AssemblyConfig<AP> c1{s.assembly_config()[1], &matrix};
-  Assembly<AP> a1{&c1};
-  Assembly<AP> a2{&c1, {40e-3, 30e-3}, pi / 6};
-};
+// class AssemblyTest : public AssemConfigTest {
+//  protected:
+//   AssemblyConfig<AP> c1{s.assembly_config()[1], &matrix};
+//   Assembly<AP> a1{&c1};
+//   Assembly<AP> a2{&c1, {40e-3, 30e-3}, pi / 6};
+// };
 
 }  // namespace test
 

@@ -215,6 +215,16 @@ TEST_F(FiberTest, PsiBvMat) {
   VectorXcd com = f2.PsiBvMat(f2.Node()) * f2.PsiCoeff();
   EXPECT_TRUE(ApproxVectRv(ref, com, 1e-12));
 }
+TEST_F(FiberTest, PsiBvMatT) {
+  f2.SetCoeff(f2.CSolve({&inSH}));
+
+  VectorXcd ref(600);
+  for (size_t i = 0; i < f2.NumNode(); i++)
+    ref.segment<2>(2 * i) =
+      f2.Inner(f2.Node(i)).Bv() - f2.Scatter(f2.Node(i)).Bv();
+  VectorXcd com = f2.PsiBvMatT(f2.Node()) * f2.ScatterCoeff();
+  EXPECT_TRUE(ApproxVectRv(ref, com, 1e-12));
+}
 
 }  // namespace test
 
