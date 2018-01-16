@@ -64,6 +64,10 @@ class Fiber : public Inhomo<T> {
   T InnerMode(const CS* objCS, size_t sn) const;
   T PsiMode(const CS* objCS, size_t sn) const;
 
+  MatrixXcd ScatterBvMat(const CSCPtrs& objCSs) const;
+  MatrixXcd PsiBvMat(const CSCPtrs& objCSs) const;
+  MatrixXcd PsiBvMatT(const CSCPtrs& objCSs) const;
+
   VectorXcd Solve(const VectorXcd& incBv, SolveMethod method) const;
   VectorXcd CSolve(const VectorXcd& incBv) const;
   VectorXcd DSolve(const VectorXcd& incBv) const;
@@ -76,6 +80,7 @@ class Fiber : public Inhomo<T> {
   const CSCPtrs& Node() const override { return node_; }
   const CS* Node(size_t i) const override { return node_[i]; }
   const VectorXcd& ScatterCoeff() const override { return cSc_; }
+  const VectorXcd& PsiCoeff() const { return cPs_; }
 
   using Inhomo<T>::LocalCS;
   using Inhomo<T>::IncVec;
@@ -122,8 +127,7 @@ T Fiber<T>::Inner(const CS* objCS) const {
 template <typename T>
 T Fiber<T>::Pseudo(const CS* objCS) const {
   T rst(objCS);
-  for (size_t i = 0; i < NumCoeff(); i++)
-    rst += PsiMode(objCS, i) * cPs_(i);
+  for (size_t i = 0; i < NumCoeff(); i++) rst += PsiMode(objCS, i) * cPs_(i);
   return rst;
 }
 template <typename T>
@@ -170,6 +174,31 @@ inline StateAP Fiber<AP>::PsiMode(const CS* objCS, size_t sn) const {
   return psiModeT(objCS, od(sn));
 }
 template <typename T>
+MatrixXcd Fiber<T>::ScatterBvMat(const CSCPtrs& objCSs) const {
+  int N = T::NumBv;
+  MatrixXcd rst(objCSs.size() * N, NumCoeff());
+  for (size_t i = 0; i < objCSs.size(); i++)
+    for (size_t n = 0; n < NumCoeff(); n++)
+      rst.block(i * N, n, N, 1) = ScatterMode(objCSs[i], n).Bv();
+  return rst;
+}
+template <typename T>
+MatrixXcd Fiber<T>::PsiBvMat(const CSCPtrs& objCSs) const {
+  int N = T::NumBv;
+  MatrixXcd rst(objCSs.size() * N, NumCoeff());
+  for (size_t i = 0; i < objCSs.size(); i++)
+    for (size_t n = 0; n < NumCoeff(); n++)
+      rst.block(i * N, n, N, 1) = PsiMode(objCSs[i], n).Bv();
+  return rst;
+}
+template <typename T>
+MatrixXcd Fiber<T>::PsiBvMatT(const CSCPtrs& objCSs) const {
+  MatrixXcd rst(PsiBvMat(objCSs));
+  for (long i = 0; i < rst.cols(); i++)
+    rst.col(i) *= config_->T_sc_in_T(od(i));
+  return rst;
+}
+template <typename T>
 T Fiber<T>::scatterModeL(const CS* objCS, int n) const {
   return ModeL<T>(LocalCS(), objCS,
                   EigenFunctor(Hn, n, config_->KL_m(), Radius()),
@@ -196,7 +225,7 @@ T Fiber<T>::innerModeT(const CS* objCS, int n) const {
 template <typename T>
 T Fiber<T>::psiModeT(const CS* objCS, int n) const {
   return ModeT<T>(LocalCS(), objCS,
-                  EigenFunctor(H2n, n, config_->KT_m(), Radius()),
+                  EigenFunctor(Jn, n, config_->KT_m(), Radius()),
                   config_->Material_m());
 }
 template <typename T>

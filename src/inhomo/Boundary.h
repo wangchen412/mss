@@ -70,6 +70,11 @@ class Boundary {
   MatrixXcd EffectMatT(const InhomoCPtrs<T>& objs) const;
   VectorXcd EffectBvT(const Inhomo<T>* obj, const VectorXcd& psi) const;
 
+  // This four methods are for the tests which are about expanding the wave
+  // field inside the boundary with cylindrical wave modes. For the circular
+  // boundary, it works well. But for the rectangular one, the collocation
+  // matrix has large condition number, because the cylindrical modes are not
+  // orthogonal along the rectangular boundary.
   MatrixXcd ColloMatT();
   MatrixXcd ModeMatT(const CS* objCS) const;
   MatrixXcd ModeMatT(const CSCPtrs& objCSs) const;

@@ -43,43 +43,19 @@ class BoundaryTest : public Test {
       100 * m.KT(), {{10e-3, 6e-3}, {0, 0}}, &m, CIRCULAR};
   double a{6e-3};
   Boundary<AP, 2> b3{10 * m2.KT(), {{-a, a}, {a, -a}}, &m2};
-
-  StateAP am(const CS* objCS, int n) const {
-    return ModeT<AP>(f4.LocalCS(), objCS,
-                     EigenFunctor(Jn, n, m2.KT(), f4.Radius()),
-                     m2.Material());
-  }
-  StateAP bm(const CS* objCS, int n) const {
-    return ModeT<AP>(f4.LocalCS(), objCS,
-                     EigenFunctor(Yn, n, m2.KT(), f4.Radius()),
-                     m2.Material());
-  }
-
-  MatrixXcd colloMat(CSCPtrs objCSs, int N) const {
-    MatrixXcd rst(objCSs.size(), 4 * N + 2);
-
-    for (size_t i = 0; i < objCSs.size(); i++) {
-      for (int j = -N; j <= N; j++) {
-        rst(i, j + N)             = am(objCSs[i], j).Displacement().x;
-        rst(i, 2 * N + 1 + j + N) = bm(objCSs[i], j).Displacement().x;
-      }
-    }
-
-    return rst;
-  }
 };
 
 TEST_F(BoundaryTest, Constructor) {
   EXPECT_EQ(b1.Node().size(), 10992);
 }
-TEST_F(BoundaryTest, DISABLED_EffectMat) {
+TEST_F(BoundaryTest, EffectMat) {
   // The points with normal vector perpendicular to the incident plane wave
   // should have zero traction, which will cause large relative error.
   VectorXcd bv_in = in1.EffectBv(f1.Node());
   VectorXcd bv_bd = b1.EffectMatT(f1.Node()) * in1.EffectBv(b1.Node());
   EXPECT_TRUE(ApproxVectRv(bv_in, bv_bd, 1e-4));
 }
-TEST_F(BoundaryTest, DISABLED_Solve) {
+TEST_F(BoundaryTest, Solve) {
   EXPECT_TRUE(ApproxVectRv(
       f1.CSolve({&in1}),
       f2.CSolve(b1.EffectBvT(&f2, in1.EffectBv(b1.Node()))), 1e-5));
@@ -100,7 +76,7 @@ TEST_F(BoundaryTest, DISABLED_ColloMat_Rectangular) {
   // VectorXcd bv_bd = m * d * in1.EffectBv(b2.Node());
   EXPECT_TRUE(ApproxVectRv(bv_in, bv_bd, 1e-4, 0, true));
 }
-TEST_F(BoundaryTest, DISABLED_ColloMat_Circular) {
+TEST_F(BoundaryTest, ColloMat_Circular) {
   MatrixXcd c = b2.ColloMatT();
   MatrixXcd d = PseudoInverse(c);
   MatrixXcd m = b2.ModeMatT(f1.Node());
@@ -109,66 +85,7 @@ TEST_F(BoundaryTest, DISABLED_ColloMat_Circular) {
   VectorXcd bv_bd = m * d * in1.EffectBv(b2.Node());
   EXPECT_TRUE(ApproxVectRv(bv_in, bv_bd, 1e-4, 0, true));
 }
-TEST_F(BoundaryTest, DISABLED_Resultant_Interface) {
-  // Along the interface
-  f1.SetCoeff(f1.CSolve({&in1}));
 
-  VectorXcd ref(f1.NumNode() * 2), cal(f1.NumNode() * 2);
-  ref = in1.EffectBv(f1.Node());
-  for (size_t i = 0; i < f1.NumNode(); i++)
-    cal.segment<2>(2 * i) = f1.Pseudo(f1.Node(i)).Bv();
-
-  EXPECT_TRUE(ApproxVectRv(ref, cal, 1e-9));
-}
-TEST_F(BoundaryTest, DISABLED_Resultant_Boundary) {
-  // Along the outer boundary
-  f4.SetCoeff(f4.CSolve({&in2}));
-
-  VectorXcd ref(b3.NumNode() * 2), cal(b3.NumNode() * 2);
-  ref = in2.EffectBv(b3.Node());
-  for (size_t i = 0; i < b3.NumNode(); i++)
-    cal.segment<2>(2 * i) = f4.Pseudo(b3.Node(i)).Bv();
-
-  EXPECT_TRUE(ApproxVectRv(ref, cal, 1e-1));
-  EXPECT_TRUE(ApproxVectRv(ref, cal, 1e-2));
-  EXPECT_TRUE(ApproxVectRv(ref, cal, 1e-3));
-  EXPECT_TRUE(ApproxVectRv(ref, cal, 1e-4));
-  EXPECT_TRUE(ApproxVectRv(ref, cal, 1e-5));
-  EXPECT_TRUE(ApproxVectRv(ref, cal, 1e-6));
-  EXPECT_TRUE(ApproxVectRv(ref, cal, 1e-7));
-  EXPECT_TRUE(ApproxVectRv(ref, cal, 1e-8));  // Fail
-
-  // std::cout << f4.Radius() * m.KT() << std::endl;
-}
-
-TEST_F(BoundaryTest, Collocation) {
-  std::cout << "kr = " << m2.KT() * f4.Radius() << std::endl;
-
-  CSCPtrs nodes(f4.Node());
-  VectorXcd inv(in2.EffectBv(nodes));
-  VectorXcd b(f4.NumNode());
-
-  for (long i = 0; i < b.size(); i++) b(i) = inv(2 * i);
-
-  int N  = 20;
-  int NN = 2 * N + 1;
-
-  MatrixXcd M = colloMat(nodes, N);
-
-  VectorXcd c =
-      M.jacobiSvd(Eigen::ComputeThinU | Eigen::ComputeThinV).solve(b);
-
-  CS tp(1.5e-3*sqrt(2), 1.5e-3*sqrt(2), pi/4);
-
-  StateAP ref = in2.Effect(&tp);
-  StateAP com(&tp);
-
-  for (int n = -N; n <= N; n++)
-    com += am(&tp, n) * c(n + N) + bm(&tp, n) * c(NN + n + N);
-
-  std::cout << ref << std::endl;
-  std::cout << com << std::endl;
-}
 
 class AssemBoundaryTest : public Test {
  protected:
@@ -180,21 +97,21 @@ class AssemBoundaryTest : public Test {
   AssemblyConfig<AP> c2{s.config(), &matrix};
   IncidentPlaneSH inSH1{matrix, s.incident()[0]};
 };
-TEST_F(AssemBoundaryTest, DISABLED_CSolve) {
+TEST_F(AssemBoundaryTest, CSolve) {
   c1.CSolve({&inSH1});
   c2.CSolve(c2.BdIntMatT() * inSH1.EffectBv(c2.Node()));
   for (int i = 0; i < 3; i++)
     EXPECT_TRUE(ApproxVectRv(c1.inhomo(i)->ScatterCoeff(),
                              c2.inhomo(i)->ScatterCoeff(), 1e-4, 15));
 }
-TEST_F(AssemBoundaryTest, DISABLED_DSolve) {
+TEST_F(AssemBoundaryTest, DSolve) {
   c1.DSolve({&inSH1});
   c2.DSolve(c2.BdIntMatT() * inSH1.EffectBv(c2.Node()));
   for (int i = 0; i < 3; i++)
     EXPECT_TRUE(ApproxVectRv(c1.inhomo(i)->ScatterCoeff(),
                              c2.inhomo(i)->ScatterCoeff(), 1e-3, 15));
 }
-TEST_F(AssemBoundaryTest, DISABLED_CSolve_InvMat) {
+TEST_F(AssemBoundaryTest, CSolve_InvMat) {
   c1.CSolve({&inSH1});
   VectorXcd solution = c2.GramMat().inverse() * c2.ColloMat().transpose() *
                        c2.IncVec({&inSH1});
@@ -204,7 +121,7 @@ TEST_F(AssemBoundaryTest, DISABLED_CSolve_InvMat) {
     EXPECT_TRUE(ApproxVectRv(rr, cc, 1e-3, 15));
   }
 }
-TEST_F(AssemBoundaryTest, DISABLED_DSolve_InvMat) {
+TEST_F(AssemBoundaryTest, DSolve_InvMat) {
   c1.DSolve({&inSH1});
   VectorXcd solution = c2.DcMat().inverse() * c2.Trans_IncVec({&inSH1});
   for (int i = 0; i < 3; i++) {
@@ -213,7 +130,7 @@ TEST_F(AssemBoundaryTest, DISABLED_DSolve_InvMat) {
     EXPECT_TRUE(ApproxVectRv(rr, cc));
   }
 }
-TEST_F(AssemBoundaryTest, DISABLED_CSolve_InvMatBi) {
+TEST_F(AssemBoundaryTest, CSolve_InvMatBi) {
   c1.CSolve({&inSH1});
   VectorXcd solution = c2.GramMat().inverse() * c2.ColloMat().transpose() *
                        c2.BdIntMatT() * inSH1.EffectBv(c2.Node());
@@ -223,7 +140,7 @@ TEST_F(AssemBoundaryTest, DISABLED_CSolve_InvMatBi) {
     EXPECT_TRUE(ApproxVectRv(rr, cc, 1e-3, 15));
   }
 }
-TEST_F(AssemBoundaryTest, DISABLED_DSolve_InvMatBi) {
+TEST_F(AssemBoundaryTest, DSolve_InvMatBi) {
   c1.DSolve({&inSH1});
   VectorXcd solution =
       c2.DcMat().inverse() *
