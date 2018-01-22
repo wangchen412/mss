@@ -22,36 +22,67 @@ class ExpansionTest : public Test {
   double r{3e-3};
   double a{8 * r};
   double d = 2 * a / np;
-  int N{25};
+  int N{300};
   CSCPtrs points;
-  VectorXcd c{2 * N + 1};
+  VectorXcd c{N};
 
   Material rubber{1300, 1.41908e9, 0.832e9}, lead{11400, 36.32496e9, 8.43e9};
   Matrix matrix{rubber, 1e6};
-  IncidentPlaneSH in1{matrix, 0, 1, 2};
-  FiberConfig<AP> fc{"1", 40, 1000, r, lead, &matrix};
+  IncidentPlaneSH in1{matrix, 0, 1e-5, 2};
+  FiberConfig<AP> fc{"1", 40, 300, r, lead, &matrix};
   Fiber<AP> fiber{&fc, {0, 0}};
   Fiber<AP> f2{&fc, {a + r, 0}};
+
+  StateAP planeWave(const CS* objCS, double a) const {
+    const PosiVect p = objCS->PositionGLB();
+
+    dcomp w    = exp(ii * matrix.KT() * cos(a) * p.x +
+                  ii * matrix.KT() * sin(a) * p.y);
+    dcomp gzx  = ii * matrix.KT() * cos(a) * w;
+    dcomp gzy  = ii * matrix.KT() * sin(a) * w;
+    StressAP t = matrix.Material().C(gzx, gzy);
+
+    return StateAP(w, t).in(objCS);
+  }
 
   StateAP mode(const CS* objCS, int n) const {
     return ModeT<AP>(fiber.LocalCS(), objCS,
                      EigenFunctor(Jn, n, matrix.KT(), fiber.Radius()),
                      matrix.Material());
   }
-  MatrixXcd colloMat(CSCPtrs objCSs, int N) const {
-    MatrixXcd rst(objCSs.size(), 2 * N + 1);
-    for (size_t i = 0; i < objCSs.size(); i++)
-      for (int j = -N; j <= N; j++)
-        rst(i, j + N) = mode(objCSs[i], j).Displacement().x;
+  // MatrixXcd colloMat(CSCPtrs objCSs, int N) const {
+  //   MatrixXcd rst(objCSs.size(), 2 * N + 1);
+  //   for (size_t i = 0; i < objCSs.size(); i++)
+  //     for (int j = -N; j <= N; j++)
+  //       rst(i, j + N) = mode(objCSs[i], j).Displacement().x;
+  //   return rst;
+  // }
+  MatrixXcd colloMat(CSCPtrs objCSs) const {
+    size_t P = objCSs.size();
+    MatrixXcd rst(P, N);
+    for (size_t i = 0; i < P; i++)
+      for (int j = 0; j < N; j++)
+        // rst.block<2, 1>(i * 2, j) = planeWave(objCSs[i], d * j).Bv();
+        rst(i, j) = planeWave(objCSs[i], pi2 / N * j).Displacement().x;
+
     return rst;
   }
   void collocation() {
     VectorXcd b(fiber.NumNode());
     for (size_t i = 0; i < fiber.NumNode(); i++)
+      // b(i) = (in1.Effect(fiber.Node(i))).Displacement().x;
       b(i) = (in1.Effect(fiber.Node(i)) + f2.Scatter(fiber.Node(i)))
                  .Displacement()
                  .x;
-    c = colloMat(fiber.Node(), N)
+
+    // VectorXcd b(fiber.NumBv());
+    // for (size_t i = 0; i < fiber.NumNode(); i++)
+    //   b.segment<2>(i * 2) =
+    //       (in1.Effect(fiber.Node(i)) + f2.Scatter(fiber.Node(i))).Bv();
+
+    // c = colloMat(fiber.Node()).lu().solve(b);
+
+    c = colloMat(fiber.Node())
             .jacobiSvd(Eigen::ComputeThinU | Eigen::ComputeThinV)
             .solve(b);
   }
@@ -70,23 +101,33 @@ class ExpansionTest : public Test {
   }
 
   StateAP compute(const CS* objCS) const {
+    // StateAP rst(objCS);
+    // if (objCS->PositionGLB().Length() < r) return rst;
+    // for (int n = -N; n <= N; n++) rst += mode(objCS, n) * c(n + N);
+    // return rst;
+
     StateAP rst(objCS);
-    if (objCS->PositionGLB().Length() < r) return rst;
-    for (int n = -N; n <= N; n++) rst += mode(objCS, n) * c(n + N);
+    for (long i = 0; i < c.size(); i++)
+      rst += planeWave(objCS, pi2 / c.size() * i) * c(i);
     return rst;
   }
 };
 
-TEST_F(ExpansionTest, Incident) {
+TEST_F(ExpansionTest, DISABLED_Incident) {
   std::ofstream file("incident.txt");
   for (auto p : points) file << in1.Effect(p) + f2.Scatter(p) << std::endl;
+  // for (auto p : points) file << in1.Effect(p) << std::endl;
   file.close();
 }
 TEST_F(ExpansionTest, Expansion) {
   std::ofstream file("expansion.txt");
   for (auto p : points) file << compute(p) << std::endl;
   file.close();
-  std::cout << c << std::endl;
+  // //std::cout << c << std::endl;
+  MatrixXcd m = colloMat(fiber.Node());
+  std::cout << m.rows() << "  " << m.cols() << std::endl;
+  // MatrixXcd mm = PseudoInverse(m);
+  // std::cout << mm * m << std::endl;
 }
 TEST_F(ExpansionTest, DISABLED_BesselJ) {
   double kr = matrix.KT() * fiber.Radius();
