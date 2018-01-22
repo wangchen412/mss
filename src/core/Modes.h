@@ -139,6 +139,18 @@ inline Matrix2cd GreenT<AP>(const CS* localCS, const CS* objCS,
   return rst;
 }
 
+StateAP _planeWaveAP(const CS* objCS, double a, const Matrix* matrix) {
+  const PosiVect p = objCS->PositionGLB();
+
+  dcomp w    = exp(ii * matrix->KT() * cos(a) * p.x +
+                   ii * matrix->KT() * sin(a) * p.y);
+  dcomp gzx  = ii * matrix->KT() * cos(a) * w;
+  dcomp gzy  = ii * matrix->KT() * sin(a) * w;
+  StressAP t = matrix->Material().C(gzx, gzy);
+
+  return StateAP(w, t).in(objCS);
+}
+
 }  // namespace mss
 
 #endif

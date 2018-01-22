@@ -81,29 +81,6 @@ TEST_F(PeriodicTest, DISABLED_Matrices) {
   VectorXcd com3 = c.InToRstMat() * in;
   EXPECT_TRUE(ApproxVectRv(ref, com3, 1e-5));
 }
-// The SVD of matrix B, the boundary integral matrix.
-// TEST_F(PeriodicTest, DISABLED_MatrixB) {
-//   MatrixXcd A = c.BdIntMatT();
-//   MatrixXcd B(A.rows(), A.cols() / 2);
-//   MatrixXcd C(A.rows() / 2, A.cols() / 2);
-
-//   for (long u = 0; u < A.cols() / 2; u += 2) B.col(u) = A.col(u * 2);
-//   for (long u = 0; u < B.rows() / 2; u += 2) C.row(u) = B.row(u * 2);
-
-//   std::cout << A.rows() << "  " << A.cols() << std::endl;
-//   std::cout << B.rows() << "  " << B.cols() << std::endl;
-//   std::cout << C.rows() << "  " << C.cols() << std::endl;
-
-//   Eigen::VectorXd svda = A.bdcSvd().singularValues();
-//   Eigen::VectorXd svdb = B.bdcSvd().singularValues();
-//   Eigen::VectorXd svdc = C.bdcSvd().singularValues();
-
-//   std::cout << svda << std::endl;
-//   std::cout << "++++++++++++++++++++++" << std::endl;
-//   std::cout << svdb << std::endl;
-//   std::cout << "++++++++++++++++++++++" << std::endl;
-//   std::cout << svdc << std::endl;
-// }
 TEST_F(PeriodicTest, DISABLED_DtN_Map) {
   c.Solve({&inSH}, DFT);
 

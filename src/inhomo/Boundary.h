@@ -70,6 +70,8 @@ class Boundary {
   MatrixXcd EffectMatT(const InhomoCPtrs<T>& objs) const;
   VectorXcd EffectBvT(const Inhomo<T>* obj, const VectorXcd& psi) const;
 
+  // MatrixXcd Extrapolation(const CSCPtrs& inner, size_t P) const;
+
   // This four methods are for the tests which are about expanding the wave
   // field inside the boundary with cylindrical wave modes. For the circular
   // boundary, it works well. But for the rectangular one, the collocation
@@ -201,6 +203,16 @@ VectorXcd Boundary<T, N>::EffectBvT(const Inhomo<T>* obj,
                                     const VectorXcd& psi) const {
   return EffectMatT(obj->Node()) * psi;
 }
+
+// template <typename T, int N>
+// MatrixXcd Boundary<T, N>::Extrapolation(const CSCPtrs& inner,
+//                                         size_t P) const {
+//   // Fit P plane waves at given points. Then extrapolate the field at
+//   // boundary pionts.
+
+//   MatrixXcd fit_m;
+//   MatrixXcd extra_m;
+// }
 
 template <typename T, int N>
 void Boundary<T, N>::add_rect(const PosiVect& p1, const PosiVect& p2) {
