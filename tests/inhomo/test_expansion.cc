@@ -128,6 +128,22 @@ TEST_F(ExpansionTest, Expansion) {
   std::cout << m.rows() << "  " << m.cols() << std::endl;
   // MatrixXcd mm = PseudoInverse(m);
   // std::cout << mm * m << std::endl;
+
+  VectorXcd ref_w(fiber.NumNode()), com_w(fiber.NumNode());
+  VectorXcd ref_t(fiber.NumNode()), com_t(fiber.NumNode());
+
+  for (size_t i = 0; i < fiber.NumNode(); i++) {
+    const CS* p = fiber.Node(i);
+    Vector2cd ref = (in1.Effect(p) + f2.Scatter(p)).Bv();
+    Vector2cd com = compute(p).Bv();
+    ref_w(i) = ref(0);
+    ref_t(i) = ref(1);
+    com_w(i) = com(0);
+    com_t(i) = com(1);
+  }
+
+  EXPECT_TRUE(ApproxVectRv(ref_w, com_w, 1e-11, 0, true));
+  EXPECT_TRUE(ApproxVectRv(ref_t, com_t, 1e-11, 0, true));
 }
 TEST_F(ExpansionTest, DISABLED_BesselJ) {
   double kr = matrix.KT() * fiber.Radius();
