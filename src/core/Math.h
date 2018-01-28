@@ -254,12 +254,14 @@ double DeterExpon(const MatrixXcd& m) {
 }
 
 MatrixXcd PseudoInverse(const MatrixXcd& m) {
-  auto svd = m.jacobiSvd(Eigen::ComputeFullU | Eigen::ComputeFullV);
+  auto svd = m.jacobiSvd(Eigen::ComputeThinU | Eigen::ComputeThinV);
   auto& sv = svd.singularValues();
-  MatrixXcd svi(m.cols(), m.rows());
+  double tol = std::numeric_limits<double>::epsilon() * m.rows() *
+               sv.array().abs().maxCoeff();
+  MatrixXcd svi(m.cols(), m.cols());
   svi.setZero();
-  for (long i = 0; i < sv.size(); i++)
-    svi(i, i) = std::abs(sv(i)) > epsilon ? 1 / sv(i) : 0;
+  for (long i = 0; i < m.cols(); i++)
+    svi(i, i) = std::abs(sv(i)) > tol ? 1 / sv(i) : 0;
   return svd.matrixV() * svi * svd.matrixU().adjoint();
 }
 

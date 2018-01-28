@@ -70,7 +70,7 @@ class Boundary {
   MatrixXcd EffectMatT(const InhomoCPtrs<T>& objs) const;
   VectorXcd EffectBvT(const Inhomo<T>* obj, const VectorXcd& psi) const;
 
-  // MatrixXcd Extrapolation(const CSCPtrs& inner, size_t P) const;
+  MatrixXcd Extrapolation(const CSCPtrs& inner, size_t P) const;
 
   // This four methods are for the tests which are about expanding the wave
   // field inside the boundary with cylindrical wave modes. For the circular
@@ -204,15 +204,34 @@ VectorXcd Boundary<T, N>::EffectBvT(const Inhomo<T>* obj,
   return EffectMatT(obj->Node()) * psi;
 }
 
-// template <typename T, int N>
-// MatrixXcd Boundary<T, N>::Extrapolation(const CSCPtrs& inner,
-//                                         size_t P) const {
-//   // Fit P plane waves at given points. Then extrapolate the field at
-//   // boundary pionts.
+template <typename T, int N>
+MatrixXcd Boundary<T, N>::Extrapolation(const CSCPtrs& inner,
+                                        size_t P) const {
+  // Fit P plane waves at given points. Then extrapolate the field at
+  // boundary pionts.
 
-//   MatrixXcd fit_m;
-//   MatrixXcd extra_m;
-// }
+  MatrixXcd fit_m(inner.size() * 2, P);
+  for (size_t i = 0; i < inner.size(); i++)
+    for (size_t j = 0; j < P; j++)
+      fit_m.block<T::NumBv, 1>(i * T::NumBv, j) =
+          _planeWaveAP(inner[i], pi2 / P * j, matrix_).Bv();
+
+  // MatrixXcd fit_m(inner.size(), P);
+  // for (size_t i = 0; i < inner.size(); i++)
+  //   for (size_t j = 0; j < P; j++)
+  //     fit_m(i, j) =
+  //         _planeWaveAP(inner[i], pi2 / P * j, matrix_).Displacement().x;
+
+  // MatrixXcd extra_m(NumBv(), P);
+  // for (size_t i = 0; i < node_.size(); i++)
+  //   for (size_t j = 0; j < P; j++)
+  //     extra_m.block<T::NumBv, 1>(i * T::NumBv, j) =
+  //         _planeWaveAP(node_[i], pi2 / P * j, matrix_).Bv();
+
+  // return fit_m * PseudoInverse(fit_m);
+  // return fit_m * (fit_m.transpose() * fit_m).inverse() * fit_m.transpose();
+  return fit_m;
+}
 
 template <typename T, int N>
 void Boundary<T, N>::add_rect(const PosiVect& p1, const PosiVect& p2) {

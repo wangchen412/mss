@@ -68,6 +68,7 @@ class AssemblyConfig {
   const std::string& ID() const { return ID_; }
   const CSCPtrs& Node() const { return boundary_.Node(); }
   const CS* Node(size_t i) const { return boundary_.Node(i); }
+  const CSCPtrs& Node_in() const { return node_in_; }
   const Boundary<T>& Boundary() const { return boundary_; }
 
   // TODO: in-plane
@@ -114,6 +115,7 @@ class AssemblyConfig {
   size_t num_coeff_{0}, num_bv_in_{0};
   InhomoPtrs<T> inhomo_;
   InhomoCPtrs<T> inhomoC_;
+  CSCPtrs node_in_;
 
   FiberConfigPtrs<T> fiber_config_;
   AsmConfigPtrs<T> assembly_config_;
@@ -555,6 +557,7 @@ void AssemblyConfig<T>::add_inhomo() {
   for (auto& i : inhomo_) {
     num_coeff_ += i->NumCoeff();
     num_bv_in_ += i->NumBv();
+    node_in_.insert(node_in_.end(), i->Node().begin(), i->Node().end());
     inhomoC_.push_back(i);
   }
 }

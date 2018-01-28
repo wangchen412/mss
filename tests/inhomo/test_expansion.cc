@@ -22,7 +22,7 @@ class ExpansionTest : public Test {
   double r{3e-3};
   double a{8 * r};
   double d = 2 * a / np;
-  int N{1000};
+  int N{50};
   CSCPtrs points;
   VectorXcd c{N};
 
@@ -72,9 +72,11 @@ class ExpansionTest : public Test {
 
     // c = colloMat(fiber.Node()).lu().solve(b);
 
-    c = colloMat(fiber.Node())
-            .jacobiSvd(Eigen::ComputeThinU | Eigen::ComputeThinV)
-            .solve(b);
+    c = PseudoInverse(colloMat(fiber.Node())) * b;
+
+    // c = colloMat(fiber.Node())
+    //         .jacobiSvd(Eigen::ComputeThinU | Eigen::ComputeThinV)
+    //         .solve(b);
   }
   void DFT() {
     for (int n = -N; n <= N; n++) c(n + N) = coeff_DFT(n);
@@ -116,6 +118,8 @@ TEST_F(ExpansionTest, Expansion) {
   // //std::cout << c << std::endl;
   MatrixXcd m = colloMat(fiber.Node());
   std::cout << m.rows() << "  " << m.cols() << std::endl;
+  std::cout << m.jacobiSvd().rank() << std::endl;
+  std::cout << m.jacobiSvd().singularValues() << std::endl;
   // MatrixXcd mm = PseudoInverse(m);
   // std::cout << mm * m << std::endl;
 
@@ -123,13 +127,13 @@ TEST_F(ExpansionTest, Expansion) {
   VectorXcd ref_t(fiber.NumNode()), com_t(fiber.NumNode());
 
   for (size_t i = 0; i < fiber.NumNode(); i++) {
-    const CS* p = fiber.Node(i);
+    const CS* p   = fiber.Node(i);
     Vector2cd ref = (in1.Effect(p) + f2.Scatter(p)).Bv();
     Vector2cd com = compute(p).Bv();
-    ref_w(i) = ref(0);
-    ref_t(i) = ref(1);
-    com_w(i) = com(0);
-    com_t(i) = com(1);
+    ref_w(i)      = ref(0);
+    ref_t(i)      = ref(1);
+    com_w(i)      = com(0);
+    com_t(i)      = com(1);
   }
 
   EXPECT_TRUE(ApproxVectRv(ref_w, com_w, 1e-11, 0, true));
