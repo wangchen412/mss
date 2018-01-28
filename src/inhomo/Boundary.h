@@ -216,21 +216,13 @@ MatrixXcd Boundary<T, N>::Extrapolation(const CSCPtrs& inner,
       fit_m.block<T::NumBv, 1>(i * T::NumBv, j) =
           _planeWaveAP(inner[i], pi2 / P * j, matrix_).Bv();
 
-  // MatrixXcd fit_m(inner.size(), P);
-  // for (size_t i = 0; i < inner.size(); i++)
-  //   for (size_t j = 0; j < P; j++)
-  //     fit_m(i, j) =
-  //         _planeWaveAP(inner[i], pi2 / P * j, matrix_).Displacement().x;
+  MatrixXcd extra_m(NumBv(), P);
+  for (size_t i = 0; i < node_.size(); i++)
+    for (size_t j = 0; j < P; j++)
+      extra_m.block<T::NumBv, 1>(i * T::NumBv, j) =
+          _planeWaveAP(node_[i], pi2 / P * j, matrix_).Bv();
 
-  // MatrixXcd extra_m(NumBv(), P);
-  // for (size_t i = 0; i < node_.size(); i++)
-  //   for (size_t j = 0; j < P; j++)
-  //     extra_m.block<T::NumBv, 1>(i * T::NumBv, j) =
-  //         _planeWaveAP(node_[i], pi2 / P * j, matrix_).Bv();
-
-  // return fit_m * PseudoInverse(fit_m);
-  // return fit_m * (fit_m.transpose() * fit_m).inverse() * fit_m.transpose();
-  return fit_m;
+  return extra_m * PseudoInverse(fit_m);
 }
 
 template <typename T, int N>

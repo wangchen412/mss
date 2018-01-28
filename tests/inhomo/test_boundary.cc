@@ -154,36 +154,13 @@ TEST_F(AssemBoundaryTest, DSolve_InvMatBi) {
 }
 
 TEST_F(AssemBoundaryTest, Extrapolation) {
-  VectorXcd ref = inSH1.EffectBv(c3.Node_in());
-  // VectorXcd in    = inSH1.EffectBv(c3.Node_in());
+  VectorXcd ref = inSH1.EffectBv(c3.Node());
+  VectorXcd in  = inSH1.EffectBv(c3.Node_in());
+
   MatrixXcd ext_m = c3.Boundary().Extrapolation(c3.Node_in(), 400);
-  // VectorXcd com   = ext_m * in;
-
-  // VectorXcd coeff =
-  //     ext_m.jacobiSvd(Eigen::ComputeThinU |
-  //     Eigen::ComputeThinV).solve(ref);
-
-  // VectorXcd ref2(ref.size() / 2);
-  // for (long i = 0; i < ref2.size(); i++) ref2(i) = ref(i * 2);
-
-  VectorXcd coeff = PseudoInverse(ext_m) * ref;
-
-  // VectorXcd coeff =
-  //     (ext_m.transpose() * ext_m).inverse() * ext_m.transpose() * ref2;
-
-  VectorXcd com = ext_m * coeff;
-
-  std::cout << ext_m.rows() << std::endl;
-  std::cout << ext_m.cols() << std::endl;
-
-  std::cout << ext_m.jacobiSvd().rank() << std::endl;
-  //std::cout << ext_m.jacobiSvd().singularValues() << std::endl;
+  VectorXcd com   = ext_m * in;
 
   ApproxVectRv(ref, com, 1e-3, 0, true);
-  // std::cout << matrix.KT() * 15e-3 << std::endl;
-  // std::cout << "Num of boundary nodes:\t" << ref.size() << std::endl;
-  // std::cout << "Num of inside nodes:\t" << in.size() << std::endl;
-  // std::cout << ext_m.rows() << "\t" << ext_m.cols() << std::endl;
 }
 
 }  // namespace test
