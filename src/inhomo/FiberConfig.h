@@ -165,10 +165,10 @@ void FiberConfig<T>::del_node() {
 }
 template <>
 Matrix4cd FiberConfig<IP>::tm(int n) const {
-  double lm        = Matrix()->Material().Lambda();
-  double mm        = Matrix()->Material().Mu();
-  double lf        = Material().Lambda();
-  double mf        = Material().Mu();
+  double lm = Matrix()->Material().Lambda();
+  double mm = Matrix()->Material().Mu();
+  double lf = Material().Lambda();
+  double mf = Material().Mu();
   const double lmm = lm + 2 * mm;
   const double lmf = lf + 2 * mf;
 
@@ -224,7 +224,7 @@ void FiberConfig<T>::com_QR() {
 #pragma omp parallel for
 #endif
   for (int n = -N_; n <= N_; n++) {
-    auto t      = tm(n);
+    auto t = tm(n);
     MatrixXcd g = DFT_m(T::NumBv, NumNode(), n);
 
     Q_.block((n + N_) * N, 0, N, NumBv()) = t.block(0, 0, N, 2 * N) * g;

@@ -64,7 +64,8 @@ class Test : public testing::Test {
  public:
   static std::string DataPath(const std::string& path,
                               const std::string& fn = "") {
-    return path.substr(0, path.find_last_of("/\\")) + std::string("/data/") + fn;
+    return path.substr(0, path.find_last_of("/\\")) + std::string("/data/") +
+           fn;
   }
 };
 

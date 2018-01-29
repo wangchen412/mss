@@ -26,7 +26,7 @@ namespace mss {
 
 inline VectorXcd DFT_v(size_t p, int n) {
   VectorXcd g(p), h(p);
-  double d    = pi2 / p;
+  double d = pi2 / p;
   long long P = p;
   if (n)
     for (long long i = 0; i < P; i++) {
@@ -42,7 +42,7 @@ inline VectorXcd DFT_v(size_t p, int n) {
 
   VectorXcd rst(p);
   rst(0) = g(0) + h(p - 1);
-  for (size_t i = 1; i < p; i++) rst(i)= h(i - 1) + g(i);
+  for (size_t i = 1; i < p; i++) rst(i) = h(i - 1) + g(i);
   rst /= pi2;
 
   return rst;

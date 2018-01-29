@@ -69,9 +69,8 @@ class CC_Fiber : public ContCheck<T> {
   using cc = ContCheck<T>;
 
  public:
-  CC_Fiber(const Solution<T>* solution, const Fiber<T>* fiber,
-           size_t np = 42, double gap = epsilon,
-           double tolerance = 1e-4)
+  CC_Fiber(const Solution<T>* solution, const Fiber<T>* fiber, size_t np = 42,
+           double gap = epsilon, double tolerance = 1e-4)
       : ContCheck<T>(solution, np, gap, tolerance), f_(fiber) {
     add_circ();
     add_state();
@@ -109,8 +108,7 @@ class CC_Solution {
  private:
   std::vector<ContCheck<T>*> check_;
   std::vector<const ContCheck<T>*> nc_;
-  void add_cc(const Solution<T>*, size_t, double,
-              double);
+  void add_cc(const Solution<T>*, size_t, double, double);
 };
 
 // ---------------------------------------------------------------------------
@@ -154,9 +152,8 @@ void CC_Fiber<T>::add_state() {
 // ----------------------------------------
 // CC_Solution methods:
 template <typename T>
-void CC_Solution<T>::add_cc(const Solution<T>* solution,
-                                   size_t np, double gap,
-                                   double tol) {
+void CC_Solution<T>::add_cc(const Solution<T>* solution, size_t np,
+                            double gap, double tol) {
   for (auto& i : solution->inhomo()) {
     switch (i->Type()) {
       case FIBER:

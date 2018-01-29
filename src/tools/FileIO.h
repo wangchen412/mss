@@ -21,7 +21,6 @@
 #define MSS_FILEIO_H
 
 #include <algorithm>
-#include <string>
 #include <cstring>
 #include <fstream>
 #include <iostream>

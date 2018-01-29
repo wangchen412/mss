@@ -30,7 +30,7 @@ class IncidentP : virtual public Incident<IP> {
       : Incident<IP>(matrix, amplitude, phase), k_(matrix.KL()) {}
 
   virtual StateIP Effect(const PosiVect& position) const = 0;
-  virtual StateIP Effect(const CS* localCS) const        = 0;
+  virtual StateIP Effect(const CS* localCS) const = 0;
 
  protected:
   double k_;

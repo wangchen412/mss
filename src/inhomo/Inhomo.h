@@ -56,7 +56,7 @@ class Inhomo {
 
   // Resultant states.
   virtual T Scatter(const CS* objCS) const = 0;
-  virtual T Inner(const CS* objCS) const   = 0;
+  virtual T Inner(const CS* objCS) const = 0;
 
   // The nth Modes. The n should be the serial number, instead of the order.
   // The transformation from the serial number to the order should be done in
@@ -64,9 +64,9 @@ class Inhomo {
   virtual T ScatterMode(const CS* objCS, size_t sn) const = 0;
   VectorXcd ScatterBv(const CSCPtrs& objCSs, size_t sn) const;
 
-  virtual size_t NumNode() const  = 0;
+  virtual size_t NumNode() const = 0;
   virtual size_t NumCoeff() const = 0;
-  virtual size_t NumBv() const    = 0;
+  virtual size_t NumBv() const = 0;
 
   VectorXcd IncVec(const InciCPtrs<T>& inc) const;
   VectorXcd TransIncVec(const VectorXcd& incBv) { return TransMat() * incBv; }

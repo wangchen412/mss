@@ -39,8 +39,8 @@ inline StateIP ModeL<IP>(const CS* localCS, const CS* objCS,
 
   // Position in the local CS, which is seen as a polar CS:
   const PosiVect pc = objCS->PositionIn(localCS);
-  const PosiVect p  = pc.Polar();
-  double r          = p.x;
+  const PosiVect p = pc.Polar();
+  double r = p.x;
   const CS cs(pc, p.y, localCS);
 
   // Displacement in the local CS:
@@ -48,9 +48,9 @@ inline StateIP ModeL<IP>(const CS* localCS, const CS* objCS,
   dcomp ut = f.dt_r(p);
 
   // Stress in the local CS:
-  dcomp grr  = f.ddr(p);
-  dcomp gtt  = f.dr_r(p) + f.ddt_rr(p);
-  dcomp grt  = 2.0 * (f.drdt_r(r) - f.dt_rr(p));
+  dcomp grr = f.ddr(p);
+  dcomp gtt = f.dr_r(p) + f.ddt_rr(p);
+  dcomp grt = 2.0 * (f.drdt_r(r) - f.dt_rr(p));
   StressIP t = m.C(grr, gtt, grt);
 
   // Normalized state in the objective CS.
@@ -63,8 +63,8 @@ inline StateIP ModeT<IP>(const CS* localCS, const CS* objCS,
 
   // Position in the local CS, which is seen as a polar CS:
   const PosiVect pc = objCS->PositionIn(localCS);
-  const PosiVect p  = pc.Polar();
-  double r          = p.x;
+  const PosiVect p = pc.Polar();
+  double r = p.x;
   const CS cs(pc, p.y, localCS);
 
   // Displacement in the local CS:
@@ -72,9 +72,9 @@ inline StateIP ModeT<IP>(const CS* localCS, const CS* objCS,
   dcomp ut = -f.dr(r);
 
   // Stress in the local CS:
-  dcomp grr  = f.drdt_r(r);
-  dcomp gtt  = f.dt_rr(r) - f.drdt_r(r);
-  dcomp grt  = f.ddt_rr(r) - f.ddr(r) + f.dr_r(r);
+  dcomp grr = f.drdt_r(r);
+  dcomp gtt = f.dt_rr(r) - f.drdt_r(r);
+  dcomp grt = f.ddt_rr(r) - f.ddr(r) + f.dr_r(r);
   StressIP t = m.C(grr, gtt, grt);
 
   // Normalized state in the objective CS.
@@ -87,16 +87,16 @@ inline StateAP ModeT<AP>(const CS* localCS, const CS* objCS,
 
   // Position in the local CS, which is seen as a polar CS:
   const PosiVect pc = objCS->PositionIn(localCS);
-  const PosiVect p  = pc.Polar();
-  double r          = p.x;
+  const PosiVect p = pc.Polar();
+  double r = p.x;
   const CS cs(pc, p.y, localCS);
 
   // Displacement in the local CS:
   DispAP w = f(p);
 
   // Stress in the local CS:
-  dcomp gzr  = f.dr(p);
-  dcomp gzt  = f.dt_r(p);
+  dcomp gzr = f.dr(p);
+  dcomp gzt = f.dt_r(p);
   StressAP t = m.C(gzr, gzt);
 
   // Normalized state in the objective CS.
@@ -142,10 +142,11 @@ inline Matrix2cd GreenT<AP>(const CS* localCS, const CS* objCS,
 StateAP _planeWaveAP(const CS* objCS, double a, const Matrix* matrix) {
   const PosiVect p = objCS->PositionGLB();
 
-  dcomp w    = exp(ii * matrix->KT() * cos(a) * p.x +
-                   ii * matrix->KT() * sin(a) * p.y);
-  dcomp gzx  = ii * matrix->KT() * cos(a) * w;
-  dcomp gzy  = ii * matrix->KT() * sin(a) * w;
+  dcomp w = exp(ii * matrix->KT() * cos(a) * p.x +
+                ii * matrix->KT() * sin(a) * p.y);
+
+  dcomp gzx = ii * matrix->KT() * cos(a) * w;
+  dcomp gzy = ii * matrix->KT() * sin(a) * w;
   StressAP t = matrix->Material().C(gzx, gzy);
 
   return StateAP(w, t).in(objCS);

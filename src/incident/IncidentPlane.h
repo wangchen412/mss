@@ -35,7 +35,7 @@ class IncidentPlane : virtual public Incident<T> {
   }
 
   virtual T Effect(const PosiVect& position) const = 0;
-  virtual T Effect(const CS* localCS) const        = 0;
+  virtual T Effect(const CS* localCS) const = 0;
 
   double Angle() const { return angle_; }
 
@@ -54,9 +54,9 @@ class IncidentPlane : virtual public Incident<T> {
     // Return the State from known displacement u and v. (The wave number is
     // needed since P-wave and SV-wave have different wave numbers.)
 
-    dcomp gxx  = ii * k * c_ * u;
-    dcomp gyy  = ii * k * s_ * v;
-    dcomp gxy  = ii * k * (s_ * u + c_ * v);
+    dcomp gxx = ii * k * c_ * u;
+    dcomp gyy = ii * k * s_ * v;
+    dcomp gxy = ii * k * (s_ * u + c_ * v);
     StressIP t = this->m.C(gxx, gyy, gxy);
     return StateIP(u, v, t);
   }

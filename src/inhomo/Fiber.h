@@ -56,6 +56,8 @@ class Fiber : public Inhomo<T> {
   T Inner(const CS* objCS) const override;
   T Pseudo(const CS* objCS) const;
 
+  VectorXcd ScatterBv(const CSCPtrs& objCSs) const;
+
   // The nth Modes. The n should be the serial number, instead of the order.
   // The transformation from the serial number to the order should be done in
   // the derived class.
@@ -175,11 +177,21 @@ inline StateAP Fiber<AP>::PsiMode(const CS* objCS, size_t sn) const {
 }
 template <typename T>
 MatrixXcd Fiber<T>::ScatterBvMat(const CSCPtrs& objCSs) const {
+  // TODO Move to base class
   int N = T::NumBv;
   MatrixXcd rst(objCSs.size() * N, NumCoeff());
   for (size_t i = 0; i < objCSs.size(); i++)
     for (size_t n = 0; n < NumCoeff(); n++)
       rst.block(i * N, n, N, 1) = ScatterMode(objCSs[i], n).Bv();
+  return rst;
+}
+template <typename T>
+VectorXcd Fiber<T>::ScatterBv(const CSCPtrs& objCSs) const {
+  // TODO Add virtual method.
+  VectorXcd rst(objCSs.size() * T::NumBv);
+  rst.setZero();
+  for (size_t n = 0; n < NumCoeff(); n++)
+    rst += Inhomo<T>::ScatterBv(objCSs, n) * cSc_(n);
   return rst;
 }
 template <typename T>

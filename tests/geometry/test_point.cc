@@ -49,9 +49,9 @@ TEST_F(PointTest, Ctor_Computation) {
   post::PointAP p7(&s, {-18e-3, 18e-3});
   post::PointAP p8(&s, {18e-3, -18e-3});
 
-  dcomp w    = {1.6587125982302423e-06, -1.7477625866189296e-06};
-  dcomp tzx  = {1775443.2580089821, 1989770.6209655141};
-  dcomp tzy  = {2696226.105811324, -846321.05973796837};
+  dcomp w = {1.6587125982302423e-06, -1.7477625866189296e-06};
+  dcomp tzx = {1775443.2580089821, 1989770.6209655141};
+  dcomp tzy = {2696226.105811324, -846321.05973796837};
   StateAP st = {w, tzx, tzy, p3.LocalCS()};
 
   EXPECT_TRUE(st.isApprox(p3.State(), 1e-6));

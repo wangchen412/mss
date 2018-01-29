@@ -128,7 +128,7 @@ inline std::pair<double, double> Legendre(int N, double x) {
   // assert(N > 2);
   double pn = x, pn_1 = x, pn_2 = 1;
   for (int i = 2; i <= N; i++) {
-    pn   = ((2 * i - 1) * x * pn_1 - (i - 1) * pn_2) / i;
+    pn = ((2 * i - 1) * x * pn_1 - (i - 1) * pn_2) / i;
     pn_2 = pn_1;
     pn_1 = pn;
   }
@@ -140,9 +140,9 @@ class LegendreRoot {
  public:
   LegendreRoot() : root_(N), weight_(N) {
     for (int i = 0; i < N; i++) {
-      double x   = Newton(dx, cos(pi * (i + 0.75) / (N + 0.5)));
-      double d   = Legendre(N, x).second;
-      root_[i]   = x;
+      double x = Newton(dx, cos(pi * (i + 0.75) / (N + 0.5)));
+      double d = Legendre(N, x).second;
+      root_[i] = x;
       weight_[i] = 2 / ((1 - x * x) * d * d);
     }
   }
@@ -230,7 +230,7 @@ std::vector<T> DeterminantFactor(const Eigen::Matrix<T, -1, -1>& m) {
 template <typename T>
 std::tuple<T, T> Determinant(const Eigen::Matrix<T, -1, -1>& m) {
   auto v = DeterminantFactor(m);
-  T rst  = v.back();
+  T rst = v.back();
   v.pop_back();
 
   T ave_p = v.back();

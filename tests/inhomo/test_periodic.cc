@@ -36,7 +36,7 @@ class PeriodicTest : public Test {
 TEST_F(PeriodicTest, DISABLED_InvBdMat) {
   VectorXcd ref_in = inSH.EffectBv(c.inhomo(0)->Node());
 
-  VectorXcd in0    = inSH.EffectBv(c.Boundary().Node());
+  VectorXcd in0 = inSH.EffectBv(c.Boundary().Node());
   VectorXcd com_in = c.BdIntMatT() * in0;
 
   ApproxVectRv(ref_in, com_in, 1e-4, 0, true);
@@ -44,7 +44,7 @@ TEST_F(PeriodicTest, DISABLED_InvBdMat) {
   std::cout << c.BdIntMatT().rows() << "  " << c.BdIntMatT().cols()
             << std::endl;
 
-  MatrixXcd bd_inv  = PseudoInverse(c.BdIntMatT());
+  MatrixXcd bd_inv = PseudoInverse(c.BdIntMatT());
   VectorXcd com_in0 = bd_inv * com_in;
 
   ApproxVectRv(in0, com_in0, 1e-4, 0, true);
@@ -59,7 +59,7 @@ TEST_F(PeriodicTest, DISABLED_Matrices) {
         c.Resultant(c.Boundary().DNode()[i], {&inSH}).Bv();
 
   VectorXcd in_d = inSH.EffectBv(c.Boundary().DNode());
-  VectorXcd in   = inSH.EffectBv(c.Boundary().Node());
+  VectorXcd in = inSH.EffectBv(c.Boundary().Node());
 
   VectorXcd coeff(c.NumCoeff());
   size_t n = 0;
@@ -85,7 +85,7 @@ TEST_F(PeriodicTest, DISABLED_DtN_Map) {
   c.Solve({&inSH}, DFT);
 
   VectorXcd in_d = inSH.EffectBv(c.Boundary().DNode());
-  VectorXcd in   = inSH.EffectBv(c.Boundary().Node());
+  VectorXcd in = inSH.EffectBv(c.Boundary().Node());
 
   /// At the doubled nodes (include the complimentary nodes):
   // Reference:
@@ -122,12 +122,12 @@ TEST_F(PeriodicTest, DISABLED_CharPoly) {
 
   std::ofstream file("exp.dat");
 
-  int n     = 20;
+  int n = 20;
   double ll = 250, hh = 260;
   double dk = (hh - ll) / n;
 
   for (int i = 0; i < n; i++) {
-    double k  = i * dk + ll;
+    double k = i * dk + ll;
     dcomp psx = exp(ii * k * c.Width());
     file << k << "\t" << DeterExpon(c.Y_mat(psx, 1)) << std::endl;
   }
@@ -201,14 +201,13 @@ TEST_F(PeriodicTestExp, DtN_single) {
   EXPECT_TRUE(ApproxVectRv(t, tt, 1e-3, 0, true));
 }
 
-
 TEST_F(PeriodicTestExp, DISABLED_PBC) {
   MatrixXcd z(f.ScatterBvMat(b.Node()) + f.PsiBvMatT(b.Node()));
   MatrixXcd z1(z.rows() / 2, z.cols());
   MatrixXcd z2(z.rows() / 2, z.cols());
 
   size_t N = b.NumNode() / 4;
-  z1       = z.block(0, 0, 4 * N, z.cols());
+  z1 = z.block(0, 0, 4 * N, z.cols());
   for (size_t i = 0; i < N; i++) {
     z2.block(2 * i, 0, 2, z.cols()) =
         z.block(2 * (3 * N - 1 - i), 0, 2, z.cols());

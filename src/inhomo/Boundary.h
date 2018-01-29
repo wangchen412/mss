@@ -34,12 +34,12 @@ class Boundary {
       case RECTANGULAR:
         assert(positions.size() == 2);
         add_rect(positions[0], positions[1]);
-        r_cc_   = (positions[0] - positions[1]).Length() / 2;
+        r_cc_ = (positions[0] - positions[1]).Length() / 2;
         center_ = CS((positions[0] + positions[1]) / 2);
         break;
       case CIRCULAR:
         assert(positions.size() == 2);
-        r_cc_   = (positions[0] - positions[1]).Length() / 2;
+        r_cc_ = (positions[0] - positions[1]).Length() / 2;
         center_ = CS(positions[0]);
         add_circle(positions[0], r_cc_);
         break;
@@ -235,7 +235,7 @@ void Boundary<T, N>::add_rect(const PosiVect& p1, const PosiVect& p2) {
 
 template <typename T, int N>
 size_t Boundary<T, N>::add_line(const PosiVect& p1, const PosiVect& p2) {
-  size_t n   = (p2 - p1).Length() * density_;
+  size_t n = (p2 - p1).Length() * density_;
   PosiVect d = (p2 - p1) / n;
   double len = d.Length();
   double ang = d.Angle() - pi_2;

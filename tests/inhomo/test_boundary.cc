@@ -86,7 +86,6 @@ TEST_F(BoundaryTest, ColloMat_Circular) {
   EXPECT_TRUE(ApproxVectRv(bv_in, bv_bd, 1e-4, 0, true));
 }
 
-
 class AssemBoundaryTest : public Test {
  protected:
   AssemBoundaryTest() : Test(__FILE__, "boundary") {}
@@ -152,17 +151,28 @@ TEST_F(AssemBoundaryTest, DSolve_InvMatBi) {
     EXPECT_TRUE(ApproxVectRv(rr, cc, 1e-3, 15));
   }
 }
+TEST_F(AssemBoundaryTest, Extrapolation_Single) {
+  FiberConfig<AP> fc(s.fiber_config()[2], &matrix);
+  Fiber<AP> f(&fc, {50e-3, 50e-3});
+  f.SetCoeff(f.CSolve({&inSH1}));
 
-TEST_F(AssemBoundaryTest, Extrapolation) {
-  VectorXcd ref = inSH1.EffectBv(c3.Node());
-  VectorXcd in  = inSH1.EffectBv(c3.Node_in());
+  VectorXcd ref = inSH1.EffectBv(c3.Node()) + f.ScatterBv(c3.Node());
+  VectorXcd in = inSH1.EffectBv(c3.Node_in()) + f.ScatterBv(c3.Node_in());
 
-  MatrixXcd ext_m = c3.Boundary().Extrapolation(c3.Node_in(), 400);
-  VectorXcd com   = ext_m * in;
+  MatrixXcd ext_m = c3.Boundary().Extrapolation(c3.Node_in(), 800);
+  VectorXcd com = ext_m * in;
+
+  ApproxVectRv(ref, com, 1e-2, 0, true);
+}
+TEST_F(AssemBoundaryTest, DISABLED_Extrapolation_Multiple) {
+  VectorXcd ref = inSH1.EffectBv(c1.Node());
+  VectorXcd in = inSH1.EffectBv(c1.Node_in());
+
+  MatrixXcd ext_m = c1.Boundary().Extrapolation(c1.Node_in(), 400);
+  VectorXcd com = ext_m * in;
 
   ApproxVectRv(ref, com, 1e-3, 0, true);
 }
-
 }  // namespace test
 
 }  // namespace mss

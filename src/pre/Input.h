@@ -206,8 +206,8 @@ inline void Solution::link() {
   }
   for (auto& i : matrix_) {
     i.material = FindID(material_, i.materialID);
-    i.kl       = i.frequency / i.material->cl;
-    i.kt       = i.frequency / i.material->ct;
+    i.kl = i.frequency / i.material->cl;
+    i.kt = i.frequency / i.material->ct;
   }
   for (auto& i : fiber_config_) {
     i.material = FindID(material_, i.materialID);
@@ -228,14 +228,14 @@ inline std::ostream& Solution::Print(std::ostream& os) const {
 }
 
 inline void Solution::add_keyword() {
-  keyword_[typeid(Material)]       = "[Materials]";
-  keyword_[typeid(Matrix)]         = "[Matrix]";
-  keyword_[typeid(IncidentPlane)]  = "[Incident Waves]";
-  keyword_[typeid(FiberConfig)]    = "[Fiber Configurations]";
-  keyword_[typeid(Fiber)]          = "[Fibers]";
+  keyword_[typeid(Material)] = "[Materials]";
+  keyword_[typeid(Matrix)] = "[Matrix]";
+  keyword_[typeid(IncidentPlane)] = "[Incident Waves]";
+  keyword_[typeid(FiberConfig)] = "[Fiber Configurations]";
+  keyword_[typeid(Fiber)] = "[Fibers]";
   keyword_[typeid(AssemblyConfig)] = "[Assembly Configurations]";
-  keyword_[typeid(Assembly)]       = "[Assemblies]";
-  keyword_[typeid(Solve)]          = "[Solve]";
+  keyword_[typeid(Assembly)] = "[Assemblies]";
+  keyword_[typeid(Solve)] = "[Solve]";
 }
 
 }  // namespace input

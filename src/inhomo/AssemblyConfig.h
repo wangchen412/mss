@@ -388,7 +388,7 @@ template <typename T>
 const MatrixXcd& AssemblyConfig<T>::InToRstMat() {
   if (MQI_computed_) return MQI_;
 
-  MQI_        = BoundaryModeMat() * TransMat();
+  MQI_ = BoundaryModeMat() * TransMat();
   const int n = T::NumBv;
 
   // Add pseudo-incident itself

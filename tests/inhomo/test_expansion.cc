@@ -82,8 +82,8 @@ class ExpansionTest : public Test {
     for (int n = -N; n <= N; n++) c(n + N) = coeff_DFT(n);
   }
   dcomp coeff_DFT(int N) {
-    double k  = matrix.KT();
-    double r  = fiber.Radius();
+    double k = matrix.KT();
+    double r = fiber.Radius();
     double mu = matrix.Material().Mu();
 
     VectorXcd in(fiber.NumNode());
@@ -127,17 +127,17 @@ TEST_F(ExpansionTest, Expansion) {
   VectorXcd ref_t(fiber.NumNode()), com_t(fiber.NumNode());
 
   for (size_t i = 0; i < fiber.NumNode(); i++) {
-    const CS* p   = fiber.Node(i);
+    const CS* p = fiber.Node(i);
     Vector2cd ref = (in1.Effect(p) + f2.Scatter(p)).Bv();
     Vector2cd com = compute(p).Bv();
-    ref_w(i)      = ref(0);
-    ref_t(i)      = ref(1);
-    com_w(i)      = com(0);
-    com_t(i)      = com(1);
+    ref_w(i) = ref(0);
+    ref_t(i) = ref(1);
+    com_w(i) = com(0);
+    com_t(i) = com(1);
   }
 
-  EXPECT_TRUE(ApproxVectRv(ref_w, com_w, 1e-11, 0, true));
-  EXPECT_TRUE(ApproxVectRv(ref_t, com_t, 1e-11, 0, true));
+  EXPECT_TRUE(ApproxVectRv(ref_w, com_w, 1e-3, 0, true));
+  EXPECT_TRUE(ApproxVectRv(ref_t, com_t, 1e-3, 0, true));
 }
 TEST_F(ExpansionTest, DISABLED_BesselJ) {
   double kr = matrix.KT() * fiber.Radius();

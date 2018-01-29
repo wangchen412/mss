@@ -28,9 +28,9 @@ class FiberTest : public Test {
   FiberTest() : Test(__FILE__, "fiber") {}
 
   const double omega = 1.25664e6;
-  Material rubber    = {1300, 1.41908e9, 0.832e9};
-  Material lead      = {11400, 36.32496e9, 8.43e9};
-  Matrix matrix      = {rubber, omega};
+  Material rubber = {1300, 1.41908e9, 0.832e9};
+  Material lead = {11400, 36.32496e9, 8.43e9};
+  Matrix matrix = {rubber, omega};
 
   input::Solution s2{path("input.txt")};
   Matrix matrix2{s2};
@@ -158,7 +158,7 @@ TEST_F(FiberTest, Modes) {
     // The wave number of the matrix:
     double km = matrix2.KT();
     // State:
-    dcomp w   = Hn(n, km * r) * exp(ii * double(n) * t);
+    dcomp w = Hn(n, km * r) * exp(ii * double(n) * t);
     dcomp tzr = matrix2.Material().Mu() * km * 0.5 *
                 (Hn(n - 1, km * r) - Hn(n + 1, km * r)) *
                 exp(ii * double(n) * t);
@@ -221,7 +221,7 @@ TEST_F(FiberTest, PsiBvMatT) {
   VectorXcd ref(600);
   for (size_t i = 0; i < f2.NumNode(); i++)
     ref.segment<2>(2 * i) =
-      f2.Inner(f2.Node(i)).Bv() - f2.Scatter(f2.Node(i)).Bv();
+        f2.Inner(f2.Node(i)).Bv() - f2.Scatter(f2.Node(i)).Bv();
   VectorXcd com = f2.PsiBvMatT(f2.Node()) * f2.ScatterCoeff();
   EXPECT_TRUE(ApproxVectRv(ref, com, 1e-12));
 }
