@@ -108,11 +108,15 @@ class State {
   double AngleGLB() const;
   State in(const CS* otherBasis) const;
 
+  static const size_t NumBv;  // Number of boundary values.
+  static const size_t NumDv;  // Number of displacement values.
+  static const std::string Type;
+
   // Boundary values. Assumed that the x axis of the basis CS of the state is
   // the normal vector.
   VectorXcd Bv() const;
-  static const size_t NumBv;  // Number of boundary values.
-  static const std::string Type;
+  // Displacement values.
+  VectorXcd Dv() const;
 
  private:
   T1 displacement_;
@@ -126,6 +130,10 @@ typedef State<DispIP, StressIP> StateIP;
 typedef StateAP AP;
 typedef StateIP IP;
 
+template <>
+const size_t StateAP::NumDv = 1;
+template <>
+const size_t StateIP::NumDv = 2;
 template <>
 const size_t StateAP::NumBv = 2;
 template <>
@@ -181,6 +189,16 @@ template <>
 VectorXcd StateAP::Bv() const {
   return Vector2cd(displacement_.x, stress_.x);
 }
+template <>
+VectorXcd StateIP::Dv() const {
+  return Vector2cd(displacement_.x, displacement_.y);
+}
+template <>
+VectorXcd StateAP::Dv() const {
+  return Eigen::Matrix<dcomp, 1, 1>(displacement_.x);
+}
+
+
 
 }  // namespace mss
 

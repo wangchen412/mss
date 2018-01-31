@@ -22,7 +22,7 @@ class ExpansionTest : public Test {
   double r{3e-3};
   double a{8 * r};
   double d = 2 * a / np;
-  int N{50};
+  int N{300};
   CSCPtrs points;
   VectorXcd c{N};
 
@@ -47,28 +47,28 @@ class ExpansionTest : public Test {
   // }
   MatrixXcd colloMat(CSCPtrs objCSs) const {
     size_t P = objCSs.size();
-    MatrixXcd rst(P * 2, N);
+    MatrixXcd rst(P, N);
     for (size_t i = 0; i < P; i++)
       for (int j = 0; j < N; j++)
-        // rst(i, j) =
-        //     _planeWaveAP(objCSs[i], pi2 / N * j, &matrix).Displacement().x;
-        rst.block<2, 1>(i * 2, j) =
-            _planeWaveAP(objCSs[i], pi2 / N * j, &matrix).Bv();
+        rst(i, j) =
+            _planeWaveAP(objCSs[i], pi2 / N * j, &matrix).Displacement().x;
+    // rst.block<2, 1>(i * 2, j) =
+    //     _planeWaveAP(objCSs[i], pi2 / N * j, &matrix).Bv();
 
     return rst;
   }
   void collocation() {
-    // VectorXcd b(fiber.NumNode());
-    // for (size_t i = 0; i < fiber.NumNode(); i++)
-    //   // b(i) = (in1.Effect(fiber.Node(i))).Displacement().x;
-    //   b(i) = (in1.Effect(fiber.Node(i)) + f2.Scatter(fiber.Node(i)))
-    //              .Displacement()
-    //              .x;
-
-    VectorXcd b(fiber.NumBv());
+    VectorXcd b(fiber.NumNode());
     for (size_t i = 0; i < fiber.NumNode(); i++)
-      b.segment<2>(i * 2) =
-          (in1.Effect(fiber.Node(i)) + f2.Scatter(fiber.Node(i))).Bv();
+      // b(i) = (in1.Effect(fiber.Node(i))).Displacement().x;
+      b(i) = (in1.Effect(fiber.Node(i)) + f2.Scatter(fiber.Node(i)))
+                 .Displacement()
+                 .x;
+
+    // VectorXcd b(fiber.NumBv());
+    // for (size_t i = 0; i < fiber.NumNode(); i++)
+    //   b.segment<2>(i * 2) =
+    //       (in1.Effect(fiber.Node(i)) + f2.Scatter(fiber.Node(i))).Bv();
 
     // c = colloMat(fiber.Node()).lu().solve(b);
 
@@ -105,10 +105,16 @@ class ExpansionTest : public Test {
   }
 };
 
-TEST_F(ExpansionTest, DISABLED_Incident) {
+TEST_F(ExpansionTest, Incident) {
   std::ofstream file("incident.txt");
   for (auto p : points) file << in1.Effect(p) + f2.Scatter(p) << std::endl;
   // for (auto p : points) file << in1.Effect(p) << std::endl;
+  file.close();
+}
+TEST_F(ExpansionTest, Residue) {
+  std::ofstream file("residue.txt");
+  for (auto p : points)
+    file << compute(p) - in1.Effect(p) - f2.Scatter(p) << std::endl;
   file.close();
 }
 TEST_F(ExpansionTest, Expansion) {
@@ -117,9 +123,10 @@ TEST_F(ExpansionTest, Expansion) {
   file.close();
   // //std::cout << c << std::endl;
   MatrixXcd m = colloMat(fiber.Node());
+  std::cout << "kr: " << matrix.KT() * r << std::endl;
   std::cout << m.rows() << "  " << m.cols() << std::endl;
   std::cout << m.jacobiSvd().rank() << std::endl;
-  std::cout << m.jacobiSvd().singularValues() << std::endl;
+  // std::cout << m.jacobiSvd().singularValues() << std::endl;
   // MatrixXcd mm = PseudoInverse(m);
   // std::cout << mm * m << std::endl;
 

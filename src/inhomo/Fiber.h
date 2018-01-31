@@ -57,6 +57,7 @@ class Fiber : public Inhomo<T> {
   T Pseudo(const CS* objCS) const;
 
   VectorXcd ScatterBv(const CSCPtrs& objCSs) const;
+  VectorXcd ScatterDv(const CSCPtrs& objCSs) const;
 
   // The nth Modes. The n should be the serial number, instead of the order.
   // The transformation from the serial number to the order should be done in
@@ -192,6 +193,15 @@ VectorXcd Fiber<T>::ScatterBv(const CSCPtrs& objCSs) const {
   rst.setZero();
   for (size_t n = 0; n < NumCoeff(); n++)
     rst += Inhomo<T>::ScatterBv(objCSs, n) * cSc_(n);
+  return rst;
+}
+template <typename T>
+VectorXcd Fiber<T>::ScatterDv(const CSCPtrs& objCSs) const {
+  // TODO Add virtual method.
+  VectorXcd rst(objCSs.size() * T::NumDv);
+  rst.setZero();
+  for (size_t n = 0; n < NumCoeff(); n++)
+    rst += Inhomo<T>::ScatterDv(objCSs, n) * cSc_(n);
   return rst;
 }
 template <typename T>

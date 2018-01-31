@@ -56,6 +56,13 @@ class Incident {
       rst.segment(i * T::NumBv, T::NumBv) = Effect(localCS[i]).Bv();
     return rst;
   }
+  // The displacement vector along the boundary.
+  VectorXcd EffectDv(const CSCPtrs& localCS) const {
+    VectorXcd rst(localCS.size() * T::NumDv);
+    for (size_t i = 0; i < localCS.size(); i++)
+      rst.segment(i * T::NumDv, T::NumDv) = Effect(localCS[i]).Dv();
+    return rst;
+  }
 
   double Amplitude() const { return amp_; }
   double Phase() const { return phase_; }

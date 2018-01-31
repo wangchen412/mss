@@ -63,6 +63,7 @@ class Inhomo {
   // the derived class.
   virtual T ScatterMode(const CS* objCS, size_t sn) const = 0;
   VectorXcd ScatterBv(const CSCPtrs& objCSs, size_t sn) const;
+  VectorXcd ScatterDv(const CSCPtrs& objCSs, size_t sn) const;
 
   virtual size_t NumNode() const = 0;
   virtual size_t NumCoeff() const = 0;
@@ -119,6 +120,13 @@ VectorXcd Inhomo<T>::ScatterBv(const CSCPtrs& objCSs, size_t sn) const {
   VectorXcd rst(objCSs.size() * T::NumBv);
   for (size_t i = 0; i < objCSs.size(); i++)
     rst.segment(i * T::NumBv, T::NumBv) = ScatterMode(objCSs[i], sn).Bv();
+  return rst;
+}
+template <typename T>
+VectorXcd Inhomo<T>::ScatterDv(const CSCPtrs& objCSs, size_t sn) const {
+  VectorXcd rst(objCSs.size() * T::NumDv);
+  for (size_t i = 0; i < objCSs.size(); i++)
+    rst.segment(i * T::NumDv, T::NumDv) = ScatterMode(objCSs[i], sn).Dv();
   return rst;
 }
 template <typename T>
