@@ -39,8 +39,8 @@ class BoundaryTest : public Test {
   Fiber<AP> f4{&fc2, {0, 0}};
 
   Boundary<StateAP, 2> b1{100 * m.KT(), {{0, 12e-3}, {23e-3, 0}}, &m};
-  Boundary<StateAP, 2> b2{
-      100 * m.KT(), {{10e-3, 6e-3}, {0, 0}}, &m, CIRCULAR};
+  // Boundary<StateAP, 2> b2{
+  //     100 * m.KT(), {{10e-3, 6e-3}, {0, 0}}, &m, CIRCULAR};
   double a{6e-3};
   Boundary<AP, 2> b3{10 * m2.KT(), {{-a, a}, {a, -a}}, &m2};
 };
@@ -76,15 +76,15 @@ TEST_F(BoundaryTest, DISABLED_ColloMat_Rectangular) {
   // VectorXcd bv_bd = m * d * in1.EffectBv(b2.Node());
   EXPECT_TRUE(ApproxVectRv(bv_in, bv_bd, 1e-4, 0, true));
 }
-TEST_F(BoundaryTest, ColloMat_Circular) {
-  MatrixXcd c = b2.ColloMatT();
-  MatrixXcd d = PseudoInverse(c);
-  MatrixXcd m = b2.ModeMatT(f1.Node());
+// TEST_F(BoundaryTest, ColloMat_Circular) {
+//   MatrixXcd c = b2.ColloMatT();
+//   MatrixXcd d = PseudoInverse(c);
+//   MatrixXcd m = b2.ModeMatT(f1.Node());
 
-  VectorXcd bv_in = in1.EffectBv(f1.Node());
-  VectorXcd bv_bd = m * d * in1.EffectBv(b2.Node());
-  EXPECT_TRUE(ApproxVectRv(bv_in, bv_bd, 1e-4, 0, true));
-}
+//   VectorXcd bv_in = in1.EffectBv(f1.Node());
+//   VectorXcd bv_bd = m * d * in1.EffectBv(b2.Node());
+//   EXPECT_TRUE(ApproxVectRv(bv_in, bv_bd, 1e-4, 0, true));
+// }
 
 class AssemBoundaryTest : public Test {
  protected:

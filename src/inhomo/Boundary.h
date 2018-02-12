@@ -39,7 +39,7 @@ class Boundary {
         break;
       case CIRCULAR:
         assert(positions.size() == 2);
-        r_cc_ = (positions[0] - positions[1]).Length() / 2;
+        r_cc_ = (positions[0] - positions[1]).Length();
         center_ = CS(positions[0]);
         add_circle(positions[0], r_cc_);
         break;
@@ -72,6 +72,11 @@ class Boundary {
 
   MatrixXcd Extrapolation(const CSCPtrs& inner, size_t P) const;
 
+  // Boundary element method.
+  // Influence matrices.
+  MatrixXcd MatrixH();
+  MatrixXcd MatrixG();
+
   // This four methods are for the tests which are about expanding the wave
   // field inside the boundary with cylindrical wave modes. For the circular
   // boundary, it works well. But for the rectangular one, the collocation
@@ -98,14 +103,47 @@ class Boundary {
   double r_cc_;  // Radius of the circumscribed circle.
   CS center_;    // Center of the circumscribed circle.
 
+  MatrixXcd H_, G_;  // Influence matrices.
+  bool HG_computed_{false};
+
   void add_rect(const PosiVect& p1, const PosiVect& p2);
   size_t add_line(const PosiVect& p1, const PosiVect& p2);
 
   void add_circle(const PosiVect& p, double r);
+  void compute_HG();
 };
 
 // ---------------------------------------------------------------------------
 // Inline functions:
+
+template <typename T, int N>
+MatrixXcd Boundary<T, N>::MatrixH() {
+  if (HG_computed_) return H_;
+  compute_HG();
+  return H_;
+}
+
+template <typename T, int N>
+MatrixXcd Boundary<T, N>::MatrixG() {
+  if (HG_computed_) return G_;
+  compute_HG();
+  return G_;
+}
+
+template <typename T, int N>
+void Boundary<T, N>::compute_HG() {
+  H_.resize(P_, P_);
+  G_.resize(P_, P_);
+
+  for (size_t i = 0; i < P_; i++)
+    for (size_t j = 0; j < P_; j++) {
+      MatrixNcd<T> m = panel_[j]->InfMatT(node_[i]);
+      H_(i, j) = -m(0, 0);
+      G_(i, j) = m(0, 1);
+      if (i == j) H_(i, j) += 0.5;
+    }
+  HG_computed_ = true;
+}
 
 template <typename T, int N>
 MatrixXcd Boundary<T, N>::ModeMatT(const CS* objCS) const {
@@ -220,7 +258,7 @@ MatrixXcd Boundary<T, N>::Extrapolation(const CSCPtrs& inner,
   for (size_t i = 0; i < node_.size(); i++)
     for (size_t j = 0; j < P; j++)
       extra_m.block<T::NumBv, 1>(i * T::NumBv, j) =
-        _planeWaveAP(node_[i], pi2 / P * j, matrix_).Bv();
+          _planeWaveAP(node_[i], pi2 / P * j, matrix_).Bv();
 
   // MatrixXcd extra_m(NumBv(), P);
   // for (size_t i = 0; i < node_.size(); i++)
@@ -273,8 +311,11 @@ template <typename T, int N>
 void Boundary<T, N>::add_circle(const PosiVect& p, double r) {
   size_t n = pi2 * r * density_;
   double t = pi2 / n;
-  for (size_t i = 0; i < n; i++)
+  for (size_t i = 0; i < n; i++) {
     node_.push_back(new CS(p + PosiVect(r, t * i).Cartesian(), t * i));
+    panel_.push_back(
+        new Panel<T, N>(node_.back(), 2 * tan(pi / n) * r, matrix_));
+  }
 }
 
 }  // namespace mss

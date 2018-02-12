@@ -175,6 +175,7 @@ double Lp(std::initializer_list<T> l) {
 
 template <typename T>
 double RelativeDiff(const T& a, const T& b) {
+  if (std::max(std::abs(a), std::abs(b)) == 0) return 0;
   return std::abs(a - b) / std::max(std::abs(a), std::abs(b));
 }
 
