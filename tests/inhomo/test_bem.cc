@@ -64,6 +64,16 @@ TEST_F(BEMTest, InfluenceMatrices) {
   VectorXcd com = b1.MatrixH().lu().solve(b1.MatrixG() * t);
   EXPECT_TRUE(ApproxVectRv(w, com, 2e-3, 0, true));
 }
+TEST_F(BEMTest, DtN) {
+  f1.SetCoeff(f1.DSolve(in.EffectBv(f1.Node())));
+
+  VectorXcd ref = f1.ScatterBv(f1.Node()) + in.EffectBv(f1.Node());
+  VectorXcd w(f1.NumNode());
+  for (size_t i = 0; i < f1.NumNode(); i++) w(i) = ref(i * 2);
+
+  VectorXcd com = b1.DispToEffect() * w;
+  EXPECT_TRUE(ApproxVectRv(ref, com, 2e-2, 0, true));
+}
 
 }  // namespace test
 

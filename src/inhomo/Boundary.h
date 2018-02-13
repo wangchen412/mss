@@ -64,6 +64,7 @@ class Boundary {
   size_t NumNode() const { return P_; }
   size_t NumNode(int i) const { return nn_[i]; }
   size_t NumBv() const { return NumNode() * T::NumBv; }
+  size_t NumDv() const { return NumNode() * T::NumDv; }
   size_t NumCoeff() const { return 2 * N_ + 1; }
   MatrixXcd EffectMatT(const CS* objCS) const;
   MatrixXcd EffectMatT(const CSCPtrs& objCSs) const;
@@ -76,6 +77,14 @@ class Boundary {
   // Influence matrices.
   MatrixXcd MatrixH();
   MatrixXcd MatrixG();
+  MatrixXcd DtN();
+
+  // Transformation from displacement to displacement and traction.
+  MatrixXcd DispToEffect();
+
+  // Representation integral with displacement only.
+  MatrixXcd DispMatT(const CS* objCS) const;
+  MatrixXcd DispMatT(const CSCPtrs& objCSs) const;
 
   // This four methods are for the tests which are about expanding the wave
   // field inside the boundary with cylindrical wave modes. For the circular
@@ -103,8 +112,8 @@ class Boundary {
   double r_cc_;  // Radius of the circumscribed circle.
   CS center_;    // Center of the circumscribed circle.
 
-  MatrixXcd H_, G_;  // Influence matrices.
-  bool HG_computed_{false};
+  MatrixXcd H_, G_, DtN_;  // Influence matrices.
+  bool HG_computed_{false}, DtN_computed_{false};
 
   void add_rect(const PosiVect& p1, const PosiVect& p2);
   size_t add_line(const PosiVect& p1, const PosiVect& p2);
@@ -128,6 +137,26 @@ MatrixXcd Boundary<T, N>::MatrixG() {
   if (HG_computed_) return G_;
   compute_HG();
   return G_;
+}
+
+template <typename T, int N>
+MatrixXcd Boundary<T, N>::DtN() {
+  if (DtN_computed_) return DtN_;
+  DtN_.resize(P_, P_);
+  DtN_ = MatrixG().inverse() * MatrixH();
+  DtN_computed_ = true;
+  return DtN_;
+}
+
+template <typename T, int N>
+MatrixXcd Boundary<T, N>::DispToEffect() {
+  MatrixXcd rst(NumBv(), NumDv());
+  MatrixXcd I = MatrixXcd::Identity(NumDv(), NumDv());
+  for (size_t i = 0; i < NumDv(); i++) {
+    rst.row(i * 2) = I.row(i);
+    rst.row(i * 2 + 1) = DtN().row(i);
+  }
+  return rst;
 }
 
 template <typename T, int N>
@@ -207,6 +236,14 @@ MatrixXcd Boundary<T, N>::EffectMatT(const mss::CS* objCS) const {
   for (size_t i = 0; i < P_; i++)
     rst.block(0, n_ * i, n_, n_) = panel_[i]->InfMatT(objCS);
   return rst;
+}
+
+template <typename T, int N>
+MatrixXcd Boundary<T, N>::DispMatT(const CS* objCS) const {
+  int n = T::NumDv;
+  MatrixXcd rst(n, n * P_);
+  for (size_t i = 0; i < P_; i++)
+    rst.block(0, n * i, n, n) = panel_[i]->InfMatT(objCS);
 }
 
 template <typename T, int N>
