@@ -83,8 +83,8 @@ class Boundary {
   MatrixXcd DispToEffect();
 
   // Representation integral with displacement only.
-  MatrixXcd DispMatT(const CS* objCS) const;
-  MatrixXcd DispMatT(const CSCPtrs& objCSs) const;
+  MatrixXcd DispMatT(const CS* objCS);
+  MatrixXcd DispMatT(const CSCPtrs& objCSs);
 
   // This four methods are for the tests which are about expanding the wave
   // field inside the boundary with cylindrical wave modes. For the circular
@@ -239,11 +239,8 @@ MatrixXcd Boundary<T, N>::EffectMatT(const mss::CS* objCS) const {
 }
 
 template <typename T, int N>
-MatrixXcd Boundary<T, N>::DispMatT(const CS* objCS) const {
-  int n = T::NumDv;
-  MatrixXcd rst(n, n * P_);
-  for (size_t i = 0; i < P_; i++)
-    rst.block(0, n * i, n, n) = panel_[i]->InfMatT(objCS);
+MatrixXcd Boundary<T, N>::DispMatT(const CS* objCS) {
+  return EffectMatT(objCS) * DispToEffect();
 }
 
 template <typename T, int N>
@@ -255,6 +252,15 @@ MatrixXcd Boundary<T, N>::EffectMatT(const CSCPtrs& objCSs) const {
 #endif
   for (size_t i = 0; i < objCSs.size(); i++)
     rst.block(n_ * i, 0, n_, n_ * P_) = EffectMatT(objCSs[i]);
+  return rst;
+}
+
+template <typename T, int N>
+MatrixXcd Boundary<T, N>::DispMatT(const CSCPtrs& objCSs) {
+  MatrixXcd tmp = EffectMatT(objCSs) * DispToEffect();
+  MatrixXcd rst(tmp.rows() / 2, tmp.cols());
+  for (long i = 0; i < rst.rows(); i++)
+    rst.row(i) = tmp.row(i * 2);
   return rst;
 }
 

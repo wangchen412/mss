@@ -34,6 +34,7 @@ class BEMTest : public Test {
   Fiber<AP> f1{&fc1};
 
   Boundary<AP, 4> b1{60 * m.KT(), {{0, 0}, {0, 3e-3}}, &ff, CIRCULAR};
+  Boundary<AP, 10> b2{20 * m.KT(), {{-6e-3, 6e-3}, {6e-3, -6e-3}}, &m};
 };
 
 TEST_F(BEMTest, Constructor) {
@@ -67,12 +68,17 @@ TEST_F(BEMTest, InfluenceMatrices) {
 TEST_F(BEMTest, DtN) {
   f1.SetCoeff(f1.DSolve(in.EffectBv(f1.Node())));
 
-  VectorXcd ref = f1.ScatterBv(f1.Node()) + in.EffectBv(f1.Node());
+  VectorXcd ref1 = f1.ScatterBv(f1.Node()) + in.EffectBv(f1.Node());
   VectorXcd w(f1.NumNode());
-  for (size_t i = 0; i < f1.NumNode(); i++) w(i) = ref(i * 2);
+  for (size_t i = 0; i < f1.NumNode(); i++) w(i) = ref1(i * 2);
 
-  VectorXcd com = b1.DispToEffect() * w;
-  EXPECT_TRUE(ApproxVectRv(ref, com, 2e-2, 0, true));
+  VectorXcd com1 = b1.DispToEffect() * w;
+  EXPECT_TRUE(ApproxVectRv(ref1, com1, 2e-2, 0, true));
+}
+TEST_F(BEMTest, DispMatT) {
+  VectorXcd ref = in.EffectDv(f1.Node());
+  VectorXcd com = b2.DispMatT(f1.Node()) * in.EffectDv(b2.Node());
+  EXPECT_TRUE(ApproxVectRv(ref, com, 2e-3, 0, true));
 }
 
 }  // namespace test
