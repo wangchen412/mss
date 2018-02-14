@@ -83,7 +83,6 @@ class Boundary {
   MatrixXcd DispToEffect();
 
   // Representation integral with displacement only.
-  MatrixXcd DispMatT(const CS* objCS);
   MatrixXcd DispMatT(const CSCPtrs& objCSs);
 
   // This four methods are for the tests which are about expanding the wave
@@ -239,11 +238,6 @@ MatrixXcd Boundary<T, N>::EffectMatT(const mss::CS* objCS) const {
 }
 
 template <typename T, int N>
-MatrixXcd Boundary<T, N>::DispMatT(const CS* objCS) {
-  return EffectMatT(objCS) * DispToEffect();
-}
-
-template <typename T, int N>
 MatrixXcd Boundary<T, N>::EffectMatT(const CSCPtrs& objCSs) const {
   MatrixXcd rst(n_ * objCSs.size(), n_ * P_);
 
@@ -257,10 +251,13 @@ MatrixXcd Boundary<T, N>::EffectMatT(const CSCPtrs& objCSs) const {
 
 template <typename T, int N>
 MatrixXcd Boundary<T, N>::DispMatT(const CSCPtrs& objCSs) {
+  // The displacement transfering matrix
+  // Not optimal. TODO: derive the displacement representation directly
+  // without computing the traction.
+
   MatrixXcd tmp = EffectMatT(objCSs) * DispToEffect();
   MatrixXcd rst(tmp.rows() / 2, tmp.cols());
-  for (long i = 0; i < rst.rows(); i++)
-    rst.row(i) = tmp.row(i * 2);
+  for (long i = 0; i < rst.rows(); i++) rst.row(i) = tmp.row(i * 2);
   return rst;
 }
 

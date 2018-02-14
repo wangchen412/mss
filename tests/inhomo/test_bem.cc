@@ -76,9 +76,19 @@ TEST_F(BEMTest, DtN) {
   EXPECT_TRUE(ApproxVectRv(ref1, com1, 2e-2, 0, true));
 }
 TEST_F(BEMTest, DispMatT) {
-  VectorXcd ref = in.EffectDv(f1.Node());
-  VectorXcd com = b2.DispMatT(f1.Node()) * in.EffectDv(b2.Node());
-  EXPECT_TRUE(ApproxVectRv(ref, com, 2e-3, 0, true));
+  VectorXcd inv1 = in.EffectDv(f1.Node());
+  VectorXcd inv2 = in.EffectDv(b2.Node());
+  MatrixXcd B = b2.DispMatT(f1.Node());
+  VectorXcd inv1_com = B * inv2;
+  EXPECT_TRUE(ApproxVectRv(inv1, inv1_com, 2e-3, 0, true));
+
+  // Pseudo inverse of the boundary integral, as the BEM-based NAH
+  // No extra regularization except for the filtering of small singular
+  // values.
+
+  // MatrixXcd Bi = PseudoInverse(B);
+  // VectorXcd inv2_com = Bi * inv1_com;
+  // EXPECT_TRUE(ApproxVectRv(inv2, inv2_com, 2e-3, 0, true));
 }
 
 }  // namespace test
