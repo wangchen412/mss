@@ -71,6 +71,7 @@ class Boundary {
   MatrixXcd EffectMatT(const InhomoCPtrs<T>& objs) const;
   VectorXcd EffectBvT(const Inhomo<T>* obj, const VectorXcd& psi) const;
 
+  MatrixXcd Extrapolation(const CSCPtrs& inner) const;
   MatrixXcd Extrapolation(const CSCPtrs& inner, size_t P) const;
 
   // Boundary element method.
@@ -283,28 +284,34 @@ VectorXcd Boundary<T, N>::EffectBvT(const Inhomo<T>* obj,
 }
 
 template <typename T, int N>
+MatrixXcd Boundary<T, N>::Extrapolation(const CSCPtrs& inner) const {
+  return Extrapolation(inner, inner.size() * T::NumDv);
+}
+
+template <typename T, int N>
 MatrixXcd Boundary<T, N>::Extrapolation(const CSCPtrs& inner,
                                         size_t P) const {
   // Fit P plane waves at given points. Then extrapolate the field at
   // boundary pionts.
+  // TODO: in-plane cases.
 
-  MatrixXcd fit_m(inner.size(), P);
+  MatrixXcd fit_m(inner.size() * T::NumDv, P);
   for (size_t i = 0; i < inner.size(); i++)
     for (size_t j = 0; j < P; j++)
       fit_m.block<T::NumDv, 1>(i * T::NumDv, j) =
           _planeWaveAP(inner[i], pi2 / P * j, matrix_).Dv();
 
-  MatrixXcd extra_m(NumBv(), P);
-  for (size_t i = 0; i < node_.size(); i++)
-    for (size_t j = 0; j < P; j++)
-      extra_m.block<T::NumBv, 1>(i * T::NumBv, j) =
-          _planeWaveAP(node_[i], pi2 / P * j, matrix_).Bv();
-
   // MatrixXcd extra_m(NumBv(), P);
   // for (size_t i = 0; i < node_.size(); i++)
   //   for (size_t j = 0; j < P; j++)
-  //     extra_m.block<T::NumDv, 1>(i * T::NumDv, j) =
-  //         _planeWaveAP(node_[i], pi2 / P * j, matrix_).Dv();
+  //     extra_m.block<T::NumBv, 1>(i * T::NumBv, j) =
+  //         _planeWaveAP(node_[i], pi2 / P * j, matrix_).Bv();
+
+  MatrixXcd extra_m(NumDv(), P);
+  for (size_t i = 0; i < node_.size(); i++)
+    for (size_t j = 0; j < P; j++)
+      extra_m.block<T::NumDv, 1>(i * T::NumDv, j) =
+          _planeWaveAP(node_[i], pi2 / P * j, matrix_).Dv();
 
   return extra_m * PseudoInverse(fit_m);
 }
