@@ -41,6 +41,7 @@ class Fiber : public Inhomo<T> {
   }
 
   const MatrixXcd& ColloMat() const override { return config_->ColloMat(); }
+  const MatrixXcd& ColloDMat() const override { return config_->ColloDMat(); }
   const MatrixXcd& TransMat() const override { return config_->TransMat(); }
   size_t NumNode() const override { return config_->NumNode(); }
   size_t NumBv() const override { return config_->NumBv(); }
@@ -206,6 +207,9 @@ VectorXcd Fiber<T>::ScatterDv(const CSCPtrs& objCSs) const {
 }
 template <typename T>
 MatrixXcd Fiber<T>::PsiBvMat(const CSCPtrs& objCSs) const {
+  // Transformation from incident wave expansion coefficients to the boundary
+  // values of incident wave.
+
   int N = T::NumBv;
   MatrixXcd rst(objCSs.size() * N, NumCoeff());
   for (size_t i = 0; i < objCSs.size(); i++)
@@ -215,6 +219,9 @@ MatrixXcd Fiber<T>::PsiBvMat(const CSCPtrs& objCSs) const {
 }
 template <typename T>
 MatrixXcd Fiber<T>::PsiBvMatT(const CSCPtrs& objCSs) const {
+  // Transformation from scattering wave expansion coefficients to the
+  // boundary values of incident wave.
+
   MatrixXcd rst(PsiBvMat(objCSs));
   for (long i = 0; i < rst.cols(); i++)
     rst.col(i) *= config_->T_sc_in_T(od(i));
@@ -246,6 +253,9 @@ T Fiber<T>::innerModeT(const CS* objCS, int n) const {
 }
 template <typename T>
 T Fiber<T>::psiModeT(const CS* objCS, int n) const {
+  // Wave mode of pseudo-incident wave, which is propagating in the matrix,
+  // and can be expanded into Bessel J expansion.
+
   return ModeT<T>(LocalCS(), objCS,
                   EigenFunctor(Jn, n, config_->KT_m(), Radius()),
                   config_->Material_m());

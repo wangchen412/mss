@@ -73,11 +73,13 @@ class AssemblyConfig {
 
   // TODO: in-plane
   MatrixXcd BdIntMatT() const { return boundary_.EffectMatT(inhomoC_); }
+  const MatrixXcd& ExPoDDMat() const { return boundary_.ExPoDDMat(node_in_); };
 
   const MatrixXcd& ColloMat();
   const MatrixXcd& DcMat();
   const MatrixXcd& TransMat();
   const MatrixXcd& BoundaryModeMat();
+
   MatrixXcd GramMat();
 
   VectorXcd IncVec(const InciCPtrs<T>& incident) const;

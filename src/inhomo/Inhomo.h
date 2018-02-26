@@ -44,6 +44,11 @@ class Inhomo {
     exit(EXIT_FAILURE);
   }
 
+  virtual const MatrixXcd& ColloDMat() const {
+    print_error_msg({"The Collocation matrix is not available."});
+    exit(EXIT_FAILURE);
+  }
+
   // Check if the position of the objective CS is inside the inhomogeneity.
   virtual const Inhomo* Contains(const CS* objCS) const = 0;
 

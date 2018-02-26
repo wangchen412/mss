@@ -151,7 +151,7 @@ TEST_F(AssemBoundaryTest, DSolve_InvMatBi) {
     EXPECT_TRUE(ApproxVectRv(rr, cc, 1e-3, 15));
   }
 }
-TEST_F(AssemBoundaryTest, Extrapolation_Single) {
+TEST_F(AssemBoundaryTest, ExPoDDMat_Single) {
   FiberConfig<AP> fc(s.fiber_config()[2], &matrix);
   Fiber<AP> f(&fc, {80e-3, 10e-3});  // This fiber is acting as a scatterer.
   f.SetCoeff(f.CSolve({&inSH1}));
@@ -159,12 +159,12 @@ TEST_F(AssemBoundaryTest, Extrapolation_Single) {
   VectorXcd ref = inSH1.EffectDv(c3.Node()) + f.ScatterDv(c3.Node());
   VectorXcd in = inSH1.EffectDv(c3.Node_in()) + f.ScatterDv(c3.Node_in());
 
-  MatrixXcd ext_m = c3.Boundary().Extrapolation(c3.Node_in());
+  MatrixXcd ext_m = c3.Boundary().ExPoDDMat(c3.Node_in());
   VectorXcd com = ext_m * in;
 
   EXPECT_TRUE(ApproxVectRv(ref, com, 6e-3));
 }
-TEST_F(AssemBoundaryTest, Extrapolation_Multiple) {
+TEST_F(AssemBoundaryTest, ExPoDDMat_Multiple) {
   FiberConfig<AP> fc(s.fiber_config()[2], &matrix);
   Fiber<AP> f(&fc, {140e-3, 50e-3});  // This fiber is acting as a scatterer.
   f.SetCoeff(f.CSolve({&inSH1}));
@@ -173,7 +173,7 @@ TEST_F(AssemBoundaryTest, Extrapolation_Multiple) {
   VectorXcd ref = inSH1.EffectDv(c4.Node()) + f.ScatterDv(c4.Node());
   VectorXcd in = inSH1.EffectDv(c4.Node_in()) + f.ScatterDv(c4.Node_in());
 
-  MatrixXcd ext_m = c4.Boundary().Extrapolation(c4.Node_in());
+  MatrixXcd ext_m = c4.Boundary().ExPoDDMat(c4.Node_in());
   VectorXcd com = ext_m * in;
 
   EXPECT_TRUE(ApproxVectRv(ref, com, 6e-3));

@@ -50,11 +50,13 @@ class FiberConfig {
 
   virtual ~FiberConfig() { del_node(); }
 
-  const MatrixXcd& ColloMat();
+  const MatrixXcd& ColloMat();   // Collocation of boundary values.
+  const MatrixXcd& ColloDMat();  // Collocation of boundary displacement.
   const MatrixXcd& TransMat();
   const MatrixXcd& RefraMat();
   size_t NumNode() const { return P_; }
   size_t NumBv() const { return P_ * T::NumBv; }
+  size_t NumDv() const { return P_ * T::NumDv; }
   size_t NumCoeff() const { return NumCoeff_; }
   int TopOrder() const { return N_; }
 
@@ -97,7 +99,8 @@ class FiberConfig {
   MatrixXcd Q_;                    // Transform matrix.
   MatrixXcd R_;                    // Inner transform matrix.
   MatrixXcd CQ_;                   // Collocation matrix.
-  bool qr_computed_{false}, cq_computed_{false};
+  MatrixXcd CQD_;  // Collocation matrix of boundary displacement.
+  bool qr_computed_{false}, cq_computed_{false}, cqd_computed_{false};
 
   void add_node();
   void del_node();
@@ -130,13 +133,37 @@ const MatrixXcd& FiberConfig<T>::ColloMat() {
     for (size_t i = 0; i < P_; i++) {
       StateAP s = ModeT<AP>(nullptr, node_[i], J, Material()) * tn -
                   ModeT<AP>(nullptr, node_[i], H, Material_m());
-      CQ_.block<2, 1>(2 * i, n + N_) = s.Bv();
+      CQ_.block<T::NumBv, 1>(T::NumBv * i, n + N_) = s.Bv();
     }
   }
 
   cq_computed_ = true;
 
   return CQ_;
+}
+template <typename T>
+const MatrixXcd& FiberConfig<T>::ColloDMat() {
+  if (cqd_computed_) return CQD_;
+
+  CQD_.resize(NumDv(), NumCoeff());
+
+#ifdef NDEBUG
+#pragma omp parallel for
+#endif
+  for (int n = -N_; n <= N_; n++) {
+    // For antiplane only. TODO: in-plane.
+    dcomp tn = TT(n);
+    EigenFunctor J(Jn, n, KT(), r_), H(Hn, n, KT_m(), r_);
+    for (size_t i = 0; i < P_; i++) {
+      StateAP s = ModeT<AP>(nullptr, node_[i], J, Material()) * tn -
+                  ModeT<AP>(nullptr, node_[i], H, Material_m());
+      CQD_.block<T::NumDv, 1>(T::NumDv * i, n + N_) = s.Dv();
+    }
+  }
+
+  cqd_computed_ = true;
+
+  return CQD_;
 }
 template <typename T>
 const MatrixXcd& FiberConfig<T>::TransMat() {
@@ -251,6 +278,9 @@ dcomp FiberConfig<IP>::TT(int) const {
 }
 template <>
 dcomp FiberConfig<AP>::T_sc_in_T(int n) const {
+  // Transformation from the nth scattering wave expansion coefficient to the
+  // nth incident wave expansion coefficient.
+
   BesselFunctor Jf(Jn, n, KT(), r_), Jm(Jn, n, KT_m(), r_);
   BesselFunctor Hm(Hn, n, KT_m(), r_);
   dcomp mJf = Jf.dr(r_) * Material().Mu();
