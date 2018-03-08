@@ -34,6 +34,7 @@ class Boundary {
       case RECTANGULAR:
         assert(positions.size() == 2);
         add_rect(positions[0], positions[1]);
+        edge_rearrange();
         r_cc_ = (positions[0] - positions[1]).Length() / 2;
         center_ = CS((positions[0] + positions[1]) / 2);
         break;
@@ -59,10 +60,12 @@ class Boundary {
   const CSCPtrs& Node() const { return node_; }
   const CS* Node(size_t i) const { return node_[i]; }
   const CSCPtrs& DNode() const { return node_d_; }
+  const std::vector<CSCPtrs>& Edge() const { return edge_; }
+  const CSCPtrs& Edge(size_t i) const { return edge_[i]; }
   size_t NumDNode() const { return node_d_.size(); }
   size_t NumDBv() const { return NumDNode() * T::NumBv; }
   size_t NumNode() const { return P_; }
-  size_t NumNode(int i) const { return nn_[i]; }
+  size_t NumNode(size_t i) const { return Edge(i).size(); }
   size_t NumBv() const { return NumNode() * T::NumBv; }
   size_t NumDv() const { return NumNode() * T::NumDv; }
   size_t NumCoeff() const { return 2 * N_ + 1; }
@@ -88,7 +91,7 @@ class Boundary {
   // Representation integral with displacement only.
   MatrixXcd DispMatT(const CSCPtrs& objCSs);
 
-  // This four methods are for the tests which are about expanding the wave
+  // These four methods are for the tests which are about expanding the wave
   // field inside the boundary with cylindrical wave modes. For the circular
   // boundary, it works well. But for the rectangular one, the collocation
   // matrix has large condition number, because the cylindrical modes are not
@@ -103,9 +106,9 @@ class Boundary {
   CSCPtrs node_;
   CSCPtrs node_c_;  // Complementary nodes.
   CSCPtrs node_d_;  // Doubled nodes.
+  std::vector<CSCPtrs> edge_;
   PanelCPtrs<T, N> panel_;
   size_t P_;
-  std::vector<size_t> nn_;  // The number of nodes along each edge.
   const Matrix* matrix_;
   const int n_{T::NumBv};
   MatrixXcd c_;
@@ -116,12 +119,13 @@ class Boundary {
 
   MatrixXcd H_, G_, DtN_;  // Influence matrices.
   bool HG_computed_{false}, DtN_computed_{false};
+  bool edge_rearranged_{false};  // Wether the edges are rearranged for PBC.
 
   void add_rect(const PosiVect& p1, const PosiVect& p2);
-  size_t add_line(const PosiVect& p1, const PosiVect& p2);
-
+  void add_line(const PosiVect& p1, const PosiVect& p2);
   void add_circle(const PosiVect& p, double r);
   void compute_HG();
+  void edge_rearrange();
 };
 
 // ---------------------------------------------------------------------------
@@ -339,18 +343,19 @@ MatrixXcd Boundary<T, N>::ExPoDBMat(const CSCPtrs& inner, size_t P) const {
 
 template <typename T, int N>
 void Boundary<T, N>::add_rect(const PosiVect& p1, const PosiVect& p2) {
-  nn_.push_back(add_line({p1.x, p1.y}, {p1.x, p2.y}));
-  nn_.push_back(add_line({p1.x, p2.y}, {p2.x, p2.y}));
-  nn_.push_back(add_line({p2.x, p2.y}, {p2.x, p1.y}));
-  nn_.push_back(add_line({p2.x, p1.y}, {p1.x, p1.y}));
+  add_line({p1.x, p1.y}, {p1.x, p2.y});
+  add_line({p1.x, p2.y}, {p2.x, p2.y});
+  add_line({p2.x, p2.y}, {p2.x, p1.y});
+  add_line({p2.x, p1.y}, {p1.x, p1.y});
 }
 
 template <typename T, int N>
-size_t Boundary<T, N>::add_line(const PosiVect& p1, const PosiVect& p2) {
+void Boundary<T, N>::add_line(const PosiVect& p1, const PosiVect& p2) {
   size_t n = (p2 - p1).Length() * density_;
   PosiVect d = (p2 - p1) / n;
   double len = d.Length();
   double ang = d.Angle() - pi_2;
+  edge_.push_back(CSCPtrs());
 
   // Quadral nodes.
   for (size_t i = 0; i < n; i++) {
@@ -360,6 +365,7 @@ size_t Boundary<T, N>::add_line(const PosiVect& p1, const PosiVect& p2) {
     }
 
     node_.push_back(new CS(p1 + d * (i + 0.5), ang));
+    edge_.back().push_back(node_.back());
     node_d_.push_back(node_.back());
 
     if (i < n - 1) {
@@ -372,7 +378,6 @@ size_t Boundary<T, N>::add_line(const PosiVect& p1, const PosiVect& p2) {
 
     panel_.push_back(new Panel<T, N>(node_.back(), len, matrix_));
   }
-  return n;
 }
 
 template <typename T, int N>
@@ -384,6 +389,16 @@ void Boundary<T, N>::add_circle(const PosiVect& p, double r) {
     panel_.push_back(
         new Panel<T, N>(node_.back(), 2 * tan(pi / n) * r, matrix_));
   }
+}
+
+template <typename T, int N>
+void Boundary<T, N>::edge_rearrange() {
+  if (edge_.size() == 4) {
+    std::reverse(edge_[2].begin(), edge_[2].end());
+    std::reverse(edge_[3].begin(), edge_[3].end());
+  }
+
+  edge_rearranged_ = true;
 }
 
 }  // namespace mss

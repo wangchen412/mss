@@ -38,15 +38,46 @@ class BoundaryTest : public Test {
   Fiber<AP> f3{&fc1, {50e-3, 50e-3}};
   Fiber<AP> f4{&fc2, {0, 0}};
 
-  Boundary<StateAP, 2> b1{100 * m.KT(), {{0, 12e-3}, {23e-3, 0}}, &m};
+  Boundary<AP> b1{100 * m.KT(), {{0, 12e-3}, {23e-3, 0}}, &m};
   // Boundary<StateAP, 2> b2{
   //     100 * m.KT(), {{10e-3, 6e-3}, {0, 0}}, &m, CIRCULAR};
   double a{6e-3};
-  Boundary<AP, 2> b3{10 * m2.KT(), {{-a, a}, {a, -a}}, &m2};
+  Boundary<AP> b3{10 * m2.KT(), {{-a, a}, {a, -a}}, &m2};
 };
 
 TEST_F(BoundaryTest, Constructor) {
   EXPECT_EQ(b1.Node().size(), 10992);
+  EXPECT_EQ(b3.Edge().size(), 4);
+  EXPECT_EQ(b3.Edge(0).size(), b3.NumNode() / 4);
+  EXPECT_EQ(b3.Edge(1).size(), b3.NumNode() / 4);
+  EXPECT_EQ(b3.Edge(2).size(), b3.NumNode() / 4);
+  EXPECT_EQ(b3.Edge(3).size(), b3.NumNode() / 4);
+
+  for (size_t i = 0; i < b1.Edge(0).size(); i++) {
+    EXPECT_TRUE(ApproxRv(b1.Edge(0)[i]->Position().x + 23e-3,
+                         b1.Edge(2)[i]->Position().x, 1e-12));
+    EXPECT_TRUE(ApproxRv(b1.Edge(0)[i]->Position().y,
+                         b1.Edge(2)[i]->Position().y, 1e-12));
+  }
+  for (size_t i = 0; i < b1.Edge(1).size(); i++) {
+    EXPECT_TRUE(ApproxRv(b1.Edge(1)[i]->Position().x,
+                         b1.Edge(3)[i]->Position().x, 1e-12));
+    EXPECT_TRUE(ApproxRv(b1.Edge(1)[i]->Position().y + 12e-3,
+                         b1.Edge(3)[i]->Position().y, 1e-12));
+  }
+
+  for (size_t i = 0; i < b3.Edge(0).size(); i++) {
+    EXPECT_TRUE(ApproxRv(b3.Edge(0)[i]->Position().x + 2 * a,
+                         b3.Edge(2)[i]->Position().x, 1e-12));
+    EXPECT_TRUE(ApproxRv(b3.Edge(0)[i]->Position().y,
+                         b3.Edge(2)[i]->Position().y, 1e-12));
+  }
+  for (size_t i = 0; i < b3.Edge(1).size(); i++) {
+    EXPECT_TRUE(ApproxRv(b3.Edge(1)[i]->Position().x,
+                         b3.Edge(3)[i]->Position().x, 1e-12));
+    EXPECT_TRUE(ApproxRv(b3.Edge(1)[i]->Position().y + 2 * a,
+                         b3.Edge(3)[i]->Position().y, 1e-12));
+  }
 }
 TEST_F(BoundaryTest, EffectMat) {
   // The points with normal vector perpendicular to the incident plane wave

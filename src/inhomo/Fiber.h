@@ -69,8 +69,11 @@ class Fiber : public Inhomo<T> {
   T PsiMode(const CS* objCS, size_t sn) const;
 
   MatrixXcd ScatterBvMat(const CSCPtrs& objCSs) const;
+  MatrixXcd ScatterDvMat(const CSCPtrs& objCSs) const;
   MatrixXcd PsiBvMat(const CSCPtrs& objCSs) const;
   MatrixXcd PsiBvMatT(const CSCPtrs& objCSs) const;
+  MatrixXcd PsiDvMat(const CSCPtrs& objCSs) const;
+  MatrixXcd PsiDvMatT(const CSCPtrs& objCSs) const;
 
   VectorXcd Solve(const VectorXcd& incBv, SolveMethod method) const;
   VectorXcd CSolve(const VectorXcd& incBv) const;
@@ -188,6 +191,16 @@ MatrixXcd Fiber<T>::ScatterBvMat(const CSCPtrs& objCSs) const {
   return rst;
 }
 template <typename T>
+MatrixXcd Fiber<T>::ScatterDvMat(const CSCPtrs& objCSs) const {
+  // TODO Move to base class
+  int N = T::NumDv;
+  MatrixXcd rst(objCSs.size() * N, NumCoeff());
+  for (size_t i = 0; i < objCSs.size(); i++)
+    for (size_t n = 0; n < NumCoeff(); n++)
+      rst.block(i * N, n, N, 1) = ScatterMode(objCSs[i], n).Dv();
+  return rst;
+}
+template <typename T>
 VectorXcd Fiber<T>::ScatterBv(const CSCPtrs& objCSs) const {
   // TODO Add virtual method.
   VectorXcd rst(objCSs.size() * T::NumBv);
@@ -223,6 +236,28 @@ MatrixXcd Fiber<T>::PsiBvMatT(const CSCPtrs& objCSs) const {
   // boundary values of incident wave.
 
   MatrixXcd rst(PsiBvMat(objCSs));
+  for (long i = 0; i < rst.cols(); i++)
+    rst.col(i) *= config_->T_sc_in_T(od(i));
+  return rst;
+}
+template <typename T>
+MatrixXcd Fiber<T>::PsiDvMat(const CSCPtrs& objCSs) const {
+  // Transformation from incident wave expansion coefficients to the boundary
+  // displacement values of incident wave.
+
+  int N = T::NumDv;
+  MatrixXcd rst(objCSs.size() * N, NumCoeff());
+  for (size_t i = 0; i < objCSs.size(); i++)
+    for (size_t n = 0; n < NumCoeff(); n++)
+      rst.block(i * N, n, N, 1) = PsiMode(objCSs[i], n).Dv();
+  return rst;
+}
+template <typename T>
+MatrixXcd Fiber<T>::PsiDvMatT(const CSCPtrs& objCSs) const {
+  // Transformation from scattering wave expansion coefficients to the
+  // boundary dispalcement values of incident wave.
+
+  MatrixXcd rst(PsiDvMat(objCSs));
   for (long i = 0; i < rst.cols(); i++)
     rst.col(i) *= config_->T_sc_in_T(od(i));
   return rst;

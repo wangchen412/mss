@@ -51,8 +51,8 @@ TEST_F(PeriodicTest, DtN_single_Cylindrical) {
     z2.row(i) = z.row(i * 2 + 1);
   }
 
-  MatrixXcd zz(z1.transpose() * z1);
-  MatrixXcd dtn(z2 * zz.inverse() * z1.transpose());
+  MatrixXcd zz(z1.adjoint() * z1);
+  MatrixXcd dtn(z2 * zz.inverse() * z1.adjoint());
 
   f.SetCoeff(f.CSolve({&inc}));
   VectorXcd u(b1.NumNode()), t(b1.NumNode());
@@ -62,7 +62,7 @@ TEST_F(PeriodicTest, DtN_single_Cylindrical) {
     t(i) = tmp(1);
   }
   VectorXcd tt = dtn * u;
-  EXPECT_TRUE(ApproxVectRv(t, tt, 1e-3, 0, true));
+  EXPECT_TRUE(ApproxVectRv(t, tt, 1e-4, 0, true));
 }
 
 // Using plane wave expansion.

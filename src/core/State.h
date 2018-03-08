@@ -198,8 +198,6 @@ VectorXcd StateAP::Dv() const {
   return Eigen::Matrix<dcomp, 1, 1>(displacement_.x);
 }
 
-
-
 }  // namespace mss
 
 #endif
