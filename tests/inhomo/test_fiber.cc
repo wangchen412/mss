@@ -112,6 +112,7 @@ TEST_F(FiberTest, DSolve) {
   VectorXcd ref(61);
   ReadCoeff("Coeff_SH1.dat", ref);
   EXPECT_TRUE(ApproxVectRv(ref, f3.Solve({&inSH}, DFT), 1e-3, 10));
+  EXPECT_TRUE(ApproxVectRv(ref, c3.Solve({&inSH}, DFT), 1e-3, 10));
 }
 TEST_F(FiberTest, TT) {
   // Compare with the results computed by previous version of mss.
@@ -205,24 +206,24 @@ TEST_F(FiberTest, ScatterBvMat) {
   VectorXcd com = f3.ScatterBvMat(*sp_[0]) * f3.DSolve({&inSH});
   EXPECT_TRUE(ApproxVectRv(ref, com, 1e-3));
 }
-TEST_F(FiberTest, PsiBvMat) {
+TEST_F(FiberTest, PsInBvMat) {
   f2.SetCoeff(f2.CSolve({&inSH}));
 
   VectorXcd ref(600);
   for (size_t i = 0; i < f2.NumNode(); i++)
     ref.segment<2>(2 * i) =
         f2.Inner(f2.Node(i)).Bv() - f2.Scatter(f2.Node(i)).Bv();
-  VectorXcd com = f2.PsiBvMat(f2.Node()) * f2.PsiCoeff();
+  VectorXcd com = f2.PsInBvMat(f2.Node()) * f2.PsInCoeff();
   EXPECT_TRUE(ApproxVectRv(ref, com, 1e-12));
 }
-TEST_F(FiberTest, PsiBvMatT) {
+TEST_F(FiberTest, PsInBvMatT) {
   f2.SetCoeff(f2.CSolve({&inSH}));
 
   VectorXcd ref(600);
   for (size_t i = 0; i < f2.NumNode(); i++)
     ref.segment<2>(2 * i) =
         f2.Inner(f2.Node(i)).Bv() - f2.Scatter(f2.Node(i)).Bv();
-  VectorXcd com = f2.PsiBvMatT(f2.Node()) * f2.ScatterCoeff();
+  VectorXcd com = f2.PsInBvMatT(f2.Node()) * f2.ScatterCoeff();
   EXPECT_TRUE(ApproxVectRv(ref, com, 1e-12));
 }
 

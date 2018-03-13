@@ -69,6 +69,23 @@ class Inhomo {
   virtual T ScatterMode(const CS* objCS, size_t sn) const = 0;
   VectorXcd ScatterBv(const CSCPtrs& objCSs, size_t sn) const;
   VectorXcd ScatterDv(const CSCPtrs& objCSs, size_t sn) const;
+  MatrixXcd ScatterBv(const CS* objCS) const;
+  MatrixXcd ScatterDv(const CS* objCS) const;
+
+  virtual T PsInMode(const CS* objCS, size_t sn) const = 0;
+  VectorXcd PsInBv(const CSCPtrs& objCSs, size_t sn) const;
+  VectorXcd PsInDv(const CSCPtrs& objCSs, size_t sn) const;
+  MatrixXcd PsInBv(const CS* objCS) const;
+  MatrixXcd PsInDv(const CS* objCS) const;
+  virtual MatrixXcd PsInBvT(const CS* objCS) const = 0;
+  virtual MatrixXcd PsInDvT(const CS* objCS) const = 0;
+
+  MatrixXcd ScatterBvMat(const CSCPtrs& objCSs) const;
+  MatrixXcd ScatterDvMat(const CSCPtrs& objCSs) const;
+  MatrixXcd PsInBvMat(const CSCPtrs& objCSs) const;
+  MatrixXcd PsInDvMat(const CSCPtrs& objCSs) const;
+  virtual MatrixXcd PsInBvMatT(const CSCPtrs& objCSs) const = 0;
+  virtual MatrixXcd PsInDvMatT(const CSCPtrs& objCSs) const = 0;
 
   virtual size_t NumNode() const = 0;
   virtual size_t NumCoeff() const = 0;
@@ -135,6 +152,48 @@ VectorXcd Inhomo<T>::ScatterDv(const CSCPtrs& objCSs, size_t sn) const {
   return rst;
 }
 template <typename T>
+MatrixXcd Inhomo<T>::ScatterBv(const CS* objCS) const {
+  MatrixXcd rst(T::NumBv, NumCoeff());
+  for (size_t i = 0; i < NumCoeff(); i++)
+    rst.block<T::NumBv, 1>(0, i) = ScatterMode(objCS, i).Bv();
+  return rst;
+}
+template <typename T>
+MatrixXcd Inhomo<T>::ScatterDv(const CS* objCS) const {
+  MatrixXcd rst(T::NumDv, NumCoeff());
+  for (size_t i = 0; i < NumCoeff(); i++)
+    rst.block<T::NumDv, 1>(0, i) = ScatterMode(objCS, i).Dv();
+  return rst;
+}
+template <typename T>
+VectorXcd Inhomo<T>::PsInBv(const CSCPtrs& objCSs, size_t sn) const {
+  VectorXcd rst(objCSs.size() * T::NumBv);
+  for (size_t i = 0; i < objCSs.size(); i++)
+    rst.segment(i * T::NumBv, T::NumBv) = PsInMode(objCSs[i], sn).Bv();
+  return rst;
+}
+template <typename T>
+VectorXcd Inhomo<T>::PsInDv(const CSCPtrs& objCSs, size_t sn) const {
+  VectorXcd rst(objCSs.size() * T::NumDv);
+  for (size_t i = 0; i < objCSs.size(); i++)
+    rst.segment(i * T::NumDv, T::NumDv) = PsInMode(objCSs[i], sn).Dv();
+  return rst;
+}
+template <typename T>
+MatrixXcd Inhomo<T>::PsInBv(const CS* objCS) const {
+  MatrixXcd rst(T::NumBv, NumCoeff());
+  for (size_t i = 0; i < NumCoeff(); i++)
+    rst.block<T::NumBv, 1>(0, i) = PsInMode(objCS, i).Bv();
+  return rst;
+}
+template <typename T>
+MatrixXcd Inhomo<T>::PsInDv(const CS* objCS) const {
+  MatrixXcd rst(T::NumDv, NumCoeff());
+  for (size_t i = 0; i < NumCoeff(); i++)
+    rst.block<T::NumDv, 1>(0, i) = PsInMode(objCS, i).Dv();
+  return rst;
+}
+template <typename T>
 MatrixXcd Inhomo<T>::ModeMat(const Inhomo<T>* obj) const {
   MatrixXcd rst(obj->NumBv(), NumCoeff());
   for (size_t sn = 0; sn < NumCoeff(); sn++)
@@ -144,6 +203,40 @@ MatrixXcd Inhomo<T>::ModeMat(const Inhomo<T>* obj) const {
 template <typename T>
 void Inhomo<T>::PrintCoeff(std::ostream& os) const {
   os << setMaxPrecision << ScatterCoeff() << std::endl;
+}
+template <typename T>
+MatrixXcd Inhomo<T>::ScatterBvMat(const CSCPtrs& objCSs) const {
+  MatrixXcd rst(objCSs.size() * T::NumBv, NumCoeff());
+  for (size_t i = 0; i < objCSs.size(); i++)
+    rst.block(i * T::NumBv, 0, T::NumBv, NumCoeff()) = ScatterBv(objCSs[i]);
+  return rst;
+}
+template <typename T>
+MatrixXcd Inhomo<T>::ScatterDvMat(const CSCPtrs& objCSs) const {
+  MatrixXcd rst(objCSs.size() * T::NumDv, NumCoeff());
+  for (size_t i = 0; i < objCSs.size(); i++)
+    rst.block(i * T::NumDv, 0, T::NumDv, NumCoeff()) = ScatterDv(objCSs[i]);
+  return rst;
+}
+template <typename T>
+MatrixXcd Inhomo<T>::PsInBvMat(const CSCPtrs& objCSs) const {
+  // Transformation from incident wave expansion coefficients to the boundary
+  // values of incident wave.
+
+  MatrixXcd rst(objCSs.size() * T::NumBv, NumCoeff());
+  for (size_t i = 0; i < objCSs.size(); i++)
+    rst.block(i * T::NumBv, 0, T::NumBv, NumCoeff()) = PsInBv(objCSs[i]);
+  return rst;
+}
+template <typename T>
+MatrixXcd Inhomo<T>::PsInDvMat(const CSCPtrs& objCSs) const {
+  // Transformation from incident wave expansion coefficients to the boundary
+  // displacement values of incident wave.
+
+  MatrixXcd rst(objCSs.size() * T::NumDv, NumCoeff());
+  for (size_t i = 0; i < objCSs.size(); i++)
+    rst.block(i * T::NumDv, 0, T::NumDv, NumCoeff()) = PsInDv(objCSs[i]);
+  return rst;
 }
 
 }  // namespace mss

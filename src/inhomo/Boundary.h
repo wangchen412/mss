@@ -34,7 +34,6 @@ class Boundary {
       case RECTANGULAR:
         assert(positions.size() == 2);
         add_rect(positions[0], positions[1]);
-        edge_rearrange();
         r_cc_ = (positions[0] - positions[1]).Length() / 2;
         center_ = CS((positions[0] + positions[1]) / 2);
         break;
@@ -62,6 +61,9 @@ class Boundary {
   const CSCPtrs& DNode() const { return node_d_; }
   const std::vector<CSCPtrs>& Edge() const { return edge_; }
   const CSCPtrs& Edge(size_t i) const { return edge_[i]; }
+  CSCPtrs Edge_r(size_t i) const {
+    return {edge_[i].rbegin(), edge_[i].rend()};
+  }
   size_t NumDNode() const { return node_d_.size(); }
   size_t NumDBv() const { return NumDNode() * T::NumBv; }
   size_t NumNode() const { return P_; }
@@ -74,10 +76,10 @@ class Boundary {
   MatrixXcd EffectMatT(const InhomoCPtrs<T>& objs) const;
   VectorXcd EffectBvT(const Inhomo<T>* obj, const VectorXcd& psi) const;
 
-  MatrixXcd ExPoDDMat(const CSCPtrs& inner) const;
-  MatrixXcd ExPoDDMat(const CSCPtrs& inner, size_t P) const;
-  MatrixXcd ExPoDBMat(const CSCPtrs& inner) const;
-  MatrixXcd ExPoDBMat(const CSCPtrs& inner, size_t P) const;
+  MatrixXcd PlaneEDMat(const CSCPtrs& inner) const;
+  MatrixXcd PlaneEDMat(const CSCPtrs& inner, size_t P) const;
+  MatrixXcd PlaneEBMat(const CSCPtrs& inner) const;
+  MatrixXcd PlaneEBMat(const CSCPtrs& inner, size_t P) const;
 
   // Boundary element method.
   // Influence matrices.
@@ -119,13 +121,11 @@ class Boundary {
 
   MatrixXcd H_, G_, DtN_;  // Influence matrices.
   bool HG_computed_{false}, DtN_computed_{false};
-  bool edge_rearranged_{false};  // Wether the edges are rearranged for PBC.
 
   void add_rect(const PosiVect& p1, const PosiVect& p2);
   void add_line(const PosiVect& p1, const PosiVect& p2);
   void add_circle(const PosiVect& p, double r);
   void compute_HG();
-  void edge_rearrange();
 };
 
 // ---------------------------------------------------------------------------
@@ -137,14 +137,12 @@ MatrixXcd Boundary<T, N>::MatrixH() {
   compute_HG();
   return H_;
 }
-
 template <typename T, int N>
 MatrixXcd Boundary<T, N>::MatrixG() {
   if (HG_computed_) return G_;
   compute_HG();
   return G_;
 }
-
 template <typename T, int N>
 MatrixXcd Boundary<T, N>::DtN() {
   if (DtN_computed_) return DtN_;
@@ -153,7 +151,6 @@ MatrixXcd Boundary<T, N>::DtN() {
   DtN_computed_ = true;
   return DtN_;
 }
-
 template <typename T, int N>
 MatrixXcd Boundary<T, N>::DispToEffect() {
   MatrixXcd rst(NumBv(), NumDv());
@@ -164,7 +161,6 @@ MatrixXcd Boundary<T, N>::DispToEffect() {
   }
   return rst;
 }
-
 template <typename T, int N>
 void Boundary<T, N>::compute_HG() {
   H_.resize(P_, P_);
@@ -179,7 +175,6 @@ void Boundary<T, N>::compute_HG() {
     }
   HG_computed_ = true;
 }
-
 template <typename T, int N>
 MatrixXcd Boundary<T, N>::ModeMatT(const CS* objCS) const {
   MatrixXcd rst(n_, NumCoeff());
@@ -190,7 +185,6 @@ MatrixXcd Boundary<T, N>::ModeMatT(const CS* objCS) const {
   }
   return rst;
 }
-
 template <typename T, int N>
 MatrixXcd Boundary<T, N>::ModeMatT(const CSCPtrs& objCSs) const {
   MatrixXcd rst(n_ * objCSs.size(), NumCoeff());
@@ -202,7 +196,6 @@ MatrixXcd Boundary<T, N>::ModeMatT(const CSCPtrs& objCSs) const {
     rst.block(n_ * i, 0, n_, NumCoeff()) = ModeMatT(objCSs[i]);
   return rst;
 }
-
 template <typename T, int N>
 MatrixXcd Boundary<T, N>::ModeMatT(const InhomoCPtrs<T>& objs) const {
   size_t m = 0;
@@ -217,7 +210,6 @@ MatrixXcd Boundary<T, N>::ModeMatT(const InhomoCPtrs<T>& objs) const {
 
   return rst;
 }
-
 template <typename T, int N>
 MatrixXcd Boundary<T, N>::ColloMatT() {  // TODO: in-plane
   if (c_computed_) return c_;
@@ -235,7 +227,6 @@ MatrixXcd Boundary<T, N>::ColloMatT() {  // TODO: in-plane
 
   return c_;
 }
-
 template <typename T, int N>
 MatrixXcd Boundary<T, N>::EffectMatT(const mss::CS* objCS) const {
   MatrixXcd rst(n_, n_ * P_);
@@ -243,7 +234,6 @@ MatrixXcd Boundary<T, N>::EffectMatT(const mss::CS* objCS) const {
     rst.block(0, n_ * i, n_, n_) = panel_[i]->InfMatT(objCS);
   return rst;
 }
-
 template <typename T, int N>
 MatrixXcd Boundary<T, N>::EffectMatT(const CSCPtrs& objCSs) const {
   MatrixXcd rst(n_ * objCSs.size(), n_ * P_);
@@ -255,7 +245,6 @@ MatrixXcd Boundary<T, N>::EffectMatT(const CSCPtrs& objCSs) const {
     rst.block(n_ * i, 0, n_, n_ * P_) = EffectMatT(objCSs[i]);
   return rst;
 }
-
 template <typename T, int N>
 MatrixXcd Boundary<T, N>::DispMatT(const CSCPtrs& objCSs) {
   // The displacement transfering matrix
@@ -267,7 +256,6 @@ MatrixXcd Boundary<T, N>::DispMatT(const CSCPtrs& objCSs) {
   for (long i = 0; i < rst.rows(); i++) rst.row(i) = tmp.row(i * 2);
   return rst;
 }
-
 template <typename T, int N>
 MatrixXcd Boundary<T, N>::EffectMatT(const InhomoCPtrs<T>& objs) const {
   size_t m = 0;
@@ -282,20 +270,17 @@ MatrixXcd Boundary<T, N>::EffectMatT(const InhomoCPtrs<T>& objs) const {
 
   return rst;
 }
-
 template <typename T, int N>
 VectorXcd Boundary<T, N>::EffectBvT(const Inhomo<T>* obj,
                                     const VectorXcd& psi) const {
   return EffectMatT(obj->Node()) * psi;
 }
-
 template <typename T, int N>
-MatrixXcd Boundary<T, N>::ExPoDDMat(const CSCPtrs& inner) const {
-  return ExPoDDMat(inner, inner.size() * T::NumDv);
+MatrixXcd Boundary<T, N>::PlaneEDMat(const CSCPtrs& inner) const {
+  return PlaneEDMat(inner, inner.size() * T::NumDv);
 }
-
 template <typename T, int N>
-MatrixXcd Boundary<T, N>::ExPoDDMat(const CSCPtrs& inner, size_t P) const {
+MatrixXcd Boundary<T, N>::PlaneEDMat(const CSCPtrs& inner, size_t P) const {
   // Fit P plane waves at given points. Then extrapolate the displacement
   // field at boundary pionts.
   // TODO: in-plane cases.
@@ -314,14 +299,12 @@ MatrixXcd Boundary<T, N>::ExPoDDMat(const CSCPtrs& inner, size_t P) const {
 
   return extra_m * PseudoInverse(fit_m);
 }
-
 template <typename T, int N>
-MatrixXcd Boundary<T, N>::ExPoDBMat(const CSCPtrs& inner) const {
-  return ExPoDBMat(inner, inner.size() * T::NumDv);
+MatrixXcd Boundary<T, N>::PlaneEBMat(const CSCPtrs& inner) const {
+  return PlaneEBMat(inner, inner.size() * T::NumDv);
 }
-
 template <typename T, int N>
-MatrixXcd Boundary<T, N>::ExPoDBMat(const CSCPtrs& inner, size_t P) const {
+MatrixXcd Boundary<T, N>::PlaneEBMat(const CSCPtrs& inner, size_t P) const {
   // Fit P plane waves at given points. Then extrapolate the field at
   // boundary pionts.
   // TODO: in-plane cases.
@@ -340,7 +323,6 @@ MatrixXcd Boundary<T, N>::ExPoDBMat(const CSCPtrs& inner, size_t P) const {
 
   return extra_m * PseudoInverse(fit_m);
 }
-
 template <typename T, int N>
 void Boundary<T, N>::add_rect(const PosiVect& p1, const PosiVect& p2) {
   add_line({p1.x, p1.y}, {p1.x, p2.y});
@@ -348,7 +330,6 @@ void Boundary<T, N>::add_rect(const PosiVect& p1, const PosiVect& p2) {
   add_line({p2.x, p2.y}, {p2.x, p1.y});
   add_line({p2.x, p1.y}, {p1.x, p1.y});
 }
-
 template <typename T, int N>
 void Boundary<T, N>::add_line(const PosiVect& p1, const PosiVect& p2) {
   size_t n = (p2 - p1).Length() * density_;
@@ -379,7 +360,6 @@ void Boundary<T, N>::add_line(const PosiVect& p1, const PosiVect& p2) {
     panel_.push_back(new Panel<T, N>(node_.back(), len, matrix_));
   }
 }
-
 template <typename T, int N>
 void Boundary<T, N>::add_circle(const PosiVect& p, double r) {
   size_t n = pi2 * r * density_;
@@ -389,16 +369,6 @@ void Boundary<T, N>::add_circle(const PosiVect& p, double r) {
     panel_.push_back(
         new Panel<T, N>(node_.back(), 2 * tan(pi / n) * r, matrix_));
   }
-}
-
-template <typename T, int N>
-void Boundary<T, N>::edge_rearrange() {
-  if (edge_.size() == 4) {
-    std::reverse(edge_[2].begin(), edge_[2].end());
-    std::reverse(edge_[3].begin(), edge_[3].end());
-  }
-
-  edge_rearranged_ = true;
 }
 
 }  // namespace mss

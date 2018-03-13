@@ -181,10 +181,11 @@ double RelativeDiff(const T& a, const T& b) {
 
 // Check if the two values are approximately equal with relative error.
 template <typename T>
-bool ApproxRv(const T& a, const T& b, double re = epsilon, bool v = false) {
+bool ApproxRv(const T& a, const T& b, double re = epsilon, bool v = false,
+              std::ostream& os = std::cout) {
   if (v)
     if (RelativeDiff(a, b) > re)
-      std::cout << a << "\t" << b << "\t" << RelativeDiff(a, b) << std::endl;
+      os << a << "\t" << b << "\t" << RelativeDiff(a, b) << std::endl;
   return RelativeDiff(a, b) < re;
 }
 
@@ -193,12 +194,13 @@ bool ApproxRv(const T& a, const T& b, double re = epsilon, bool v = false) {
 template <typename T>
 bool ApproxVectRv(const Eigen::Matrix<T, Eigen::Dynamic, 1>& a,
                   const Eigen::Matrix<T, Eigen::Dynamic, 1>& b,
-                  double re = epsilon, int k = 0, bool v = false) {
+                  double re = epsilon, int k = 0, bool v = false,
+                  std::ostream& os = std::cout) {
   assert(a.size() == b.size());
 
   bool rst = true;
   for (long i = k; i < a.size() - k; i++)
-    if (!ApproxRv(a(i), b(i), re, v)) {
+    if (!ApproxRv(a(i), b(i), re, v, os)) {
       if (v)
         rst = false;
       else

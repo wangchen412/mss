@@ -65,15 +65,16 @@ class Fiber : public Inhomo<T> {
   // the derived class.
   // n starts at zero.
   T ScatterMode(const CS* objCS, size_t sn) const override;
+  T PsInMode(const CS* objCS, size_t sn) const override;
   T InnerMode(const CS* objCS, size_t sn) const;
-  T PsiMode(const CS* objCS, size_t sn) const;
 
-  MatrixXcd ScatterBvMat(const CSCPtrs& objCSs) const;
-  MatrixXcd ScatterDvMat(const CSCPtrs& objCSs) const;
-  MatrixXcd PsiBvMat(const CSCPtrs& objCSs) const;
-  MatrixXcd PsiBvMatT(const CSCPtrs& objCSs) const;
-  MatrixXcd PsiDvMat(const CSCPtrs& objCSs) const;
-  MatrixXcd PsiDvMatT(const CSCPtrs& objCSs) const;
+  // TODO Add T-matrix in the base class.
+  // TODO Move the methods with "T" to the base class.
+  MatrixXcd PsInBvT(const CS* objCS) const override;
+  MatrixXcd PsInDvT(const CS* objCS) const override;
+
+  MatrixXcd PsInBvMatT(const CSCPtrs& objCSs) const override;
+  MatrixXcd PsInDvMatT(const CSCPtrs& objCSs) const override;
 
   VectorXcd Solve(const VectorXcd& incBv, SolveMethod method) const;
   VectorXcd CSolve(const VectorXcd& incBv) const;
@@ -87,10 +88,16 @@ class Fiber : public Inhomo<T> {
   const CSCPtrs& Node() const override { return node_; }
   const CS* Node(size_t i) const override { return node_[i]; }
   const VectorXcd& ScatterCoeff() const override { return cSc_; }
-  const VectorXcd& PsiCoeff() const { return cPs_; }
+  const VectorXcd& PsInCoeff() const { return cPs_; }
 
   using Inhomo<T>::LocalCS;
   using Inhomo<T>::IncVec;
+  using Inhomo<T>::ScatterBv;
+  using Inhomo<T>::ScatterDv;
+  using Inhomo<T>::PsInBv;
+  using Inhomo<T>::PsInDv;
+  using Inhomo<T>::PsInBvMat;
+  using Inhomo<T>::PsInDvMat;
 
  private:
   FiberConfig<T>* config_;
@@ -134,7 +141,7 @@ T Fiber<T>::Inner(const CS* objCS) const {
 template <typename T>
 T Fiber<T>::Pseudo(const CS* objCS) const {
   T rst(objCS);
-  for (size_t i = 0; i < NumCoeff(); i++) rst += PsiMode(objCS, i) * cPs_(i);
+  for (size_t i = 0; i < NumCoeff(); i++) rst += PsInMode(objCS, i) * cPs_(i);
   return rst;
 }
 template <typename T>
@@ -177,28 +184,13 @@ inline StateAP Fiber<AP>::InnerMode(const CS* objCS, size_t sn) const {
   return innerModeT(objCS, od(sn));
 }
 template <>
-inline StateAP Fiber<AP>::PsiMode(const CS* objCS, size_t sn) const {
+inline StateIP Fiber<IP>::PsInMode(const CS*, size_t) const {
+  // TODO In-plane problem.
+  return StateIP();
+}
+template <>
+inline StateAP Fiber<AP>::PsInMode(const CS* objCS, size_t sn) const {
   return psiModeT(objCS, od(sn));
-}
-template <typename T>
-MatrixXcd Fiber<T>::ScatterBvMat(const CSCPtrs& objCSs) const {
-  // TODO Move to base class
-  int N = T::NumBv;
-  MatrixXcd rst(objCSs.size() * N, NumCoeff());
-  for (size_t i = 0; i < objCSs.size(); i++)
-    for (size_t n = 0; n < NumCoeff(); n++)
-      rst.block(i * N, n, N, 1) = ScatterMode(objCSs[i], n).Bv();
-  return rst;
-}
-template <typename T>
-MatrixXcd Fiber<T>::ScatterDvMat(const CSCPtrs& objCSs) const {
-  // TODO Move to base class
-  int N = T::NumDv;
-  MatrixXcd rst(objCSs.size() * N, NumCoeff());
-  for (size_t i = 0; i < objCSs.size(); i++)
-    for (size_t n = 0; n < NumCoeff(); n++)
-      rst.block(i * N, n, N, 1) = ScatterMode(objCSs[i], n).Dv();
-  return rst;
 }
 template <typename T>
 VectorXcd Fiber<T>::ScatterBv(const CSCPtrs& objCSs) const {
@@ -206,7 +198,7 @@ VectorXcd Fiber<T>::ScatterBv(const CSCPtrs& objCSs) const {
   VectorXcd rst(objCSs.size() * T::NumBv);
   rst.setZero();
   for (size_t n = 0; n < NumCoeff(); n++)
-    rst += Inhomo<T>::ScatterBv(objCSs, n) * cSc_(n);
+    rst += ScatterBv(objCSs, n) * cSc_(n);
   return rst;
 }
 template <typename T>
@@ -215,49 +207,39 @@ VectorXcd Fiber<T>::ScatterDv(const CSCPtrs& objCSs) const {
   VectorXcd rst(objCSs.size() * T::NumDv);
   rst.setZero();
   for (size_t n = 0; n < NumCoeff(); n++)
-    rst += Inhomo<T>::ScatterDv(objCSs, n) * cSc_(n);
+    rst += ScatterDv(objCSs, n) * cSc_(n);
   return rst;
 }
 template <typename T>
-MatrixXcd Fiber<T>::PsiBvMat(const CSCPtrs& objCSs) const {
-  // Transformation from incident wave expansion coefficients to the boundary
-  // values of incident wave.
-
-  int N = T::NumBv;
-  MatrixXcd rst(objCSs.size() * N, NumCoeff());
-  for (size_t i = 0; i < objCSs.size(); i++)
-    for (size_t n = 0; n < NumCoeff(); n++)
-      rst.block(i * N, n, N, 1) = PsiMode(objCSs[i], n).Bv();
-  return rst;
-}
-template <typename T>
-MatrixXcd Fiber<T>::PsiBvMatT(const CSCPtrs& objCSs) const {
-  // Transformation from scattering wave expansion coefficients to the
-  // boundary values of incident wave.
-
-  MatrixXcd rst(PsiBvMat(objCSs));
+MatrixXcd Fiber<T>::PsInBvT(const CS* objCS) const {
+  MatrixXcd rst(PsInBv(objCS));
   for (long i = 0; i < rst.cols(); i++)
     rst.col(i) *= config_->T_sc_in_T(od(i));
   return rst;
 }
 template <typename T>
-MatrixXcd Fiber<T>::PsiDvMat(const CSCPtrs& objCSs) const {
-  // Transformation from incident wave expansion coefficients to the boundary
-  // displacement values of incident wave.
-
-  int N = T::NumDv;
-  MatrixXcd rst(objCSs.size() * N, NumCoeff());
-  for (size_t i = 0; i < objCSs.size(); i++)
-    for (size_t n = 0; n < NumCoeff(); n++)
-      rst.block(i * N, n, N, 1) = PsiMode(objCSs[i], n).Dv();
+MatrixXcd Fiber<T>::PsInDvT(const CS* objCS) const {
+  MatrixXcd rst(PsInDv(objCS));
+  for (long i = 0; i < rst.cols(); i++)
+    rst.col(i) *= config_->T_sc_in_T(od(i));
   return rst;
 }
 template <typename T>
-MatrixXcd Fiber<T>::PsiDvMatT(const CSCPtrs& objCSs) const {
+MatrixXcd Fiber<T>::PsInBvMatT(const CSCPtrs& objCSs) const {
+  // Transformation from scattering wave expansion coefficients to the
+  // boundary values of incident wave.
+
+  MatrixXcd rst(PsInBvMat(objCSs));
+  for (long i = 0; i < rst.cols(); i++)
+    rst.col(i) *= config_->T_sc_in_T(od(i));
+  return rst;
+}
+template <typename T>
+MatrixXcd Fiber<T>::PsInDvMatT(const CSCPtrs& objCSs) const {
   // Transformation from scattering wave expansion coefficients to the
   // boundary dispalcement values of incident wave.
 
-  MatrixXcd rst(PsiDvMat(objCSs));
+  MatrixXcd rst(PsInDvMat(objCSs));
   for (long i = 0; i < rst.cols(); i++)
     rst.col(i) *= config_->T_sc_in_T(od(i));
   return rst;

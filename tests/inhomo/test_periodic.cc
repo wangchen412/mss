@@ -42,7 +42,7 @@ TEST_F(PeriodicTest, DtN_single_Cylindrical) {
   // z is the transformation from scattering wave expansion coefficients to
   // the boundary values of resultant wave field. The incident wave is
   // represented by the Bessel J expansion.
-  MatrixXcd z(f.ScatterBvMat(b1.Node()) + f.PsiBvMatT(b1.Node()));
+  MatrixXcd z(f.ScatterBvMat(b1.Node()) + f.PsInBvMatT(b1.Node()));
   MatrixXcd z1(z.rows() / 2, z.cols());
   MatrixXcd z2(z.rows() / 2, z.cols());
 
@@ -71,14 +71,14 @@ TEST_F(PeriodicTest, ColloDMat) {
   VectorXcd com(f.ColloDMat() * f.CSolve(inc.EffectBv(f.Node())));
   EXPECT_TRUE(ApproxVectRv(ref, com, 1e-10, 0, true));
 }
-TEST_F(PeriodicTest, ExPoDBMat) {
+TEST_F(PeriodicTest, PlaneEBMat) {
   VectorXcd ref(inc.EffectBv(b2.Node()));
-  VectorXcd com(b2.ExPoDBMat(f.Node()) * inc.EffectDv(f.Node()));
+  VectorXcd com(b2.PlaneEBMat(f.Node()) * inc.EffectDv(f.Node()));
   EXPECT_TRUE(ApproxVectRv(ref, com, 1e-4, 0, true));
 }
 TEST_F(PeriodicTest, DtN_single_Plane) {
   MatrixXcd z(f.ScatterBvMat(b2.Node()) +
-              b2.ExPoDBMat(f.Node()) * f.ColloDMat());
+              b2.PlaneEBMat(f.Node()) * f.ColloDMat());
   MatrixXcd z1(z.rows() / 2, z.cols());
   MatrixXcd z2(z.rows() / 2, z.cols());
 
@@ -101,7 +101,7 @@ TEST_F(PeriodicTest, DtN_single_Plane) {
 }
 
 // TEST_F(PeriodicTest, DISABLED_PBC) {
-//   MatrixXcd z(f.ScatterBvMat(b.Node()) + f.PsiBvMatT(b.Node()));
+//   MatrixXcd z(f.ScatterBvMat(b.Node()) + f.PsInBvMatT(b.Node()));
 //   MatrixXcd z1(z.rows() / 2, z.cols());
 //   MatrixXcd z2(z.rows() / 2, z.cols());
 

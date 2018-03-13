@@ -55,28 +55,28 @@ TEST_F(BoundaryTest, Constructor) {
 
   for (size_t i = 0; i < b1.Edge(0).size(); i++) {
     EXPECT_TRUE(ApproxRv(b1.Edge(0)[i]->Position().x + 23e-3,
-                         b1.Edge(2)[i]->Position().x, 1e-12));
+                         b1.Edge_r(2)[i]->Position().x, 1e-12));
     EXPECT_TRUE(ApproxRv(b1.Edge(0)[i]->Position().y,
-                         b1.Edge(2)[i]->Position().y, 1e-12));
+                         b1.Edge_r(2)[i]->Position().y, 1e-12));
   }
   for (size_t i = 0; i < b1.Edge(1).size(); i++) {
     EXPECT_TRUE(ApproxRv(b1.Edge(1)[i]->Position().x,
-                         b1.Edge(3)[i]->Position().x, 1e-12));
+                         b1.Edge_r(3)[i]->Position().x, 1e-12));
     EXPECT_TRUE(ApproxRv(b1.Edge(1)[i]->Position().y + 12e-3,
-                         b1.Edge(3)[i]->Position().y, 1e-12));
+                         b1.Edge_r(3)[i]->Position().y, 1e-12));
   }
 
   for (size_t i = 0; i < b3.Edge(0).size(); i++) {
     EXPECT_TRUE(ApproxRv(b3.Edge(0)[i]->Position().x + 2 * a,
-                         b3.Edge(2)[i]->Position().x, 1e-12));
+                         b3.Edge_r(2)[i]->Position().x, 1e-12));
     EXPECT_TRUE(ApproxRv(b3.Edge(0)[i]->Position().y,
-                         b3.Edge(2)[i]->Position().y, 1e-12));
+                         b3.Edge_r(2)[i]->Position().y, 1e-12));
   }
   for (size_t i = 0; i < b3.Edge(1).size(); i++) {
     EXPECT_TRUE(ApproxRv(b3.Edge(1)[i]->Position().x,
-                         b3.Edge(3)[i]->Position().x, 1e-12));
+                         b3.Edge_r(3)[i]->Position().x, 1e-12));
     EXPECT_TRUE(ApproxRv(b3.Edge(1)[i]->Position().y + 2 * a,
-                         b3.Edge(3)[i]->Position().y, 1e-12));
+                         b3.Edge_r(3)[i]->Position().y, 1e-12));
   }
 }
 TEST_F(BoundaryTest, EffectMat) {
@@ -94,6 +94,7 @@ TEST_F(BoundaryTest, Solve) {
       f1.DSolve({&in1}),
       f2.DSolve(b1.EffectBvT(&f2, in1.EffectBv(b1.Node()))), 1e-4));
 }
+
 TEST_F(BoundaryTest, DISABLED_ColloMat_Rectangular) {
   MatrixXcd c = b1.ColloMatT();
   // MatrixXcd d = PseudoInverse(c);
@@ -182,7 +183,7 @@ TEST_F(AssemBoundaryTest, DSolve_InvMatBi) {
     EXPECT_TRUE(ApproxVectRv(rr, cc, 1e-3, 15));
   }
 }
-TEST_F(AssemBoundaryTest, ExPoDDMat_Single) {
+TEST_F(AssemBoundaryTest, PlaneEDMat_Single) {
   FiberConfig<AP> fc(s.fiber_config()[2], &matrix);
   Fiber<AP> f(&fc, {80e-3, 10e-3});  // This fiber is acting as a scatterer.
   f.SetCoeff(f.CSolve({&inSH1}));
@@ -190,12 +191,12 @@ TEST_F(AssemBoundaryTest, ExPoDDMat_Single) {
   VectorXcd ref = inSH1.EffectDv(c3.Node()) + f.ScatterDv(c3.Node());
   VectorXcd in = inSH1.EffectDv(c3.Node_in()) + f.ScatterDv(c3.Node_in());
 
-  MatrixXcd ext_m = c3.Boundary().ExPoDDMat(c3.Node_in());
+  MatrixXcd ext_m = c3.Boundary().PlaneEDMat(c3.Node_in());
   VectorXcd com = ext_m * in;
 
   EXPECT_TRUE(ApproxVectRv(ref, com, 6e-3));
 }
-TEST_F(AssemBoundaryTest, ExPoDDMat_Multiple) {
+TEST_F(AssemBoundaryTest, PlaneEDMat_Multiple) {
   FiberConfig<AP> fc(s.fiber_config()[2], &matrix);
   Fiber<AP> f(&fc, {140e-3, 50e-3});  // This fiber is acting as a scatterer.
   f.SetCoeff(f.CSolve({&inSH1}));
@@ -204,10 +205,38 @@ TEST_F(AssemBoundaryTest, ExPoDDMat_Multiple) {
   VectorXcd ref = inSH1.EffectDv(c4.Node()) + f.ScatterDv(c4.Node());
   VectorXcd in = inSH1.EffectDv(c4.Node_in()) + f.ScatterDv(c4.Node_in());
 
-  MatrixXcd ext_m = c4.Boundary().ExPoDDMat(c4.Node_in());
+  MatrixXcd ext_m = c4.Boundary().PlaneEDMat(c4.Node_in());
   VectorXcd com = ext_m * in;
 
   EXPECT_TRUE(ApproxVectRv(ref, com, 6e-3));
+}
+TEST_F(AssemBoundaryTest, CylinEDMat) {
+  FiberConfig<AP> fc(s.fiber_config()[2], &matrix);
+  Fiber<AP> f(&fc, {140e-3, 50e-3});  // This fiber is acting as a scatterer.
+  f.SetCoeff(f.CSolve({&inSH1}));
+
+  AssemblyConfig<AP> c4{s.assembly_config()[2], &matrix};
+  c4.DSolve(inSH1.EffectBv(c4.Node_in()) + f.ScatterBv(c4.Node_in()));
+
+  for (size_t i = 0; i < 4; i++) {
+    VectorXcd ref = inSH1.EffectDv(c4.Edge(i)) + f.ScatterDv(c4.Edge(i));
+    VectorXcd com = c4.CylinEDMat(i) * c4.ScatterCoeff();
+    EXPECT_TRUE(ApproxVectRv(ref, com, 5e-4));
+  }
+}
+TEST_F(AssemBoundaryTest, CylinEBMat) {
+  FiberConfig<AP> fc(s.fiber_config()[2], &matrix);
+  Fiber<AP> f(&fc, {140e-3, 50e-3});  // This fiber is acting as a scatterer.
+  f.SetCoeff(f.CSolve({&inSH1}));
+
+  AssemblyConfig<AP> c4{s.assembly_config()[2], &matrix};
+  c4.DSolve(inSH1.EffectBv(c4.Node_in()) + f.ScatterBv(c4.Node_in()));
+
+  for (size_t i = 0; i < 4; i++) {
+    VectorXcd ref = inSH1.EffectBv(c4.Edge(i)) + f.ScatterBv(c4.Edge(i));
+    VectorXcd com = c4.CylinEBMat(i) * c4.ScatterCoeff();
+    EXPECT_TRUE(ApproxVectRv(ref, com, 1e-3));
+  }
 }
 
 }  // namespace test

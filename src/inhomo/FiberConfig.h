@@ -325,15 +325,15 @@ VectorXcd FiberConfig<T>::IncVec(const InciCPtrs<T>& inc) const {
 }
 template <typename T>
 VectorXcd FiberConfig<T>::Solve(const InciCPtrs<T>& inc, SolveMethod method) {
-  return Solve(inciVect(inc), method);
+  return Solve(IncVec(inc), method);
 }
 template <typename T>
 VectorXcd FiberConfig<T>::CSolve(const InciCPtrs<T>& inc) {
-  return CSolve(inciVect(inc));
+  return CSolve(IncVec(inc));
 }
 template <typename T>
 VectorXcd FiberConfig<T>::DSolve(const InciCPtrs<T>& inc) {
-  return DSolve(inciVect(inc));
+  return DSolve(IncVec(inc));
 }
 
 }  // namespace mss

@@ -68,13 +68,14 @@ class AssemblyConfig {
   const std::string& ID() const { return ID_; }
   const CSCPtrs& Node() const { return boundary_.Node(); }
   const CS* Node(size_t i) const { return boundary_.Node(i); }
+  const CSCPtrs& Edge(size_t i) const { return boundary_.Edge(i); }
   const CSCPtrs& Node_in() const { return node_in_; }
   const Boundary<T>& Boundary() const { return boundary_; }
 
   // TODO: in-plane
   MatrixXcd BdIntMatT() const { return boundary_.EffectMatT(inhomoC_); }
-  const MatrixXcd& ExPoDDMat() const {
-    return boundary_.ExPoDDMat(node_in_);
+  const MatrixXcd& PlaneEDMat() const {
+    return boundary_.PlaneEDMat(node_in_);
   };
 
   const MatrixXcd& ColloMat();
@@ -96,6 +97,11 @@ class AssemblyConfig {
   void Solve(const InciCPtrs<T>& incident, SolveMethod method);
   void CSolve(const InciCPtrs<T>& incident);
   void DSolve(const InciCPtrs<T>& incident);
+
+  VectorXcd ScatterCoeff() const;
+
+  MatrixXcd CylinEDMat(size_t n);
+  MatrixXcd CylinEBMat(size_t n);
 
   double BlochK(const IncidentPlane<T>* incident);
   // dcomp CharPoly(const dcomp& psx, const dcomp& psy);
@@ -149,7 +155,9 @@ class AssemblyConfig {
   MatrixXcd comb_trans_mat() const;  // Combined trans-matrix.
   MatrixXcd inter_identity_mat() const;
   void com_z_mat();
+  const Inhomo<T>* nearest(const CS* objCS) const;
 
+  // TODO Make them private after passing tests.
  public:
   const MatrixXcd& z1_mat();
   const MatrixXcd& z2_mat();
@@ -178,16 +186,14 @@ void AssemblyConfig<T>::Solve(const VectorXcd& incBv, SolveMethod method) {
 
 template <typename T>
 void AssemblyConfig<T>::CSolve(const VectorXcd& incBv) {
-  // Jacobi SVD:
-  auto svd = ColloMat().jacobiSvd(Eigen::ComputeThinU | Eigen::ComputeThinV);
-  VectorXcd solution = svd.solve(incBv);
-  dist_solution(solution);
+  dist_solution(ColloMat()
+                    .jacobiSvd(Eigen::ComputeThinU | Eigen::ComputeThinV)
+                    .solve(incBv));
 }
 
 template <typename T>
 void AssemblyConfig<T>::DSolve(const VectorXcd& incBv) {
-  VectorXcd solution = DcMat().lu().solve(Trans_IncVec(incBv));
-  dist_solution(solution);
+  dist_solution(DcMat().lu().solve(Trans_IncVec(incBv)));
 }
 
 template <typename T>
@@ -214,6 +220,61 @@ template <typename T>
 void AssemblyConfig<T>::DSolve(const InciCPtrs<T>& incident) {
   VectorXcd solution = DcMat().lu().solve(Trans_IncVec(incident));
   dist_solution(solution);
+}
+
+template <typename T>
+VectorXcd AssemblyConfig<T>::ScatterCoeff() const {
+  VectorXcd rst(NumCoeff());
+  size_t u = 0;
+  for (size_t i = 0; i < inhomo_.size(); u += inhomo_[i]->NumCoeff(), i++)
+    rst.segment(u, inhomo_[i]->NumCoeff()) = inhomo_[i]->ScatterCoeff();
+  return rst;
+}
+
+template <typename T>
+MatrixXcd AssemblyConfig<T>::CylinEBMat(size_t n) {
+  // Extrapolate the boundary values at nth edge points with cylindrical
+  // waves. The matrix transforms the scattering coefficients to the
+  // displacement of incident wave. The boundary points are rearranged for PBC
+  // computation.
+
+  MatrixXcd E(Edge(n).size() * T::NumBv, NumCoeff());
+  E.setZero();
+
+  for (size_t p = 0; p < Edge(n).size(); p++) {
+    const Inhomo<T>* ni = nearest(Edge(n)[p]);
+    size_t v = 0;
+    for (auto& i : inhomo_) {
+      if (i == ni)
+        E.block(p * T::NumBv, v, T::NumBv, i->NumCoeff()) =
+            i->PsInBvT(Edge(n)[p]);
+      v += i->NumCoeff();
+    }
+  }
+  return E * DcMat();
+}
+
+template <typename T>
+MatrixXcd AssemblyConfig<T>::CylinEDMat(size_t n) {
+  // Extrapolate the boundary values at nth edge points with cylindrical
+  // waves. The matrix transforms the scattering coefficients to the
+  // displacement of incident wave. The boundary points are rearranged for PBC
+  // computation.
+
+  MatrixXcd E(Edge(n).size() * T::NumDv, NumCoeff());
+  E.setZero();
+
+  for (size_t p = 0; p < Edge(n).size(); p++) {
+    const Inhomo<T>* ni = nearest(Edge(n)[p]);
+    size_t v = 0;
+    for (auto& i : inhomo_) {
+      if (i == ni)
+        E.block(p * T::NumDv, v, T::NumDv, i->NumCoeff()) =
+          i->PsInDvT(Edge(n)[p]);
+      v += i->NumCoeff();
+    }
+  }
+  return E * DcMat();
 }
 
 template <typename T>
@@ -595,6 +656,23 @@ void AssemblyConfig<T>::del_inhomo() {
   for (auto& i : inhomo_) delete i;
   for (auto& i : fiber_config_) delete i;
   for (auto& i : assembly_config_) delete i;
+}
+
+template <typename T>
+const Inhomo<T>* AssemblyConfig<T>::nearest(const CS* objCS) const {
+  // Find the nearest inhomogeneity.
+
+  const Inhomo<T>* rst = inhomo_[0];
+  double d = inhomo_[0]->LocalCS()->Distance(objCS);
+  for (auto& i : inhomo_) {
+    double di = i->LocalCS()->Distance(objCS);
+    if (di < d) {
+      d = di;
+      rst = i;
+    }
+  }
+
+  return rst;
 }
 
 }  // namespace mss

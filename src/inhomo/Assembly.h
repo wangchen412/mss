@@ -49,6 +49,13 @@ class Assembly : public Inhomo<T> {
   T Scatter(const CS* objCS) const override;
   T ScatterMode(const CS* objCS, size_t sn) const override;
 
+  // TODO
+  T PsInMode(const CS*, size_t) const override { return T(); }
+  MatrixXcd PsInBvT(const CS*) const override { return MatrixXcd(); }
+  MatrixXcd PsInDvT(const CS*) const override { return MatrixXcd(); }
+  MatrixXcd PsInBvMatT(const CSCPtrs&) const override { return MatrixXcd(); }
+  MatrixXcd PsInDvMatT(const CSCPtrs&) const override { return MatrixXcd(); }
+
   // void SetCoeff(const VectorXcd& solution) override { cSc_ = solution; }
   // const VectorXcd& ScatterCoeff() const override { return cSc_; }
 
