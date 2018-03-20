@@ -26,6 +26,9 @@ namespace test {
 // Pseudo-incident wave field expansion.
 class PeriodicTest : public Test {
  protected:
+  PeriodicTest() : Test(__FILE__, "periodic") {}
+
+  input::Solution input{path("input.txt")};
   Material rubber{1300, 1.41908e9, 0.832e9}, lead{11400, 36.32496e9, 8.43e9};
   Matrix m{rubber, 8e5};
   IncidentPlaneSH inc{m, pi_2 / 2, 1e-5};
@@ -76,7 +79,7 @@ TEST_F(PeriodicTest, PlaneEBMat) {
   VectorXcd com(b2.PlaneEBMat(f.Node()) * inc.EffectDv(f.Node()));
   EXPECT_TRUE(ApproxVectRv(ref, com, 1e-4, 0, true));
 }
-TEST_F(PeriodicTest, DtN_single_Plane) {
+TEST_F(PeriodicTest, DtN_single_plane) {
   MatrixXcd z(f.ScatterBvMat(b2.Node()) +
               b2.PlaneEBMat(f.Node()) * f.ColloDMat());
   MatrixXcd z1(z.rows() / 2, z.cols());
@@ -98,6 +101,41 @@ TEST_F(PeriodicTest, DtN_single_Plane) {
   }
   VectorXcd tt = dtn * u;
   EXPECT_TRUE(ApproxVectRv(t, tt, 1e-4, 0, true));
+}
+TEST_F(PeriodicTest, DtN_single_cylindrical) {
+  Matrix matrix(input);
+  IncidentPlaneSH inc(input);
+  AssemblyConfig<AP> ac(input.config(), &matrix);
+
+  MatrixXcd z(ac.NumBv(), ac.NumCoeff());
+  z << ac.CylinEBMat(0), ac.CylinEBMat(1), ac.CylinEBMat(2), ac.CylinEBMat(3);
+  z += ac.inhomo(0)->ScatterBvMat(ac.Node());
+
+  MatrixXcd z1(z.rows() / 2, z.cols()), z2(z.rows() / 2, z.cols());
+  for (long i = 0; i < z.rows() / 2; i++) {
+    z1.row(i) = z.row(i * 2);
+    z2.row(i) = z.row(i * 2 + 1);
+  }
+
+  MatrixXcd dtn(z2 * PseudoInverse(z1));
+  ac.DSolve({&inc});
+  VectorXcd u(ac.NumNode()), t(ac.NumNode());
+  for (size_t i = 0; i < ac.NumNode(); i++) {
+    Vector2cd tmp = ac.Resultant(ac.Node(i), {&inc}).Bv();
+    u(i) = tmp(0);
+    t(i) = tmp(1);
+  }
+  VectorXcd tt = dtn * u;
+  EXPECT_TRUE(ApproxVectRv(t, tt, 1e-4, 0, true));
+
+  // // Make sure the nodes are corresponding.
+  // size_t nn = ac.NumNode() / 4;
+  // for (size_t i = 0; i < nn; i++) {
+  //   EXPECT_EQ(ac.Node(i), ac.Edge(0)[i]);
+  //   EXPECT_EQ(ac.Node(i + nn), ac.Edge(1)[i]);
+  //   EXPECT_EQ(ac.Node(i + 2 * nn), ac.Edge(2)[i]);
+  //   EXPECT_EQ(ac.Node(i + 3 * nn), ac.Edge(3)[i]);
+  // }
 }
 
 // TEST_F(PeriodicTest, DISABLED_PBC) {
