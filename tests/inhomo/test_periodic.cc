@@ -127,15 +127,21 @@ TEST_F(PeriodicTest, DtN_single_cylindrical) {
   }
   VectorXcd tt = dtn * u;
   EXPECT_TRUE(ApproxVectRv(t, tt, 1e-4, 0, true));
+}
+TEST_F(PeriodicTest, Eigenvalue_single) {
+  Matrix matrix(input);
+  IncidentPlaneSH inc(input);
+  AssemblyConfig<AP> ac(input.config(), &matrix);
 
-  // // Make sure the nodes are corresponding.
-  // size_t nn = ac.NumNode() / 4;
-  // for (size_t i = 0; i < nn; i++) {
-  //   EXPECT_EQ(ac.Node(i), ac.Edge(0)[i]);
-  //   EXPECT_EQ(ac.Node(i + nn), ac.Edge(1)[i]);
-  //   EXPECT_EQ(ac.Node(i + 2 * nn), ac.Edge(2)[i]);
-  //   EXPECT_EQ(ac.Node(i + 3 * nn), ac.Edge(3)[i]);
-  // }
+  MatrixXcd z1(ac.NumBv() / 2, ac.NumCoeff());
+  MatrixXcd z2(ac.NumBv() / 2, ac.NumCoeff());
+
+  z1 << ac.CylinEBMat(0), ac.CylinEBMat(1);
+  
+
+  // MatrixXcd z(ac.NumBv(), ac.NumCoeff());
+  // z << ac.CylinEBMat(0), ac.CylinEBMat(1), ac.CylinEBMat(2),
+  // ac.CylinEBMat(3); z += ac.inhomo(0)->ScatterBvMat(ac.Node());
 }
 
 // TEST_F(PeriodicTest, DISABLED_PBC) {

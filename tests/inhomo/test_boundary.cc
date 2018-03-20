@@ -53,30 +53,32 @@ TEST_F(BoundaryTest, Constructor) {
   EXPECT_EQ(b3.Edge(2).size(), b3.NumNode() / 4);
   EXPECT_EQ(b3.Edge(3).size(), b3.NumNode() / 4);
 
+  b1.ReverseEdge();
   for (size_t i = 0; i < b1.Edge(0).size(); i++) {
     EXPECT_TRUE(ApproxRv(b1.Edge(0)[i]->Position().x + 23e-3,
-                         b1.Edge_r(2)[i]->Position().x, 1e-12));
+                         b1.Edge(2)[i]->Position().x, 1e-12));
     EXPECT_TRUE(ApproxRv(b1.Edge(0)[i]->Position().y,
-                         b1.Edge_r(2)[i]->Position().y, 1e-12));
+                         b1.Edge(2)[i]->Position().y, 1e-12));
   }
   for (size_t i = 0; i < b1.Edge(1).size(); i++) {
     EXPECT_TRUE(ApproxRv(b1.Edge(1)[i]->Position().x,
-                         b1.Edge_r(3)[i]->Position().x, 1e-12));
+                         b1.Edge(3)[i]->Position().x, 1e-12));
     EXPECT_TRUE(ApproxRv(b1.Edge(1)[i]->Position().y + 12e-3,
-                         b1.Edge_r(3)[i]->Position().y, 1e-12));
+                         b1.Edge(3)[i]->Position().y, 1e-12));
   }
 
+  b3.ReverseEdge();
   for (size_t i = 0; i < b3.Edge(0).size(); i++) {
     EXPECT_TRUE(ApproxRv(b3.Edge(0)[i]->Position().x + 2 * a,
-                         b3.Edge_r(2)[i]->Position().x, 1e-12));
+                         b3.Edge(2)[i]->Position().x, 1e-12));
     EXPECT_TRUE(ApproxRv(b3.Edge(0)[i]->Position().y,
-                         b3.Edge_r(2)[i]->Position().y, 1e-12));
+                         b3.Edge(2)[i]->Position().y, 1e-12));
   }
   for (size_t i = 0; i < b3.Edge(1).size(); i++) {
     EXPECT_TRUE(ApproxRv(b3.Edge(1)[i]->Position().x,
-                         b3.Edge_r(3)[i]->Position().x, 1e-12));
+                         b3.Edge(3)[i]->Position().x, 1e-12));
     EXPECT_TRUE(ApproxRv(b3.Edge(1)[i]->Position().y + 2 * a,
-                         b3.Edge_r(3)[i]->Position().y, 1e-12));
+                         b3.Edge(3)[i]->Position().y, 1e-12));
   }
 }
 TEST_F(BoundaryTest, EffectMat) {

@@ -61,9 +61,6 @@ class Boundary {
   const CSCPtrs& DNode() const { return node_d_; }
   const std::vector<CSCPtrs>& Edge() const { return edge_; }
   const CSCPtrs& Edge(size_t i) const { return edge_[i]; }
-  CSCPtrs Edge_r(size_t i) const {
-    return {edge_[i].rbegin(), edge_[i].rend()};
-  }
   size_t NumDNode() const { return node_d_.size(); }
   size_t NumDBv() const { return NumDNode() * T::NumBv; }
   size_t NumNode() const { return P_; }
@@ -80,6 +77,8 @@ class Boundary {
   MatrixXcd PlaneEDMat(const CSCPtrs& inner, size_t P) const;
   MatrixXcd PlaneEBMat(const CSCPtrs& inner) const;
   MatrixXcd PlaneEBMat(const CSCPtrs& inner, size_t P) const;
+
+  void ReverseEdge();
 
   // Boundary element method.
   // Influence matrices.
@@ -322,6 +321,11 @@ MatrixXcd Boundary<T, N>::PlaneEBMat(const CSCPtrs& inner, size_t P) const {
           _planeWaveAP(node_[i], pi2 / P * j, matrix_).Bv();
 
   return extra_m * PseudoInverse(fit_m);
+}
+template <typename T, int N>
+void Boundary<T, N>::ReverseEdge() {
+  for (size_t i = edge_.size() - 1; i > edge_.size() / 2 - 1; i--)
+    std::reverse(edge_[i].begin(), edge_[i].end());
 }
 template <typename T, int N>
 void Boundary<T, N>::add_rect(const PosiVect& p1, const PosiVect& p2) {
