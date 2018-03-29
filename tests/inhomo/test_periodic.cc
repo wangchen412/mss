@@ -28,7 +28,6 @@ class PeriodicTest : public Test {
  protected:
   PeriodicTest() : Test(__FILE__, "periodic") {}
 
-  input::Solution input{path("input.txt")};
   Material rubber{1300, 1.41908e9, 0.832e9}, lead{11400, 36.32496e9, 8.43e9};
   Matrix m{rubber, 8e5};
   IncidentPlaneSH inc{m, pi_2 / 2, 1e-5};
@@ -103,13 +102,43 @@ TEST_F(PeriodicTest, DtN_single_plane) {
   EXPECT_TRUE(ApproxVectRv(t, tt, 1e-4, 0, true));
 }
 TEST_F(PeriodicTest, DtN_single_cylindrical) {
+  input::Solution input{path("input.txt")};
   Matrix matrix(input);
   IncidentPlaneSH inc(input);
   AssemblyConfig<AP> ac(input.config(), &matrix);
 
-  MatrixXcd z(ac.NumBv(), ac.NumCoeff());
-  z << ac.CylinEBMat(0), ac.CylinEBMat(1), ac.CylinEBMat(2), ac.CylinEBMat(3);
-  z += ac.inhomo(0)->ScatterBvMat(ac.Node());
+  MatrixXcd z(ac.ResBvMat(ac.Node()));
+  // z << ac.CylinEBMat(0), ac.CylinEBMat(1), ac.CylinEBMat(2),
+  // ac.CylinEBMat(3); z += ac.inhomo(0)->ScatterBvMat(ac.Node());
+
+  MatrixXcd z1(z.rows() / 2, z.cols()), z2(z.rows() / 2, z.cols());
+  for (long i = 0; i < z.rows() / 2; i++) {
+    z1.row(i) = z.row(i * 2);
+    z2.row(i) = z.row(i * 2 + 1);
+  }
+
+  MatrixXcd dtn(z2 * PseudoInverse(z1));
+  ac.DSolve({&inc});
+  VectorXcd u(ac.NumNode()), t(ac.NumNode());
+  for (size_t i = 0; i < ac.NumNode(); i++) {
+    Vector2cd tmp = ac.Resultant(ac.Node(i), {&inc}).Bv();
+    u(i) = tmp(0);
+    t(i) = tmp(1);
+  }
+  VectorXcd tt = dtn * u;
+  EXPECT_TRUE(ApproxVectRv(t, tt, 1e-4, 0, true));
+}
+
+// Eigenvalue problem
+TEST_F(PeriodicTest, DISABLED_Eigenvalue_DtN_check) {
+  input::Solution input{path("input2.txt")};
+  Matrix matrix(input);
+  IncidentPlaneSH inc(input);
+  AssemblyConfig<AP> ac(input.config(), &matrix);
+
+  MatrixXcd z(ac.ResBvMat(ac.Node()));
+  // z << ac.CylinEBMat(0), ac.CylinEBMat(1), ac.CylinEBMat(2),
+  // ac.CylinEBMat(3); z += ac.inhomo(0)->ScatterBvMat(ac.Node());
 
   MatrixXcd z1(z.rows() / 2, z.cols()), z2(z.rows() / 2, z.cols());
   for (long i = 0; i < z.rows() / 2; i++) {
@@ -129,51 +158,57 @@ TEST_F(PeriodicTest, DtN_single_cylindrical) {
   EXPECT_TRUE(ApproxVectRv(t, tt, 1e-4, 0, true));
 }
 TEST_F(PeriodicTest, Eigenvalue_single) {
-  Matrix matrix(input);
-  IncidentPlaneSH inc(input);
-  AssemblyConfig<AP> ac(input.config(), &matrix);
+  input::Solution input{path("input2.txt")};
+  std::ifstream data(path("BlochK_45.dat"));
+  std::string tmp;
+  // std::vector<double> omega(14), k(14);
+  Eigen::VectorXd omega(14), ref_k(14), com_k(14);
+  skipUntil(data, "omega:");
+  // for (auto& i : omega) {
+  for (int i = 0; i < 14; i++) {
+    getline(data, tmp);
+    std::stringstream(tmp) >> omega(i);
+  }
+  skipUntil(data, "k:");
+  for (int i = 0; i < 14; i++) {
+    getline(data, tmp);
+    std::stringstream(tmp) >> ref_k(i);
+  }
 
-  MatrixXcd z1(ac.NumBv() / 2, ac.NumCoeff());
-  MatrixXcd z2(ac.NumBv() / 2, ac.NumCoeff());
+  Material nickle(input.material()[0]);
+  Material aluminum(input.material()[1]);
 
-  z1 << ac.CylinEBMat(0), ac.CylinEBMat(1);
-  
+  for (int n = 0; n < 14; n++) {
+    Matrix matrix(aluminum, omega(n));
+    AssemblyConfig<AP> ac(input.config(), &matrix);
+    ac.Boundary().ReverseEdge();
 
-  // MatrixXcd z(ac.NumBv(), ac.NumCoeff());
-  // z << ac.CylinEBMat(0), ac.CylinEBMat(1), ac.CylinEBMat(2),
-  // ac.CylinEBMat(3); z += ac.inhomo(0)->ScatterBvMat(ac.Node());
+    MatrixXcd z1(ac.NumBv() / 2, ac.NumCoeff());
+    MatrixXcd z2(ac.NumBv() / 2, ac.NumCoeff());
+    z1 << ac.ResBvMat(ac.Edge(0)), ac.ResBvMat(ac.Edge(1));
+    z2 << ac.ResBvMat(ac.Edge(2)), ac.ResBvMat(ac.Edge(3));
+    for (long i = 1; i < z1.rows(); i += 2) z1.row(i) *= -1;
+    for (long i = 0; i < z1.rows(); i++) {
+      dcomp p = z1.row(i).array().mean();
+      // dcomp p = GeometricMean(z1.row(i).array());
+      z1.row(i) /= p;
+      z2.row(i) /= p;
+    }
+    MatrixXcd A(PseudoInverse(z1) * z2);
+    Eigen::ComplexEigenSolver<MatrixXcd> ces;
+    ces.compute(A);
+    VectorXcd ev = ces.eigenvalues();
+    VectorXcd mv = ev.array().abs();
+
+    auto ue = FindUnitEigenvalue(ev, 0.01);
+    if ((log(ev(ue[0])) / ii).real() > 0)
+      com_k(n) = (log(ev(ue[0])) / ii / pi).real();
+    else
+      com_k(n) = (log(ev(ue[1])) / ii / pi).real();
+  }
+
+  EXPECT_TRUE(ApproxVectRv(ref_k, com_k, 2e-2));
 }
-
-// TEST_F(PeriodicTest, DISABLED_PBC) {
-//   MatrixXcd z(f.ScatterBvMat(b.Node()) + f.PsInBvMatT(b.Node()));
-//   MatrixXcd z1(z.rows() / 2, z.cols());
-//   MatrixXcd z2(z.rows() / 2, z.cols());
-
-//   size_t N = b.NumNode() / 4;
-//   z1 = z.block(0, 0, 4 * N, z.cols());
-//   for (size_t i = 0; i < N; i++) {
-//     z2.block(2 * i, 0, 2, z.cols()) =
-//         z.block(2 * (3 * N - 1 - i), 0, 2, z.cols());
-//     z2.block(2 * (i + N), 0, 2, z.cols()) =
-//         z.block(2 * (4 * N - 1 - i), 0, 2, z.cols());
-//   }
-
-//   MatrixXcd zz(z2 - z1), uz(z1);
-//   uz.block(uz.rows() / 2, 0, uz.rows() / 2, uz.cols()).setZero();
-
-//   // std::cout << zz << std::endl;
-
-//   MatrixXcd Z(zz.transpose() * zz);
-//   MatrixXcd UZ(uz.transpose() * zz + zz.transpose() * uz);
-//   MatrixXcd U(uz.transpose() * uz);
-
-//   // std::cout << Z << std::endl;
-
-//   dcomp eta_x = 1;
-//   MatrixXcd ZZZ(Z - UZ * eta_x + U * eta_x * eta_x);
-//   // std::cout << ZZZ.determinant() << std::endl;
-//   // std::cout << ZZZ << std::endl;
-// }
 
 }  // namespace test
 

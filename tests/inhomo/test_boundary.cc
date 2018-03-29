@@ -222,7 +222,7 @@ TEST_F(AssemBoundaryTest, CylinEDMat) {
 
   for (size_t i = 0; i < 4; i++) {
     VectorXcd ref = inSH1.EffectDv(c4.Edge(i)) + f.ScatterDv(c4.Edge(i));
-    VectorXcd com = c4.CylinEDMat(i) * c4.ScatterCoeff();
+    VectorXcd com = c4.CylinEDMat(c4.Edge(i)) * c4.ScatterCoeff();
     EXPECT_TRUE(ApproxVectRv(ref, com, 5e-4));
   }
 }
@@ -236,7 +236,7 @@ TEST_F(AssemBoundaryTest, CylinEBMat) {
 
   for (size_t i = 0; i < 4; i++) {
     VectorXcd ref = inSH1.EffectBv(c4.Edge(i)) + f.ScatterBv(c4.Edge(i));
-    VectorXcd com = c4.CylinEBMat(i) * c4.ScatterCoeff();
+    VectorXcd com = c4.CylinEBMat(c4.Edge(i)) * c4.ScatterCoeff();
     EXPECT_TRUE(ApproxVectRv(ref, com, 1e-3));
   }
 }

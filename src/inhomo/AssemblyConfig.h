@@ -57,6 +57,7 @@ class AssemblyConfig {
   double CharLength() const { return height_ + width_; }
   size_t NumNode() const { return Node().size(); }
   size_t NumBv() const { return T::NumBv * NumNode(); }
+  size_t NumDv() const { return T::NumDv * NumNode(); }
   size_t NumCoeff() const { return num_coeff_; }
   size_t NumCoeff(size_t i) const { return inhomo(i)->NumCoeff(); }
   size_t NumBv_in() const { return num_bv_in_; }
@@ -70,7 +71,7 @@ class AssemblyConfig {
   const CS* Node(size_t i) const { return boundary_.Node(i); }
   const CSCPtrs& Edge(size_t i) const { return boundary_.Edge(i); }
   const CSCPtrs& Node_in() const { return node_in_; }
-  const Boundary<T>& Boundary() const { return boundary_; }
+  Boundary<T>& Boundary() { return boundary_; }
 
   // TODO: in-plane
   MatrixXcd BdIntMatT() const { return boundary_.EffectMatT(inhomoC_); }
@@ -99,9 +100,13 @@ class AssemblyConfig {
   void DSolve(const InciCPtrs<T>& incident);
 
   VectorXcd ScatterCoeff() const;
+  MatrixXcd ScatterBvMat(const CSCPtrs& objCSs) const;
+  MatrixXcd ScatterDvMat(const CSCPtrs& objCSs) const;
 
-  MatrixXcd CylinEDMat(size_t n);
-  MatrixXcd CylinEBMat(size_t n);
+  MatrixXcd CylinEDMat(const CSCPtrs& objCSs);
+  MatrixXcd CylinEBMat(const CSCPtrs& objCSs);
+  MatrixXcd ResBvMat(const CSCPtrs& objCSs);
+  MatrixXcd ResDvMat(const CSCPtrs& objCSs);
 
   double BlochK(const IncidentPlane<T>* incident);
   // dcomp CharPoly(const dcomp& psx, const dcomp& psy);
@@ -114,6 +119,8 @@ class AssemblyConfig {
       const CS* objCS, const Inhomo<T>* inhomo,
       const InciCPtrs<T>& incident) const;  // TODO incident maybe not needed.
   T Resultant(const CS* objCS, const InciCPtrs<T>& incident) const;
+
+  T Resultant(const CS* objCS, const VectorXcd& coeff);
 
   void PrintCoeff(std::ostream& os) const;
 
@@ -232,22 +239,50 @@ VectorXcd AssemblyConfig<T>::ScatterCoeff() const {
 }
 
 template <typename T>
-MatrixXcd AssemblyConfig<T>::CylinEBMat(size_t n) {
+MatrixXcd AssemblyConfig<T>::ScatterBvMat(const CSCPtrs& objCSs) const {
+  MatrixXcd rst(objCSs.size() * T::NumBv, NumCoeff());
+
+  size_t v = 0;
+  for (size_t i = 0; i < inhomo_.size(); i++) {
+    rst.block(0, v, rst.rows(), inhomo(i)->NumCoeff()) =
+        inhomo(i)->ScatterBvMat(objCSs);
+    v += inhomo(i)->NumCoeff();
+  }
+
+  return rst;
+}
+
+template <typename T>
+MatrixXcd AssemblyConfig<T>::ScatterDvMat(const CSCPtrs& objCSs) const {
+  MatrixXcd rst(objCSs.size() * T::NumDv, NumCoeff());
+
+  size_t v = 0;
+  for (size_t i = 0; i < inhomo_.size(); i++) {
+    rst.block(0, v, rst.rows(), inhomo(i)->NumCoeff()) =
+      inhomo(i)->ScatterDvMat(objCSs);
+    v += inhomo(i)->NumCoeff();
+  }
+
+  return rst;
+}
+
+template <typename T>
+MatrixXcd AssemblyConfig<T>::CylinEBMat(const CSCPtrs& objCSs) {
   // Extrapolate the boundary values at nth edge points with cylindrical
   // waves. The matrix transforms the scattering coefficients to the
   // displacement of incident wave. The boundary points are rearranged for PBC
   // computation.
 
-  MatrixXcd E(Edge(n).size() * T::NumBv, NumCoeff());
+  MatrixXcd E(objCSs.size() * T::NumBv, NumCoeff());
   E.setZero();
 
-  for (size_t p = 0; p < Edge(n).size(); p++) {
-    const Inhomo<T>* ni = nearest(Edge(n)[p]);
+  for (size_t p = 0; p < objCSs.size(); p++) {
+    const Inhomo<T>* ni = nearest(objCSs[p]);
     size_t v = 0;
     for (auto& i : inhomo_) {
       if (i == ni)
         E.block(p * T::NumBv, v, T::NumBv, i->NumCoeff()) =
-            i->PsInBvT(Edge(n)[p]);
+            i->PsInBvT(objCSs[p]);
       v += i->NumCoeff();
     }
   }
@@ -255,22 +290,22 @@ MatrixXcd AssemblyConfig<T>::CylinEBMat(size_t n) {
 }
 
 template <typename T>
-MatrixXcd AssemblyConfig<T>::CylinEDMat(size_t n) {
+MatrixXcd AssemblyConfig<T>::CylinEDMat(const CSCPtrs& objCSs) {
   // Extrapolate the boundary values at nth edge points with cylindrical
   // waves. The matrix transforms the scattering coefficients to the
   // displacement of incident wave. The boundary points are rearranged for PBC
   // computation.
 
-  MatrixXcd E(Edge(n).size() * T::NumDv, NumCoeff());
+  MatrixXcd E(objCSs.size() * T::NumDv, NumCoeff());
   E.setZero();
 
-  for (size_t p = 0; p < Edge(n).size(); p++) {
-    const Inhomo<T>* ni = nearest(Edge(n)[p]);
+  for (size_t p = 0; p < objCSs.size(); p++) {
+    const Inhomo<T>* ni = nearest(objCSs[p]);
     size_t v = 0;
     for (auto& i : inhomo_) {
       if (i == ni)
         E.block(p * T::NumDv, v, T::NumDv, i->NumCoeff()) =
-          i->PsInDvT(Edge(n)[p]);
+            i->PsInDvT(objCSs[p]);
       v += i->NumCoeff();
     }
   }
@@ -609,6 +644,30 @@ T AssemblyConfig<T>::Resultant(const CS* objCS,
                                const InciCPtrs<T>& incident) const {
   return Resultant(objCS, InWhich(objCS), incident);
 }
+
+template <typename T>
+T AssemblyConfig<T>::Resultant(const CS* objCS, const VectorXcd& coeff) {
+  dist_solution(coeff);
+  T rst(objCS);
+  if (InWhich(objCS) == nullptr) {
+    for (auto& i : inhomo_) rst += i->Scatter(objCS);
+  }
+
+}
+
+template <typename T>
+MatrixXcd AssemblyConfig<T>::ResDvMat(const CSCPtrs& objCSs) {
+  return ScatterDvMat(objCSs) + CylinEDMat(objCSs);
+}
+
+template <typename T>
+MatrixXcd AssemblyConfig<T>::ResBvMat(const CSCPtrs& objCSs) {
+  // Transformation from scattering coefficients to resultant boundary values.
+
+  return ScatterBvMat(objCSs) + CylinEBMat(objCSs);
+}
+
+
 
 template <typename T>
 void AssemblyConfig<T>::PrintCoeff(std::ostream& os) const {

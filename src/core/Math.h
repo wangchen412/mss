@@ -23,6 +23,7 @@
 #define MSS_MATH_H
 
 #include <Eigen/Dense>
+#include <Eigen/Eigenvalues>
 #include <algorithm>
 #include <cassert>
 #include <complex>
@@ -272,6 +273,29 @@ double ConditionNum(const MatrixXcd& m) {
   auto svd = m.jacobiSvd(Eigen::ComputeThinU | Eigen::ComputeThinV);
   auto& sv = svd.singularValues();
   return sv(0) / sv(sv.size() - 1);
+}
+
+template <typename T>
+typename T::Scalar GeometricMean(const Eigen::ArrayBase<T>& a) {
+  typename T::Scalar t = 0;
+  for (long i = 0; i < a.size(); i++) t += log(a(i));
+  return exp(t / double(a.size()));
+}
+
+double ApproxIdentity(const MatrixXcd& m) {
+  MatrixXcd I(m.rows(), m.cols());
+  I.setIdentity();
+  return (m - I).norm();
+}
+
+std::vector<long> FindUnitEigenvalue(const VectorXcd& v,
+                                     double tol = epsilon) {
+  std::vector<long> rst;
+  for (long i = 0; i < v.size(); i++) {
+    double norm = sqrt(v(i).real() * v(i).real() + v(i).imag() * v(i).imag());
+    if (norm > 1 - tol && norm < 1 + tol) rst.push_back(i);
+  }
+  return rst;
 }
 
 }  // namespace mss
