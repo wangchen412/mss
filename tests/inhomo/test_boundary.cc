@@ -48,10 +48,10 @@ class BoundaryTest : public Test {
 TEST_F(BoundaryTest, Constructor) {
   EXPECT_EQ(b1.Node().size(), 10992);
   EXPECT_EQ(b3.Edge().size(), 4);
-  EXPECT_EQ(b3.Edge(0).size(), b3.NumNode() / 4);
-  EXPECT_EQ(b3.Edge(1).size(), b3.NumNode() / 4);
-  EXPECT_EQ(b3.Edge(2).size(), b3.NumNode() / 4);
-  EXPECT_EQ(b3.Edge(3).size(), b3.NumNode() / 4);
+  EXPECT_EQ(b3.Edge(0).size(), b3.NumNode() / 40);
+  EXPECT_EQ(b3.Edge(1).size(), b3.NumNode() / 40);
+  EXPECT_EQ(b3.Edge(2).size(), b3.NumNode() / 40);
+  EXPECT_EQ(b3.Edge(3).size(), b3.NumNode() / 40);
 
   b1.ReverseEdge();
   for (size_t i = 0; i < b1.Edge(0).size(); i++) {
@@ -147,8 +147,7 @@ TEST_F(AssemBoundaryTest, DSolve) {
 }
 TEST_F(AssemBoundaryTest, CSolve_InvMat) {
   c1.CSolve({&inSH1});
-  VectorXcd solution = c2.GramMat().inverse() * c2.ColloMat().transpose() *
-                       c2.IncVec({&inSH1});
+  VectorXcd solution = PseudoInverse(c2.ColloMat()) * c2.IncVec({&inSH1});
   for (int i = 0; i < 3; i++) {
     VectorXcd rr = c1.inhomo(i)->ScatterCoeff();
     VectorXcd cc = solution.segment(61 * i, 61);
@@ -166,8 +165,8 @@ TEST_F(AssemBoundaryTest, DSolve_InvMat) {
 }
 TEST_F(AssemBoundaryTest, CSolve_InvMatBi) {
   c1.CSolve({&inSH1});
-  VectorXcd solution = c2.GramMat().inverse() * c2.ColloMat().transpose() *
-                       c2.BdIntMatT() * inSH1.EffectBv(c2.Node());
+  VectorXcd solution = PseudoInverse(c2.ColloMat()) * c2.BdIntMatT() *
+                       inSH1.EffectBv(c2.Node());
   for (int i = 0; i < 3; i++) {
     VectorXcd rr = c1.inhomo(i)->ScatterCoeff();
     VectorXcd cc = solution.segment(61 * i, 61);

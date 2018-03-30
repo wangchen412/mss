@@ -52,19 +52,14 @@ class Boundary {
       : Boundary(density, {{0, height}, {width, 0}}, matrix) {}
   virtual ~Boundary() {
     for (auto& i : node_) delete i;
-    for (auto& i : node_c_) delete i;
     for (auto& i : panel_) delete i;
   }
 
   const CSCPtrs& Node() const { return node_; }
   const CS* Node(size_t i) const { return node_[i]; }
-  const CSCPtrs& DNode() const { return node_d_; }
   const std::vector<CSCPtrs>& Edge() const { return edge_; }
   const CSCPtrs& Edge(size_t i) const { return edge_[i]; }
-  size_t NumDNode() const { return node_d_.size(); }
-  size_t NumDBv() const { return NumDNode() * T::NumBv; }
   size_t NumNode() const { return P_; }
-  size_t NumNode(size_t i) const { return Edge(i).size(); }
   size_t NumBv() const { return NumNode() * T::NumBv; }
   size_t NumDv() const { return NumNode() * T::NumDv; }
   size_t NumCoeff() const { return 2 * N_ + 1; }
@@ -105,8 +100,6 @@ class Boundary {
  private:
   double density_;
   CSCPtrs node_;
-  CSCPtrs node_c_;  // Complementary nodes.
-  CSCPtrs node_d_;  // Doubled nodes.
   std::vector<CSCPtrs> edge_;
   PanelCPtrs<T, N> panel_;
   size_t P_;
@@ -115,6 +108,7 @@ class Boundary {
   MatrixXcd c_;
   bool c_computed_{false};
   int N_{20};    // TODO The top order of the incident wave expansion. TEMP
+  int pr_{10};   // The ratio between the point densities.
   double r_cc_;  // Radius of the circumscribed circle.
   CS center_;    // Center of the circumscribed circle.
 
@@ -337,32 +331,19 @@ void Boundary<T, N>::add_rect(const PosiVect& p1, const PosiVect& p2) {
 template <typename T, int N>
 void Boundary<T, N>::add_line(const PosiVect& p1, const PosiVect& p2) {
   size_t n = (p2 - p1).Length() * density_;
+  size_t ne = n / pr_;
   PosiVect d = (p2 - p1) / n;
+  PosiVect de = (p2 - p1) / ne;
   double len = d.Length();
   double ang = d.Angle() - pi_2;
   edge_.push_back(CSCPtrs());
 
-  // Quadral nodes.
   for (size_t i = 0; i < n; i++) {
-    if (i > 0) {
-      node_c_.push_back(new CS(p1 + d * (i + 0.25), ang));
-      node_d_.push_back(node_c_.back());
-    }
-
     node_.push_back(new CS(p1 + d * (i + 0.5), ang));
-    edge_.back().push_back(node_.back());
-    node_d_.push_back(node_.back());
-
-    if (i < n - 1) {
-      node_c_.push_back(new CS(p1 + d * (i + 0.75), ang));
-      node_d_.push_back(node_c_.back());
-
-      node_c_.push_back(new CS(p1 + d * (i + 1), ang));
-      node_d_.push_back(node_c_.back());
-    }
-
     panel_.push_back(new Panel<T, N>(node_.back(), len, matrix_));
   }
+  for (size_t i = 0; i < ne; i++)
+    edge_.back().push_back(new CS(p1 + de * (i + 0.5), ang));
 }
 template <typename T, int N>
 void Boundary<T, N>::add_circle(const PosiVect& p, double r) {

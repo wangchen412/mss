@@ -161,10 +161,8 @@ TEST_F(PeriodicTest, Eigenvalue_single) {
   input::Solution input{path("input2.txt")};
   std::ifstream data(path("BlochK_45.dat"));
   std::string tmp;
-  // std::vector<double> omega(14), k(14);
   Eigen::VectorXd omega(14), ref_k(14), com_k(14);
   skipUntil(data, "omega:");
-  // for (auto& i : omega) {
   for (int i = 0; i < 14; i++) {
     getline(data, tmp);
     std::stringstream(tmp) >> omega(i);
@@ -183,8 +181,8 @@ TEST_F(PeriodicTest, Eigenvalue_single) {
     AssemblyConfig<AP> ac(input.config(), &matrix);
     ac.Boundary().ReverseEdge();
 
-    MatrixXcd z1(ac.NumBv() / 2, ac.NumCoeff());
-    MatrixXcd z2(ac.NumBv() / 2, ac.NumCoeff());
+    MatrixXcd z1(2 * (ac.Edge(0).size() + ac.Edge(1).size()), ac.NumCoeff());
+    MatrixXcd z2(2 * (ac.Edge(2).size() + ac.Edge(3).size()), ac.NumCoeff());
     z1 << ac.ResBvMat(ac.Edge(0)), ac.ResBvMat(ac.Edge(1));
     z2 << ac.ResBvMat(ac.Edge(2)), ac.ResBvMat(ac.Edge(3));
     for (long i = 1; i < z1.rows(); i += 2) z1.row(i) *= -1;
@@ -194,13 +192,15 @@ TEST_F(PeriodicTest, Eigenvalue_single) {
       z1.row(i) /= p;
       z2.row(i) /= p;
     }
+
     MatrixXcd A(PseudoInverse(z1) * z2);
     Eigen::ComplexEigenSolver<MatrixXcd> ces;
     ces.compute(A);
     VectorXcd ev = ces.eigenvalues();
     VectorXcd mv = ev.array().abs();
-
     auto ue = FindUnitEigenvalue(ev, 0.01);
+    if (ue.empty()) exit_error_msg({"No unit eigenvalues."});
+
     if ((log(ev(ue[0])) / ii).real() > 0)
       com_k(n) = (log(ev(ue[0])) / ii / pi).real();
     else
