@@ -108,7 +108,7 @@ class Boundary {
   MatrixXcd c_;
   bool c_computed_{false};
   int N_{20};    // TODO The top order of the incident wave expansion. TEMP
-  int pr_{10};   // The ratio between the point densities.
+  int pr_{400};   // The ratio between the point densities.
   double r_cc_;  // Radius of the circumscribed circle.
   CS center_;    // Center of the circumscribed circle.
 

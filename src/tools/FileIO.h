@@ -20,6 +20,8 @@
 #ifndef MSS_FILEIO_H
 #define MSS_FILEIO_H
 
+#include "../core/Math.h"
+
 #include <algorithm>
 #include <cstring>
 #include <fstream>
@@ -181,6 +183,23 @@ class separator {
   std::string s_;
   size_t n_;
 };
+
+// Write complex-valued matrix in MATLAB format.
+inline void writeMatrix(const Eigen::MatrixXcd& m, const std::string& fn) {
+  std::ofstream real(fn + "_real.dat"), imag(fn + "_imag.dat");
+  real << setMaxPrecision;
+  imag << setMaxPrecision;
+  for (long i = 0; i < m.rows(); i++) {
+    for (long j = 0; j < m.cols(); j++) {
+      real << m(i, j).real() << "\t";
+      imag << m(i, j).imag() << "\t";
+    }
+    real << std::endl;
+    imag << std::endl;
+  }
+  real.close();
+  imag.close();
+}
 
 }  // namespace mss
 

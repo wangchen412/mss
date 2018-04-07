@@ -68,7 +68,9 @@ class AssemblyConfig {
   const std::string& ID() const { return ID_; }
   const CSCPtrs& Node() const { return boundary_.Node(); }
   const CS* Node(size_t i) const { return boundary_.Node(i); }
+  const std::vector<CSCPtrs>& Edge() const { return boundary_.Edge(); }
   const CSCPtrs& Edge(size_t i) const { return boundary_.Edge(i); }
+  CSCPtrs EdgeNode() const;
   const CSCPtrs& Node_in() const { return node_in_; }
   Boundary<T>& Boundary() { return boundary_; }
 
@@ -546,6 +548,13 @@ const Inhomo<T>* AssemblyConfig<T>::nearest(const CS* objCS) const {
     }
   }
 
+  return rst;
+}
+
+template <typename T>
+CSCPtrs AssemblyConfig<T>::EdgeNode() const {
+  CSCPtrs rst;
+  for (const CSCPtrs& i : Edge()) rst.insert(rst.end(), i.begin(), i.end());
   return rst;
 }
 

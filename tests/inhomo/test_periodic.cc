@@ -178,7 +178,7 @@ TEST_F(PeriodicTest, Eigenvalue_single) {
 
   for (int n = 0; n < 14; n++) {
     Matrix matrix(aluminum, omega(n));
-    AssemblyConfig<AP> ac(input.config(), &matrix);
+    AssemblyConfig<AP> ac(input.assembly_config()[0], &matrix);
     ac.Boundary().ReverseEdge();
 
     MatrixXcd z1(2 * (ac.Edge(0).size() + ac.Edge(1).size()), ac.NumCoeff());
@@ -208,6 +208,106 @@ TEST_F(PeriodicTest, Eigenvalue_single) {
   }
 
   EXPECT_TRUE(ApproxVectRv(ref_k, com_k, 2e-2));
+}
+TEST_F(PeriodicTest, ResMat_multiple) {
+  // A preliminary check for the ResMat.
+
+  input::Solution input{path("input2.txt")};
+  Matrix matrix(input);
+  IncidentPlaneSH inc(input);
+  AssemblyConfig<AP> ac(input.assembly_config()[1], &matrix);
+  CSCPtrs node = ac.EdgeNode();
+  MatrixXcd z(ac.ResBvMat(node));
+
+  ac.DSolve({&inc});
+  VectorXcd com = z * ac.ScatterCoeff();
+  VectorXcd ref(2 * node.size());
+  for (size_t i = 0; i < node.size(); i++)
+    ref.segment<2>(2 * i) = ac.Resultant(node[i], {&inc}).Bv();
+
+  EXPECT_TRUE(ApproxVectRv(ref, com, 1e-4, 0, true));
+}
+TEST_F(PeriodicTest, ResMat_multiple_DtN) {
+  // Check if the relation derived can be used in BEM solving.
+
+  input::Solution input{path("input2.txt")};
+  Matrix matrix(input);
+  IncidentPlaneSH inc(input);
+  AssemblyConfig<AP> ac(input.assembly_config()[1], &matrix);
+  AssemblyConfig<AP> ac_hi(input.assembly_config()[2], &matrix);
+  CSCPtrs node = ac.EdgeNode();
+  MatrixXcd z(ac.ResBvMat(node));
+  MatrixXcd zw(z.rows() / 2, z.cols()), zt(z.rows() / 2, z.cols());
+
+  for (long i = 0; i < zw.rows(); i++)
+    zw.row(i) = z.row(2 * i), zt.row(i) = z.row(2 * i + 1);
+
+  ac.DSolve({&inc});
+  ac_hi.DSolve({&inc});
+  VectorXcd w(node.size()), t(node.size());
+  VectorXcd w_hi(w), t_hi(t);
+  for (size_t i = 0; i < node.size(); i++) {
+    Vector2cd tmp = ac.Resultant(node[i], {&inc}).Bv();
+    w(i) = tmp(0);
+    t(i) = tmp(1);
+    tmp = ac_hi.Resultant(node[i], {&inc}).Bv();
+    w_hi(i) = tmp(0);
+    t_hi(i) = tmp(1);
+  }
+
+  ApproxVectRv(w, w_hi, 1e-8, 0, true);
+  ApproxVectRv(t, t_hi, 1e-8, 0, true);
+
+  // VectorXcd coeff_r = ac.ScatterCoeff();
+  // VectorXcd coeff_w = zw.jacobiSvd(40).solve(w);
+  // VectorXcd coeff_t = zt.jacobiSvd(40).solve(t);
+  // EXPECT_TRUE(ApproxVectRv(coeff_r, coeff_w, 1e-2, 0, true));
+  // EXPECT_TRUE(ApproxVectRv(coeff_r, coeff_w, 1e-2, 0, true));
+
+  VectorXcd tt = zt * PseudoInverse(zw) * w;
+  EXPECT_TRUE(ApproxVectRv(t, tt, 3e-4, 0, true));
+}
+TEST_F(PeriodicTest, DISABLED_Eigenvalue_multiple) {
+  input::Solution input{path("input2.txt")};
+  Matrix matrix(input);
+  IncidentPlaneSH inc(input);
+  AssemblyConfig<AP> ac(input.assembly_config()[1], &matrix);
+  ac.Boundary().ReverseEdge();
+
+  MatrixXcd z1(2 * (ac.Edge(0).size() + ac.Edge(1).size()), ac.NumCoeff());
+  MatrixXcd z2(2 * (ac.Edge(2).size() + ac.Edge(3).size()), ac.NumCoeff());
+  z1 << ac.ResBvMat(ac.Edge(0)), ac.ResBvMat(ac.Edge(1));
+  z2 << ac.ResBvMat(ac.Edge(2)), ac.ResBvMat(ac.Edge(3));
+  for (long i = 1; i < z1.rows(); i += 2) z1.row(i) *= -1;
+
+  writeMatrix(z1, "z1");
+  writeMatrix(z2, "z2");
+
+  for (long i = 0; i < z1.rows(); i++) {
+    // dcomp p = z1.row(i).array().mean();
+    dcomp p = GeometricMean(z2.row(i).array());
+    z1.row(i) /= p;
+    z2.row(i) /= p;
+  }
+
+  writeMatrix(z1, "z1gp");
+  writeMatrix(z2, "z2gp");
+
+  // std::cout << z1.jacobiSvd(40).singularValues() << std::endl;
+  // MatrixXcd A(PseudoInverse(z1) * z2);
+  // std::cout << "0: " << ApproxIdentity(PseudoInverse(z1) * z1) <<
+  // std::endl;
+
+  // Eigen::ComplexEigenSolver<MatrixXcd> ces;
+  // ces.compute(A);
+  // VectorXcd ev = ces.eigenvalues();
+  // VectorXcd mv = ev.array().abs();
+
+  // std::cout << "Frequency: " << matrix.Frequency() << std::endl;
+  // std::cout << "Kr: " << matrix.KT() * 0.33 << std::endl;
+
+  // for (int i = 0; i < ev.size(); i++)
+  //   std::cout << mv(i) << "  :  " << log(ev(i)) / ii / pi << std::endl;
 }
 
 }  // namespace test
