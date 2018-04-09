@@ -268,9 +268,11 @@ MatrixXcd AssemblyConfig<T>::CylinEBMat(const CSCPtrs& objCSs) {
     const Inhomo<T>* ni = nearest(objCSs[p]);
     size_t v = 0;
     for (auto& i : inhomo_) {
-      if (i == ni)
+      if (i == ni) {
         E.block(p * T::NumBv, v, T::NumBv, i->NumCoeff()) =
-            i->PsInBvT(objCSs[p]);
+          i->PsInBvT(objCSs[p]);
+        break;
+      }
       v += i->NumCoeff();
     }
   }

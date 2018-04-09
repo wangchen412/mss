@@ -267,6 +267,52 @@ TEST_F(PeriodicTest, ResMat_multiple_DtN) {
   VectorXcd tt = zt * PseudoInverse(zw) * w;
   EXPECT_TRUE(ApproxVectRv(t, tt, 3e-4, 0, true));
 }
+TEST_F(PeriodicTest, ResMat_Larger_DtN) {
+  // Check if the DtN map derived can be derived for with larger cells.
+
+  std::ofstream err_file("err.dat");
+
+  input::Solution input{path("input2.txt")};
+  Matrix matrix(input);
+  IncidentPlaneSH inc(matrix, input.incident()[0]);
+  AssemblyConfig<AP> ac(input.assembly_config()[3], &matrix);
+  AssemblyConfig<AP> ac_hi(input.assembly_config()[4], &matrix);
+  CSCPtrs node = ac.EdgeNode();
+  MatrixXcd z(ac.ResBvMat(node));
+  MatrixXcd zw(z.rows() / 2, z.cols()), zt(z.rows() / 2, z.cols());
+
+  for (long i = 0; i < zw.rows(); i++)
+    zw.row(i) = z.row(2 * i), zt.row(i) = z.row(2 * i + 1);
+
+  ac.DSolve({&inc});
+  ac_hi.DSolve({&inc});
+  VectorXcd w(node.size()), t(node.size());
+  VectorXcd w_hi(w), t_hi(t);
+  for (size_t i = 0; i < node.size(); i++) {
+    Vector2cd tmp = ac.Resultant(node[i], {&inc}).Bv();
+    w(i) = tmp(0);
+    t(i) = tmp(1);
+    tmp = ac_hi.Resultant(node[i], {&inc}).Bv();
+    w_hi(i) = tmp(0);
+    t_hi(i) = tmp(1);
+  }
+
+  // // VectorXcd coeff_r = ac.ScatterCoeff();
+  // // VectorXcd coeff_w = zw.jacobiSvd(40).solve(w);
+  // // VectorXcd coeff_t = zt.jacobiSvd(40).solve(t);
+  // // EXPECT_TRUE(ApproxVectRv(coeff_r, coeff_w, 1e-2, 0, true));
+  // // EXPECT_TRUE(ApproxVectRv(coeff_r, coeff_w, 1e-2, 0, true));
+
+  EXPECT_TRUE(ApproxVectRv(w, w_hi, 1e-3, 0, true));
+  EXPECT_TRUE(ApproxVectRv(t, t_hi, 1e-3, 0, true));
+
+  VectorXcd tt = zt * PseudoInverse(zw) * w;
+  // VectorXcd tt = zt * zw.jacobiSvd(40).solve(w);
+
+  EXPECT_TRUE(ApproxVectRv(t, tt, 2e-2));
+
+  err_file.close();
+}
 TEST_F(PeriodicTest, DISABLED_Eigenvalue_multiple) {
   input::Solution input{path("input2.txt")};
   Matrix matrix(input);
