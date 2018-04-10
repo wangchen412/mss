@@ -40,11 +40,11 @@ class Matrix {
         kt_(omega_ / material_.CT()) {
     assert(frequency > 0);
   }
-  Matrix(const input::Matrix& input)
+  explicit Matrix(const input::Matrix& input)
       : Matrix(*input.material, input.frequency) {
     assert(input.kl == kl_ && input.kt == kt_);
   }
-  Matrix(const input::Solution& input) : Matrix(input.matrix()) {}
+  explicit Matrix(const input::Solution& input) : Matrix(input.matrix()) {}
 
   virtual ~Matrix() {}
 

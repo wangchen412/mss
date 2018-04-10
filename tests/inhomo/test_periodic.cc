@@ -104,7 +104,7 @@ TEST_F(PeriodicTest, DtN_single_plane) {
 TEST_F(PeriodicTest, DtN_single_cylindrical) {
   input::Solution input{path("input.txt")};
   Matrix matrix(input);
-  IncidentPlaneSH inc(input);
+  IncidentPlaneSH inc(matrix, input.incident()[0]);
   AssemblyConfig<AP> ac(input.config(), &matrix);
 
   MatrixXcd z(ac.ResBvMat(ac.Node()));
@@ -126,14 +126,14 @@ TEST_F(PeriodicTest, DtN_single_cylindrical) {
     t(i) = tmp(1);
   }
   VectorXcd tt = dtn * u;
-  EXPECT_TRUE(ApproxVectRv(t, tt, 1e-4, 0, true));
+  EXPECT_TRUE(ApproxVectRv(t, tt, 1e-3, 0, true));
 }
 
 // Eigenvalue problem
 TEST_F(PeriodicTest, DISABLED_Eigenvalue_DtN_check) {
   input::Solution input{path("input2.txt")};
   Matrix matrix(input);
-  IncidentPlaneSH inc(input);
+  IncidentPlaneSH inc(matrix, input.incident()[0]);
   AssemblyConfig<AP> ac(input.config(), &matrix);
 
   MatrixXcd z(ac.ResBvMat(ac.Node()));
@@ -214,7 +214,7 @@ TEST_F(PeriodicTest, ResMat_multiple) {
 
   input::Solution input{path("input2.txt")};
   Matrix matrix(input);
-  IncidentPlaneSH inc(input);
+  IncidentPlaneSH inc(matrix, input.incident()[0]);
   AssemblyConfig<AP> ac(input.assembly_config()[1], &matrix);
   CSCPtrs node = ac.EdgeNode();
   MatrixXcd z(ac.ResBvMat(node));
@@ -232,7 +232,7 @@ TEST_F(PeriodicTest, ResMat_multiple_DtN) {
 
   input::Solution input{path("input2.txt")};
   Matrix matrix(input);
-  IncidentPlaneSH inc(input);
+  IncidentPlaneSH inc(matrix, input.incident()[0]);
   AssemblyConfig<AP> ac(input.assembly_config()[1], &matrix);
   AssemblyConfig<AP> ac_hi(input.assembly_config()[2], &matrix);
   CSCPtrs node = ac.EdgeNode();
@@ -269,8 +269,6 @@ TEST_F(PeriodicTest, ResMat_multiple_DtN) {
 }
 TEST_F(PeriodicTest, ResMat_Larger_DtN) {
   // Check if the DtN map derived can be derived for with larger cells.
-
-  std::ofstream err_file("err.dat");
 
   input::Solution input{path("input2.txt")};
   Matrix matrix(input);
@@ -310,13 +308,10 @@ TEST_F(PeriodicTest, ResMat_Larger_DtN) {
   // VectorXcd tt = zt * zw.jacobiSvd(40).solve(w);
 
   EXPECT_TRUE(ApproxVectRv(t, tt, 2e-2));
-
-  err_file.close();
 }
 TEST_F(PeriodicTest, DISABLED_Eigenvalue_multiple) {
   input::Solution input{path("input2.txt")};
   Matrix matrix(input);
-  IncidentPlaneSH inc(input);
   AssemblyConfig<AP> ac(input.assembly_config()[1], &matrix);
   ac.Boundary().ReverseEdge();
 
