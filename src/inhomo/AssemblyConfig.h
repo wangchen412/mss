@@ -276,6 +276,16 @@ MatrixXcd AssemblyConfig<T>::CylinEBMat(const CSCPtrs& objCSs) {
       v += i->NumCoeff();
     }
   }
+
+  // for (size_t p = 0; p < objCSs.size(); p++) {
+  //   size_t v = 0;
+  //   for (auto& i : inhomo_) {
+  //     E.block(p * T::NumBv, v, T::NumBv, i->NumCoeff()) =
+  //         i->PsInBvT(objCSs[p]);
+  //     v += i->NumCoeff();
+  //   }
+  // }
+
   return E * DcMat();
 }
 
