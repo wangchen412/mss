@@ -1,7 +1,7 @@
-function check_ev(ev)
+function check_ev(ev, tol)
     for i = 1 : size(ev)
-        x = [abs(ev(i)), log(ev(i))/1i/pi/2];
-        if x(1) > 0.8 && x(1) < 1.2
+        x = [abs(ev(i)), log(ev(i))/1i/pi];
+        if x(1) > 1-tol && x(1) < 1 + tol
             disp(x)
         end
     end

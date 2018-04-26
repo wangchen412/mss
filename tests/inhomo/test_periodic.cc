@@ -325,7 +325,7 @@ TEST_F(PeriodicTest, DISABLED_ResMat_Larger_DtN) {
 
   EXPECT_TRUE(ApproxVectRv(t, tt, 2e-2));
 }
-TEST_F(PeriodicTest, DISABLED_Eigenvalue_multiple_DtN) {
+TEST_F(PeriodicTest, Eigenvalue_multiple_DtN) {
   input::Solution input{path("input2.txt")};
   Matrix matrix(input);
   AssemblyConfig<AP> ac(input.assembly_config()[1], &matrix);
@@ -373,7 +373,7 @@ TEST_F(PeriodicTest, DISABLED_Eigenvalue_multiple) {
   writeMatrix(z2, "z2");
 }
 
-TEST_F(PeriodicTest, ResMat_improve) {
+TEST_F(PeriodicTest, DISABLED_ResMat_improve) {
   input::Solution input{path("input2.txt")};
   Matrix matrix(input);
   IncidentPlaneSH inc(matrix, input.incident()[0]);
@@ -400,7 +400,7 @@ TEST_F(PeriodicTest, ResMat_improve) {
   ApproxVectRv(w, ww, 1e-40, 0, true, disp_file);
   ApproxVectRv(t, tt, 1e-40, 0, true, trac_file);
 }
-TEST_F(PeriodicTest, Eigen_Disp) {
+TEST_F(PeriodicTest, DISABLED_Eigen_Disp) {
   input::Solution input{path("input2.txt")};
   Matrix matrix(input);
   AssemblyConfig<AP> ac(input.assembly_config()[0], &matrix);
