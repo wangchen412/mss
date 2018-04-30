@@ -194,7 +194,7 @@ TEST_F(AssemBoundaryTest, PlaneEDMat_Single) {
   VectorXcd ref = inSH1.EffectDv(c3.Node()) + f.ScatterDv(c3.Node());
   VectorXcd in = inSH1.EffectDv(c3.Node_in()) + f.ScatterDv(c3.Node_in());
 
-  MatrixXcd ext_m = c3.Boundary().PlaneEDMat(c3.Node_in());
+  MatrixXcd ext_m = c3.PlaneEDMat(c3.Node());
   VectorXcd com = ext_m * in;
 
   EXPECT_TRUE(ApproxVectRv(ref, com, 6e-3));
@@ -208,7 +208,7 @@ TEST_F(AssemBoundaryTest, PlaneEDMat_Multiple) {
   VectorXcd ref = inSH1.EffectDv(c4.Node()) + f.ScatterDv(c4.Node());
   VectorXcd in = inSH1.EffectDv(c4.Node_in()) + f.ScatterDv(c4.Node_in());
 
-  MatrixXcd ext_m = c4.Boundary().PlaneEDMat(c4.Node_in());
+  MatrixXcd ext_m = c4.PlaneEDMat(c4.Node());
   VectorXcd com = ext_m * in;
 
   EXPECT_TRUE(ApproxVectRv(ref, com, 6e-3));

@@ -73,34 +73,34 @@ TEST_F(PeriodicTest, DISABLED_ColloDMat) {
   VectorXcd com(f.ColloDMat() * f.CSolve(inc.EffectBv(f.Node())));
   EXPECT_TRUE(ApproxVectRv(ref, com, 1e-10, 0, true));
 }
-TEST_F(PeriodicTest, DISABLED_PlaneEBMat) {
-  VectorXcd ref(inc.EffectBv(b2.Node()));
-  VectorXcd com(b2.PlaneEBMat(f.Node()) * inc.EffectDv(f.Node()));
-  EXPECT_TRUE(ApproxVectRv(ref, com, 1e-4, 0, true));
-}
-TEST_F(PeriodicTest, DISABLED_DtN_single_plane) {
-  MatrixXcd z(f.ScatterBvMat(b2.Node()) +
-              b2.PlaneEBMat(f.Node()) * f.ColloDMat());
-  MatrixXcd z1(z.rows() / 2, z.cols());
-  MatrixXcd z2(z.rows() / 2, z.cols());
+// TEST_F(PeriodicTest, DISABLED_PlaneEBMat) {
+//   VectorXcd ref(inc.EffectBv(b2.Node()));
+//   VectorXcd com(b2.PlaneEBMat(f.Node()) * inc.EffectDv(f.Node()));
+//   EXPECT_TRUE(ApproxVectRv(ref, com, 1e-4, 0, true));
+// }
+// TEST_F(PeriodicTest, DISABLED_DtN_single_plane) {
+//   MatrixXcd z(f.ScatterBvMat(b2.Node()) +
+//               b2.PlaneEBMat(f.Node()) * f.ColloDMat());
+//   MatrixXcd z1(z.rows() / 2, z.cols());
+//   MatrixXcd z2(z.rows() / 2, z.cols());
 
-  for (long i = 0; i < z.rows() / 2; i++) {
-    z1.row(i) = z.row(i * 2);
-    z2.row(i) = z.row(i * 2 + 1);
-  }
+//   for (long i = 0; i < z.rows() / 2; i++) {
+//     z1.row(i) = z.row(i * 2);
+//     z2.row(i) = z.row(i * 2 + 1);
+//   }
 
-  MatrixXcd dtn(z2 * PseudoInverse(z1));
+//   MatrixXcd dtn(z2 * PseudoInverse(z1));
 
-  f.SetCoeff(f.CSolve({&inc}));
-  VectorXcd u(b2.NumNode()), t(b2.NumNode());
-  for (size_t i = 0; i < b2.NumNode(); i++) {
-    Vector2cd tmp = f.Scatter(b2.Node(i)).Bv() + inc.Effect(b2.Node(i)).Bv();
-    u(i) = tmp(0);
-    t(i) = tmp(1);
-  }
-  VectorXcd tt = dtn * u;
-  EXPECT_TRUE(ApproxVectRv(t, tt, 1e-4, 0, true));
-}
+//   f.SetCoeff(f.CSolve({&inc}));
+//   VectorXcd u(b2.NumNode()), t(b2.NumNode());
+//   for (size_t i = 0; i < b2.NumNode(); i++) {
+//     Vector2cd tmp = f.Scatter(b2.Node(i)).Bv() + inc.Effect(b2.Node(i)).Bv();
+//     u(i) = tmp(0);
+//     t(i) = tmp(1);
+//   }
+//   VectorXcd tt = dtn * u;
+//   EXPECT_TRUE(ApproxVectRv(t, tt, 1e-4, 0, true));
+// }
 TEST_F(PeriodicTest, DISABLED_DtN_single_cylindrical) {
   input::Solution input{path("input.txt")};
   Matrix matrix(input);
@@ -325,7 +325,7 @@ TEST_F(PeriodicTest, DISABLED_ResMat_Larger_DtN) {
 
   EXPECT_TRUE(ApproxVectRv(t, tt, 2e-2));
 }
-TEST_F(PeriodicTest, Eigenvalue_multiple_DtN) {
+TEST_F(PeriodicTest, DISABLED_Eigenvalue_multiple_DtN) {
   input::Solution input{path("input2.txt")};
   Matrix matrix(input);
   AssemblyConfig<AP> ac(input.assembly_config()[1], &matrix);
@@ -373,7 +373,7 @@ TEST_F(PeriodicTest, DISABLED_Eigenvalue_multiple) {
   writeMatrix(z2, "z2");
 }
 
-TEST_F(PeriodicTest, DISABLED_ResMat_improve) {
+TEST_F(PeriodicTest, ResMat_improve) {
   input::Solution input{path("input2.txt")};
   Matrix matrix(input);
   IncidentPlaneSH inc(matrix, input.incident()[0]);

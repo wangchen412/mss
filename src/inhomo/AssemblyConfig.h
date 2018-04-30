@@ -79,7 +79,8 @@ class AssemblyConfig {
   // the effect on the inner interfaces.
   MatrixXcd BdIntMatT() const { return boundary_.EffectMatT(inhomoC_); }
 
-  const MatrixXcd& PlaneEDMat() const;
+  MatrixXcd PlaneEBMat(const CSCPtrs& objCSs) const;
+  MatrixXcd PlaneEDMat(const CSCPtrs& objCSs) const;
   const MatrixXcd& ColloMat();  // The collocation matrix.
   const MatrixXcd& DcMat();     // The combined matrix for DFT method.
   const MatrixXcd& TransMat();
@@ -250,9 +251,46 @@ MatrixXcd AssemblyConfig<T>::ScatterDvMat(const CSCPtrs& objCSs) const {
 }
 
 template <typename T>
-const MatrixXcd& AssemblyConfig<T>::PlaneEDMat() const {
-  return boundary_.PlaneEDMat(node_in_);
-};
+MatrixXcd AssemblyConfig<T>::PlaneEBMat(const CSCPtrs& objCSs) const {
+  // Fit the plane waves at given points. Then extrapolate the displacement
+  // field at boundary pionts.
+  // TODO: in-plane cases.
+
+  size_t N = node_in_.size() * T::NumBv;
+  size_t P = N;  // The number of plane waves may be less.
+  MatrixXcd fit_m(N, P);
+  for (size_t i = 0; i < N; i++)
+    for (size_t j = 0; j < P; j++)
+      fit_m.block<T::NumDv, 1>(i * T::NumDv, j) =
+          _planeWaveAP(node_in_[i], pi2 / P * j, matrix_).Dv();
+
+  MatrixXcd extra_m(objCSs.size() * T::NumBv, P);
+  for (size_t i = 0; i < objCSs.size(); i++)
+    for (size_t j = 0; j < P; j++)
+      extra_m.block<T::NumBv, 1>(i * T::NumBv, j) =
+          _planeWaveAP(objCSs[i], pi2 / P * j, matrix_).Bv();
+
+  return extra_m * PseudoInverse(fit_m);
+}
+
+template <typename T>
+MatrixXcd AssemblyConfig<T>::PlaneEDMat(const CSCPtrs& objCSs) const {
+  size_t N = node_in_.size() * T::NumDv;
+  size_t P = N;  // The number of plane waves may be less.
+  MatrixXcd fit_m(N, P);
+  for (size_t i = 0; i < N; i++)
+    for (size_t j = 0; j < P; j++)
+      fit_m.block<T::NumDv, 1>(i * T::NumDv, j) =
+        _planeWaveAP(node_in_[i], pi2 / P * j, matrix_).Dv();
+
+  MatrixXcd extra_m(objCSs.size() * T::NumDv, P);
+  for (size_t i = 0; i < objCSs.size(); i++)
+    for (size_t j = 0; j < P; j++)
+      extra_m.block<T::NumDv, 1>(i * T::NumDv, j) =
+        _planeWaveAP(objCSs[i], pi2 / P * j, matrix_).Dv();
+
+  return extra_m * PseudoInverse(fit_m);
+}
 
 template <typename T>
 MatrixXcd AssemblyConfig<T>::CylinEBMat(const CSCPtrs& objCSs) {
@@ -270,7 +308,7 @@ MatrixXcd AssemblyConfig<T>::CylinEBMat(const CSCPtrs& objCSs) {
     for (auto& i : inhomo_) {
       if (i == ni) {
         E.block(p * T::NumBv, v, T::NumBv, i->NumCoeff()) =
-          i->PsInBvT(objCSs[p]);
+            i->PsInBvT(objCSs[p]);
         break;
       }
       v += i->NumCoeff();
@@ -496,6 +534,7 @@ MatrixXcd AssemblyConfig<T>::ResBvMat(const CSCPtrs& objCSs) {
   // Transformation from scattering coefficients to resultant boundary values.
 
   return ScatterBvMat(objCSs) + CylinEBMat(objCSs);
+  // return ScatterBvMat(objCSs) + PlaneEBMat();
 }
 
 template <typename T>

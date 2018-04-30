@@ -68,11 +68,6 @@ class Boundary {
   MatrixXcd EffectMatT(const InhomoCPtrs<T>& objs) const;
   VectorXcd EffectBvT(const Inhomo<T>* obj, const VectorXcd& psi) const;
 
-  MatrixXcd PlaneEDMat(const CSCPtrs& inner) const;
-  MatrixXcd PlaneEDMat(const CSCPtrs& inner, size_t P) const;
-  MatrixXcd PlaneEBMat(const CSCPtrs& inner) const;
-  MatrixXcd PlaneEBMat(const CSCPtrs& inner, size_t P) const;
-
   void ReverseEdge();
 
   // Boundary element method.
@@ -267,54 +262,6 @@ template <typename T, int N>
 VectorXcd Boundary<T, N>::EffectBvT(const Inhomo<T>* obj,
                                     const VectorXcd& psi) const {
   return EffectMatT(obj->Node()) * psi;
-}
-template <typename T, int N>
-MatrixXcd Boundary<T, N>::PlaneEDMat(const CSCPtrs& inner) const {
-  return PlaneEDMat(inner, inner.size() * T::NumDv);
-}
-template <typename T, int N>
-MatrixXcd Boundary<T, N>::PlaneEDMat(const CSCPtrs& inner, size_t P) const {
-  // Fit P plane waves at given points. Then extrapolate the displacement
-  // field at boundary pionts.
-  // TODO: in-plane cases.
-
-  MatrixXcd fit_m(inner.size() * T::NumDv, P);
-  for (size_t i = 0; i < inner.size(); i++)
-    for (size_t j = 0; j < P; j++)
-      fit_m.block<T::NumDv, 1>(i * T::NumDv, j) =
-          _planeWaveAP(inner[i], pi2 / P * j, matrix_).Dv();
-
-  MatrixXcd extra_m(NumDv(), P);
-  for (size_t i = 0; i < node_.size(); i++)
-    for (size_t j = 0; j < P; j++)
-      extra_m.block<T::NumDv, 1>(i * T::NumDv, j) =
-          _planeWaveAP(node_[i], pi2 / P * j, matrix_).Dv();
-
-  return extra_m * PseudoInverse(fit_m);
-}
-template <typename T, int N>
-MatrixXcd Boundary<T, N>::PlaneEBMat(const CSCPtrs& inner) const {
-  return PlaneEBMat(inner, inner.size() * T::NumDv);
-}
-template <typename T, int N>
-MatrixXcd Boundary<T, N>::PlaneEBMat(const CSCPtrs& inner, size_t P) const {
-  // Fit P plane waves at given points. Then extrapolate the field at
-  // boundary pionts.
-  // TODO: in-plane cases.
-
-  MatrixXcd fit_m(inner.size() * T::NumDv, P);
-  for (size_t i = 0; i < inner.size(); i++)
-    for (size_t j = 0; j < P; j++)
-      fit_m.block<T::NumDv, 1>(i * T::NumDv, j) =
-          _planeWaveAP(inner[i], pi2 / P * j, matrix_).Dv();
-
-  MatrixXcd extra_m(NumBv(), P);
-  for (size_t i = 0; i < node_.size(); i++)
-    for (size_t j = 0; j < P; j++)
-      extra_m.block<T::NumBv, 1>(i * T::NumBv, j) =
-          _planeWaveAP(node_[i], pi2 / P * j, matrix_).Bv();
-
-  return extra_m * PseudoInverse(fit_m);
 }
 template <typename T, int N>
 void Boundary<T, N>::ReverseEdge() {
