@@ -58,6 +58,7 @@ class Inhomo {
   // The matrix consists the modes from this inhomo to the nodes of the
   // objective inhomo.
   MatrixXcd ModeMat(const Inhomo* obj) const;
+  MatrixXcd ModeDMat(const Inhomo* obj) const;
 
   // Resultant states.
   virtual T Scatter(const CS* objCS) const = 0;
@@ -90,6 +91,7 @@ class Inhomo {
   virtual size_t NumNode() const = 0;
   virtual size_t NumCoeff() const = 0;
   virtual size_t NumBv() const = 0;
+  virtual size_t NumDv() const = 0;
 
   VectorXcd IncVec(const InciCPtrs<T>& inc) const;
   VectorXcd TransIncVec(const VectorXcd& incBv) { return TransMat() * incBv; }
@@ -198,6 +200,13 @@ MatrixXcd Inhomo<T>::ModeMat(const Inhomo<T>* obj) const {
   MatrixXcd rst(obj->NumBv(), NumCoeff());
   for (size_t sn = 0; sn < NumCoeff(); sn++)
     rst.col(sn) = ScatterBv(obj->Node(), sn);
+  return rst;
+}
+template <typename T>
+MatrixXcd Inhomo<T>::ModeDMat(const Inhomo<T>* obj) const {
+  MatrixXcd rst(obj->NumDv(), NumCoeff());
+  for (size_t sn = 0; sn < NumCoeff(); sn++)
+    rst.col(sn) = ScatterDv(obj->Node(), sn);
   return rst;
 }
 template <typename T>

@@ -51,6 +51,9 @@ class Solution {
   const std::vector<AssemblyConfig>& assembly_config() const {
     return assembly_config_;
   }
+  const AssemblyConfig& assembly_config(const std::string& id) const {
+    return *FindID(assembly_config_, id);
+  }
   const AssemblyConfig& config() const {
     return *FindID(assembly_config_, solve_[0].configID);
   }

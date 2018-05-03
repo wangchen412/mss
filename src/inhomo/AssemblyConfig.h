@@ -60,6 +60,7 @@ class AssemblyConfig {
   size_t NumCoeff() const { return num_coeff_; }
   size_t NumCoeff(size_t i) const { return inhomo(i)->NumCoeff(); }
   size_t NumBv_in() const { return num_bv_in_; }
+  size_t NumDv_in() const { return num_dv_in_; }
 
   double KL_m() const { return matrix_->KL(); }
   double KT_m() const { return matrix_->KT(); }
@@ -81,8 +82,9 @@ class AssemblyConfig {
 
   MatrixXcd PlaneEBMat(const CSCPtrs& objCSs) const;
   MatrixXcd PlaneEDMat(const CSCPtrs& objCSs) const;
-  const MatrixXcd& ColloMat();  // The collocation matrix.
-  const MatrixXcd& DcMat();     // The combined matrix for DFT method.
+  const MatrixXcd& ColloMat();   // The collocation matrix.
+  const MatrixXcd& ColloDMat();  // The collocation matrix of boundary disp.
+  const MatrixXcd& DcMat();      // The combined matrix for DFT method.
   const MatrixXcd& TransMat();
 
   // Incident wave effects on the inner interfaces.
@@ -107,6 +109,8 @@ class AssemblyConfig {
   MatrixXcd CylinEBMat(const CSCPtrs& objCSs);
   MatrixXcd ResBvMat(const CSCPtrs& objCSs);
   MatrixXcd ResDvMat(const CSCPtrs& objCSs);
+  MatrixXcd ResBvMat_plane(const CSCPtrs& objCSs);
+  MatrixXcd ResDvMat_plane(const CSCPtrs& objCSs);
 
   const MatrixXcd& InToRstMat();
 
@@ -125,7 +129,7 @@ class AssemblyConfig {
 
  protected:
   const std::string ID_;
-  size_t num_coeff_{0}, num_bv_in_{0};
+  size_t num_coeff_{0}, num_bv_in_{0}, num_dv_in_{0};
   InhomoPtrs<T> inhomo_;
   InhomoCPtrs<T> inhomoC_;
   CSCPtrs node_in_;
@@ -139,10 +143,10 @@ class AssemblyConfig {
   mss::Boundary<T> boundary_;
   const input::AssemblyConfig& input_;
 
-  MatrixXcd cc_;
+  MatrixXcd cc_, cd_;  // Collocation matrices.
   MatrixXcd dc_;
   MatrixXcd Q_;
-  bool cc_computed_{false}, dc_computed_{false};
+  bool cc_computed_{false}, cd_computed_{false}, dc_computed_{false};
   bool Q_computed_{false};
 
   void add_inhomo();
@@ -256,7 +260,7 @@ MatrixXcd AssemblyConfig<T>::PlaneEBMat(const CSCPtrs& objCSs) const {
   // field at boundary pionts.
   // TODO: in-plane cases.
 
-  size_t N = node_in_.size() * T::NumBv;
+  size_t N = node_in_.size() * T::NumDv;
   size_t P = N;  // The number of plane waves may be less.
   MatrixXcd fit_m(N, P);
   for (size_t i = 0; i < N; i++)
@@ -281,13 +285,13 @@ MatrixXcd AssemblyConfig<T>::PlaneEDMat(const CSCPtrs& objCSs) const {
   for (size_t i = 0; i < N; i++)
     for (size_t j = 0; j < P; j++)
       fit_m.block<T::NumDv, 1>(i * T::NumDv, j) =
-        _planeWaveAP(node_in_[i], pi2 / P * j, matrix_).Dv();
+          _planeWaveAP(node_in_[i], pi2 / P * j, matrix_).Dv();
 
   MatrixXcd extra_m(objCSs.size() * T::NumDv, P);
   for (size_t i = 0; i < objCSs.size(); i++)
     for (size_t j = 0; j < P; j++)
       extra_m.block<T::NumDv, 1>(i * T::NumDv, j) =
-        _planeWaveAP(objCSs[i], pi2 / P * j, matrix_).Dv();
+          _planeWaveAP(objCSs[i], pi2 / P * j, matrix_).Dv();
 
   return extra_m * PseudoInverse(fit_m);
 }
@@ -374,6 +378,32 @@ const MatrixXcd& AssemblyConfig<T>::ColloMat() {
   cc_computed_ = true;
 
   return cc_;
+}
+
+template <typename T>
+const MatrixXcd& AssemblyConfig<T>::ColloDMat() {
+  if (cd_computed_) return cd_;
+
+  cd_.resize(NumDv_in(), NumCoeff());
+
+#ifdef NDEBUG
+#pragma omp parallel for
+#endif
+  for (size_t v = 0; v < inhomo_.size(); v++) {
+    int i = 0, j = 0, Nv = inhomo_[v]->NumCoeff();
+    for (size_t k = 0; k < v; k++) j += inhomo_[k]->NumCoeff();
+    for (size_t u = 0; u < inhomo_.size(); u++) {
+      int Nu = inhomo_[u]->NumDv();
+
+      cd_.block(i, j, Nu, Nv) = u == v ? inhomo_[v]->ColloDMat()
+                                       : -inhomo_[v]->ModeDMat(inhomo_[u]);
+      i += Nu;
+    }
+  }
+
+  cd_computed_ = true;
+
+  return cd_;
 }
 
 template <typename T>
@@ -538,6 +568,18 @@ MatrixXcd AssemblyConfig<T>::ResBvMat(const CSCPtrs& objCSs) {
 }
 
 template <typename T>
+MatrixXcd AssemblyConfig<T>::ResDvMat_plane(const CSCPtrs& objCSs) {
+  return ScatterDvMat(objCSs) + PlaneEDMat(objCSs);
+}
+
+template <typename T>
+MatrixXcd AssemblyConfig<T>::ResBvMat_plane(const CSCPtrs& objCSs) {
+  // Transformation from scattering coefficients to resultant boundary values.
+
+  return ScatterBvMat(objCSs) + PlaneEBMat();
+}
+
+template <typename T>
 void AssemblyConfig<T>::PrintCoeff(std::ostream& os) const {
   for (auto& i : inhomo_) i->PrintCoeff(os);
 }
@@ -549,6 +591,7 @@ void AssemblyConfig<T>::add_inhomo() {
   for (auto& i : inhomo_) {
     num_coeff_ += i->NumCoeff();
     num_bv_in_ += i->NumBv();
+    num_dv_in_ += i->NumDv();
     node_in_.insert(node_in_.end(), i->Node().begin(), i->Node().end());
     inhomoC_.push_back(i);
   }

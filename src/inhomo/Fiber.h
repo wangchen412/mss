@@ -45,6 +45,7 @@ class Fiber : public Inhomo<T> {
   const MatrixXcd& TransMat() const override { return config_->TransMat(); }
   size_t NumNode() const override { return config_->NumNode(); }
   size_t NumBv() const override { return config_->NumBv(); }
+  size_t NumDv() const override { return config_->NumDv(); }
   size_t NumCoeff() const override { return config_->NumCoeff(); }
   double Radius() const { return config_->Radius(); }
 

@@ -40,7 +40,7 @@ class PeriodicTest : public Test {
 };
 
 // Using Bessel J expansion.
-TEST_F(PeriodicTest, DISABLED_DtN_single_Cylindrical) {
+TEST_F(PeriodicTest, DtN_single_Cylindrical) {
   // z is the transformation from scattering wave expansion coefficients to
   // the boundary values of resultant wave field. The incident wave is
   // represented by the Bessel J expansion.
@@ -68,41 +68,42 @@ TEST_F(PeriodicTest, DISABLED_DtN_single_Cylindrical) {
 }
 
 // Using plane wave expansion.
-TEST_F(PeriodicTest, DISABLED_ColloDMat) {
+TEST_F(PeriodicTest, ColloDMat) {
   VectorXcd ref(inc.EffectDv(f.Node()));
   VectorXcd com(f.ColloDMat() * f.CSolve(inc.EffectBv(f.Node())));
   EXPECT_TRUE(ApproxVectRv(ref, com, 1e-10, 0, true));
 }
-// TEST_F(PeriodicTest, DISABLED_PlaneEBMat) {
-//   VectorXcd ref(inc.EffectBv(b2.Node()));
-//   VectorXcd com(b2.PlaneEBMat(f.Node()) * inc.EffectDv(f.Node()));
-//   EXPECT_TRUE(ApproxVectRv(ref, com, 1e-4, 0, true));
-// }
-// TEST_F(PeriodicTest, DISABLED_DtN_single_plane) {
-//   MatrixXcd z(f.ScatterBvMat(b2.Node()) +
-//               b2.PlaneEBMat(f.Node()) * f.ColloDMat());
-//   MatrixXcd z1(z.rows() / 2, z.cols());
-//   MatrixXcd z2(z.rows() / 2, z.cols());
+TEST_F(PeriodicTest, DtN_single_plane) {
+  input::Solution input(path("input.txt"));
+  Matrix matrix(input);
+  IncidentPlaneSH inc(matrix, input.incident()[0]);
+  AssemblyConfig<AP> ac(input.config(), &matrix);
 
-//   for (long i = 0; i < z.rows() / 2; i++) {
-//     z1.row(i) = z.row(i * 2);
-//     z2.row(i) = z.row(i * 2 + 1);
-//   }
+  MatrixXcd z(ac.ScatterBvMat(ac.Node()) +
+              ac.PlaneEBMat(ac.Node()) * ac.ColloDMat());
+  MatrixXcd z1(z.rows() / 2, z.cols());
+  MatrixXcd z2(z.rows() / 2, z.cols());
 
-//   MatrixXcd dtn(z2 * PseudoInverse(z1));
+  for (long i = 0; i < z.rows() / 2; i++) {
+    z1.row(i) = z.row(i * 2);
+    z2.row(i) = z.row(i * 2 + 1);
+  }
 
-//   f.SetCoeff(f.CSolve({&inc}));
-//   VectorXcd u(b2.NumNode()), t(b2.NumNode());
-//   for (size_t i = 0; i < b2.NumNode(); i++) {
-//     Vector2cd tmp = f.Scatter(b2.Node(i)).Bv() + inc.Effect(b2.Node(i)).Bv();
-//     u(i) = tmp(0);
-//     t(i) = tmp(1);
-//   }
-//   VectorXcd tt = dtn * u;
-//   EXPECT_TRUE(ApproxVectRv(t, tt, 1e-4, 0, true));
-// }
-TEST_F(PeriodicTest, DISABLED_DtN_single_cylindrical) {
-  input::Solution input{path("input.txt")};
+  MatrixXcd dtn(z2 * PseudoInverse(z1));
+
+  // f.SetCoeff(f.CSolve({&inc}));
+  ac.CSolve({&inc});
+  VectorXcd u(ac.NumNode()), t(ac.NumNode());
+  for (size_t i = 0; i < ac.NumNode(); i++) {
+    Vector2cd tmp = ac.Resultant(ac.Node(i), {&inc}).Bv();
+    u(i) = tmp(0);
+    t(i) = tmp(1);
+  }
+  VectorXcd tt = dtn * u;
+  EXPECT_TRUE(ApproxVectRv(t, tt, 1e-4, 0, true));
+}
+TEST_F(PeriodicTest, DtN_single_cylindrical) {
+  input::Solution input(path("input.txt"));
   Matrix matrix(input);
   IncidentPlaneSH inc(matrix, input.incident()[0]);
   AssemblyConfig<AP> ac(input.config(), &matrix);
@@ -157,7 +158,7 @@ TEST_F(PeriodicTest, DISABLED_Eigenvalue_DtN_check) {
   VectorXcd tt = dtn * u;
   EXPECT_TRUE(ApproxVectRv(t, tt, 1e-4, 0, true));
 }
-TEST_F(PeriodicTest, DISABLED_Eigenvalue_single) {
+TEST_F(PeriodicTest, Eigenvalue_single) {
   input::Solution input{path("input2.txt")};
   std::ifstream data(path("BlochK_45.dat"));
   std::string tmp;
@@ -209,7 +210,7 @@ TEST_F(PeriodicTest, DISABLED_Eigenvalue_single) {
 
   EXPECT_TRUE(ApproxVectRv(ref_k, com_k, 2e-2));
 }
-TEST_F(PeriodicTest, DISABLED_ResMat_multiple) {
+TEST_F(PeriodicTest, ResMat_multiple_Cylindrical) {
   // A preliminary check for the ResMat.
 
   input::Solution input{path("input2.txt")};
@@ -227,14 +228,14 @@ TEST_F(PeriodicTest, DISABLED_ResMat_multiple) {
 
   EXPECT_TRUE(ApproxVectRv(ref, com, 1e-4, 0, true));
 }
-TEST_F(PeriodicTest, DISABLED_ResMat_multiple_DtN) {
+TEST_F(PeriodicTest, ResMat_multiple_DtN) {
   // Check if the relation derived can be used in BEM solving.
 
   input::Solution input{path("input2.txt")};
   Matrix matrix(input);
   IncidentPlaneSH inc(matrix, input.incident()[0]);
-  AssemblyConfig<AP> ac(input.assembly_config()[1], &matrix);
-  AssemblyConfig<AP> ac_hi(input.assembly_config()[2], &matrix);
+  AssemblyConfig<AP> ac(input.assembly_config("ResMat_1"), &matrix);
+  AssemblyConfig<AP> ac_hi(input.assembly_config("ResMat_1_hi"), &matrix);
   CSCPtrs node = ac.EdgeNode();
   MatrixXcd z(ac.ResBvMat(node));
 
@@ -255,8 +256,8 @@ TEST_F(PeriodicTest, DISABLED_ResMat_multiple_DtN) {
     t_hi(i) = tmp(1);
   }
 
-  // ApproxVectRv(w, w_hi, 1e-8, 0, true);
-  // ApproxVectRv(t, t_hi, 1e-8, 0, true);
+  ApproxVectRv(w, w_hi, 1e-8, 0, true);
+  ApproxVectRv(t, t_hi, 1e-8, 0, true);
 
   // VectorXcd coeff_r = ac.ScatterCoeff();
   // VectorXcd coeff_w = zw.jacobiSvd(40).solve(w);
@@ -283,14 +284,14 @@ TEST_F(PeriodicTest, DISABLED_ResMat_multiple_DtN) {
   // writeMatrix(A, "A");
   // writeMatrix(B, "B");
 }
-TEST_F(PeriodicTest, DISABLED_ResMat_Larger_DtN) {
+TEST_F(PeriodicTest, ResMat_Larger_DtN) {
   // Check if the DtN map derived can be derived for with larger cells.
 
   input::Solution input{path("input2.txt")};
   Matrix matrix(input);
   IncidentPlaneSH inc(matrix, input.incident()[0]);
-  AssemblyConfig<AP> ac(input.assembly_config()[3], &matrix);
-  AssemblyConfig<AP> ac_hi(input.assembly_config()[4], &matrix);
+  AssemblyConfig<AP> ac(input.assembly_config("ResMat_2"), &matrix);
+  AssemblyConfig<AP> ac_hi(input.assembly_config("ResMat_2_hi"), &matrix);
   CSCPtrs node = ac.EdgeNode();
   MatrixXcd z(ac.ResBvMat(node));
   MatrixXcd zw(z.rows() / 2, z.cols()), zt(z.rows() / 2, z.cols());
@@ -325,7 +326,7 @@ TEST_F(PeriodicTest, DISABLED_ResMat_Larger_DtN) {
 
   EXPECT_TRUE(ApproxVectRv(t, tt, 2e-2));
 }
-TEST_F(PeriodicTest, DISABLED_Eigenvalue_multiple_DtN) {
+TEST_F(PeriodicTest, Eigenvalue_multiple_DtN) {
   input::Solution input{path("input2.txt")};
   Matrix matrix(input);
   AssemblyConfig<AP> ac(input.assembly_config()[1], &matrix);
@@ -356,7 +357,7 @@ TEST_F(PeriodicTest, DISABLED_Eigenvalue_multiple_DtN) {
   writeMatrix(A, "A");
   writeMatrix(B, "B");
 }
-TEST_F(PeriodicTest, DISABLED_Eigenvalue_multiple) {
+TEST_F(PeriodicTest, Eigenvalue_multiple) {
   input::Solution input{path("input2.txt")};
   Matrix matrix(input);
   AssemblyConfig<AP> ac(input.assembly_config()[1], &matrix);
@@ -373,7 +374,7 @@ TEST_F(PeriodicTest, DISABLED_Eigenvalue_multiple) {
   writeMatrix(z2, "z2");
 }
 
-TEST_F(PeriodicTest, ResMat_improve) {
+TEST_F(PeriodicTest, DISABLED_ResMat_improve) {
   input::Solution input{path("input2.txt")};
   Matrix matrix(input);
   IncidentPlaneSH inc(matrix, input.incident()[0]);
@@ -455,7 +456,6 @@ TEST_F(PeriodicTest, DISABLED_Eigen_Disp) {
   std::cout << "z: " << ConditionNum(z) << std::endl;
   // std::cout << "z11: " << ConditionNum(z11) << std::endl;
   // std::cout << "z22: " << ConditionNum(z22) << std::endl;
-
 
   // MatrixXcd z(z1.rows() + z2.rows(), z1.cols());
   // z << z1, z2;
