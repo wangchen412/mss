@@ -261,7 +261,8 @@ MatrixXcd AssemblyConfig<T>::PlaneEBMat(const CSCPtrs& objCSs) const {
   // TODO: in-plane cases.
 
   size_t N = node_in_.size() * T::NumDv;
-  size_t P = N;  // The number of plane waves may be less.
+  // size_t P = N;  // The number of plane waves may be less.
+  size_t P = 40;  // TODO
   MatrixXcd fit_m(N, P);
   for (size_t i = 0; i < N; i++)
     for (size_t j = 0; j < P; j++)
@@ -280,7 +281,8 @@ MatrixXcd AssemblyConfig<T>::PlaneEBMat(const CSCPtrs& objCSs) const {
 template <typename T>
 MatrixXcd AssemblyConfig<T>::PlaneEDMat(const CSCPtrs& objCSs) const {
   size_t N = node_in_.size() * T::NumDv;
-  size_t P = N;  // The number of plane waves may be less.
+  // size_t P = N;  // The number of plane waves may be less.
+  size_t P = 40;  // TODO
   MatrixXcd fit_m(N, P);
   for (size_t i = 0; i < N; i++)
     for (size_t j = 0; j < P; j++)
@@ -564,19 +566,18 @@ MatrixXcd AssemblyConfig<T>::ResBvMat(const CSCPtrs& objCSs) {
   // Transformation from scattering coefficients to resultant boundary values.
 
   return ScatterBvMat(objCSs) + CylinEBMat(objCSs);
-  // return ScatterBvMat(objCSs) + PlaneEBMat();
 }
 
 template <typename T>
 MatrixXcd AssemblyConfig<T>::ResDvMat_plane(const CSCPtrs& objCSs) {
-  return ScatterDvMat(objCSs) + PlaneEDMat(objCSs);
+  return ScatterDvMat(objCSs) + PlaneEDMat(objCSs) * ColloDMat();
 }
 
 template <typename T>
 MatrixXcd AssemblyConfig<T>::ResBvMat_plane(const CSCPtrs& objCSs) {
   // Transformation from scattering coefficients to resultant boundary values.
 
-  return ScatterBvMat(objCSs) + PlaneEBMat();
+  return ScatterBvMat(objCSs) + PlaneEBMat(objCSs) * ColloDMat();
 }
 
 template <typename T>

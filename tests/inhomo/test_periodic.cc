@@ -23,7 +23,6 @@ namespace mss {
 
 namespace test {
 
-// Pseudo-incident wave field expansion.
 class PeriodicTest : public Test {
  protected:
   PeriodicTest() : Test(__FILE__, "periodic") {}
@@ -40,7 +39,7 @@ class PeriodicTest : public Test {
 };
 
 // Using Bessel J expansion.
-TEST_F(PeriodicTest, DtN_single_Cylindrical) {
+TEST_F(PeriodicTest, DISABLED_DtN_single_Cylindrical) {
   // z is the transformation from scattering wave expansion coefficients to
   // the boundary values of resultant wave field. The incident wave is
   // represented by the Bessel J expansion.
@@ -68,7 +67,7 @@ TEST_F(PeriodicTest, DtN_single_Cylindrical) {
 }
 
 // Using plane wave expansion.
-TEST_F(PeriodicTest, ColloDMat) {
+TEST_F(PeriodicTest, DISABLED_ColloDMat) {
   VectorXcd ref(inc.EffectDv(f.Node()));
   VectorXcd com(f.ColloDMat() * f.CSolve(inc.EffectBv(f.Node())));
   EXPECT_TRUE(ApproxVectRv(ref, com, 1e-10, 0, true));
@@ -79,8 +78,7 @@ TEST_F(PeriodicTest, DtN_single_plane) {
   IncidentPlaneSH inc(matrix, input.incident()[0]);
   AssemblyConfig<AP> ac(input.config(), &matrix);
 
-  MatrixXcd z(ac.ScatterBvMat(ac.Node()) +
-              ac.PlaneEBMat(ac.Node()) * ac.ColloDMat());
+  MatrixXcd z(ac.ResBvMat_plane(ac.Node()));
   MatrixXcd z1(z.rows() / 2, z.cols());
   MatrixXcd z2(z.rows() / 2, z.cols());
 
@@ -100,9 +98,9 @@ TEST_F(PeriodicTest, DtN_single_plane) {
     t(i) = tmp(1);
   }
   VectorXcd tt = dtn * u;
-  EXPECT_TRUE(ApproxVectRv(t, tt, 1e-4, 0, true));
+  EXPECT_TRUE(ApproxVectRv(t, tt, 2e-5, 0, true));
 }
-TEST_F(PeriodicTest, DtN_single_cylindrical) {
+TEST_F(PeriodicTest, DISABLED_DtN_single_cylindrical) {
   input::Solution input(path("input.txt"));
   Matrix matrix(input);
   IncidentPlaneSH inc(matrix, input.incident()[0]);
@@ -158,7 +156,7 @@ TEST_F(PeriodicTest, DISABLED_Eigenvalue_DtN_check) {
   VectorXcd tt = dtn * u;
   EXPECT_TRUE(ApproxVectRv(t, tt, 1e-4, 0, true));
 }
-TEST_F(PeriodicTest, Eigenvalue_single) {
+TEST_F(PeriodicTest, DISABLED_Eigenvalue_single) {
   input::Solution input{path("input2.txt")};
   std::ifstream data(path("BlochK_45.dat"));
   std::string tmp;
@@ -210,7 +208,7 @@ TEST_F(PeriodicTest, Eigenvalue_single) {
 
   EXPECT_TRUE(ApproxVectRv(ref_k, com_k, 2e-2));
 }
-TEST_F(PeriodicTest, ResMat_multiple_Cylindrical) {
+TEST_F(PeriodicTest, DISABLED_ResMat_multiple_cylindrical) {
   // A preliminary check for the ResMat.
 
   input::Solution input{path("input2.txt")};
@@ -228,7 +226,7 @@ TEST_F(PeriodicTest, ResMat_multiple_Cylindrical) {
 
   EXPECT_TRUE(ApproxVectRv(ref, com, 1e-4, 0, true));
 }
-TEST_F(PeriodicTest, ResMat_multiple_DtN) {
+TEST_F(PeriodicTest, DISABLED_ResMat_multiple_DtN_cylindrical) {
   // Check if the relation derived can be used in BEM solving.
 
   input::Solution input{path("input2.txt")};
@@ -284,7 +282,131 @@ TEST_F(PeriodicTest, ResMat_multiple_DtN) {
   // writeMatrix(A, "A");
   // writeMatrix(B, "B");
 }
-TEST_F(PeriodicTest, ResMat_Larger_DtN) {
+TEST_F(PeriodicTest, ResMat_multiple_plane) {
+  input::Solution input(path("input3.txt"));
+  Matrix matrix(input);
+  IncidentPlaneSH inc(matrix, input.incident()[0]);
+
+  AssemblyConfig<AP> ac(input.assembly_config("Multiple"), &matrix);
+  CSCPtrs node = ac.EdgeNode();
+  MatrixXcd z(ac.ResBvMat_plane(node));
+
+  ac.CSolve({&inc});
+  VectorXcd com = z * ac.ScatterCoeff();
+  VectorXcd ref(2 * node.size());
+  for (size_t i = 0; i < node.size(); i++)
+    ref.segment<2>(2 * i) = ac.Resultant(node[i], {&inc}).Bv();
+
+  EXPECT_TRUE(ApproxVectRv(ref, com, 3e-5, 0, true));
+}
+TEST_F(PeriodicTest, ResMat_multiple_DtN_plane) {
+  input::Solution input(path("input3.txt"));
+  Matrix matrix(input);
+  IncidentPlaneSH inc(matrix, input.incident()[0]);
+
+  AssemblyConfig<AP> ac(input.assembly_config("Multiple"), &matrix);
+  CSCPtrs node = ac.EdgeNode();
+  MatrixXcd z(ac.ResBvMat_plane(node));
+  MatrixXcd zw(z.rows() / 2, z.cols()), zt(z.rows() / 2, z.cols());
+  for (long i = 0; i < zw.rows(); i++)
+    zw.row(i) = z.row(2 * i), zt.row(i) = z.row(2 * i + 1);
+
+  ac.CSolve({&inc});
+  VectorXcd w(node.size()), t(node.size());
+  for (size_t i = 0; i < node.size(); i++) {
+    Vector2cd tmp = ac.Resultant(node[i], {&inc}).Bv();
+    w(i) = tmp(0);
+    t(i) = tmp(1);
+  }
+  MatrixXcd DtN = zt * PseudoInverse(zw);
+  VectorXcd tt = DtN * w;
+  EXPECT_TRUE(ApproxVectRv(t, tt, 1e-3, 0, true));
+}
+TEST_F(PeriodicTest, Eigenvalue_single_plane) {
+  input::Solution input(path("input3.txt"));
+  std::ifstream data(path("BlochK_45.dat"));
+  std::string tmp;
+  Eigen::VectorXd omega(14), ref_k(14), com_k(14);
+  skipUntil(data, "omega:");
+  for (int i = 0; i < 14; i++) {
+    getline(data, tmp);
+    std::stringstream(tmp) >> omega(i);
+  }
+  skipUntil(data, "k:");
+  for (int i = 0; i < 14; i++) {
+    getline(data, tmp);
+    std::stringstream(tmp) >> ref_k(i);
+  }
+
+  Material nickle(input.material()[0]);
+  Material aluminum(input.material()[1]);
+
+  for (int n = 0; n < 14; n++) {
+    Matrix matrix(aluminum, omega(n));
+    AssemblyConfig<AP> ac(input.assembly_config("Single"), &matrix);
+    ac.Boundary().ReverseEdge();
+
+    MatrixXcd z1(2 * (ac.Edge(0).size() + ac.Edge(1).size()), ac.NumCoeff());
+    MatrixXcd z2(2 * (ac.Edge(2).size() + ac.Edge(3).size()), ac.NumCoeff());
+    z1 << ac.ResBvMat_plane(ac.Edge(0)), ac.ResBvMat_plane(ac.Edge(1));
+    z2 << ac.ResBvMat_plane(ac.Edge(2)), ac.ResBvMat_plane(ac.Edge(3));
+    for (long i = 1; i < z1.rows(); i += 2) z1.row(i) *= -1;
+    for (long i = 0; i < z1.rows(); i++) {
+      dcomp p = z1.row(i).array().mean();
+      // dcomp p = GeometricMean(z1.row(i).array());
+      z1.row(i) /= p;
+      z2.row(i) /= p;
+    }
+
+    MatrixXcd A(PseudoInverse(z1) * z2);
+    Eigen::ComplexEigenSolver<MatrixXcd> ces;
+    ces.compute(A);
+    VectorXcd ev = ces.eigenvalues();
+    VectorXcd mv = ev.array().abs();
+    auto ue = FindUnitEigenvalue(ev, 0.01);
+    if (ue.empty()) exit_error_msg({"No unit eigenvalues."});
+
+    if ((log(ev(ue[0])) / ii).real() > 0)
+      com_k(n) = (log(ev(ue[0])) / ii / pi).real();
+    else
+      com_k(n) = (log(ev(ue[1])) / ii / pi).real();
+  }
+
+  EXPECT_TRUE(ApproxVectRv(ref_k, com_k, 2e-2));
+}
+TEST_F(PeriodicTest, Eigenvalue_multiple_plane) {
+  input::Solution input(path("input3.txt"));
+  Matrix matrix(input);
+  AssemblyConfig<AP> ac(input.assembly_config("Test"), &matrix);
+  ac.Boundary().ReverseEdge();
+
+  MatrixXcd z1(2 * (ac.Edge(0).size() + ac.Edge(1).size()), ac.NumCoeff());
+  MatrixXcd z2(2 * (ac.Edge(2).size() + ac.Edge(3).size()), ac.NumCoeff());
+  z1 << ac.ResBvMat_plane(ac.Edge(0)), ac.ResBvMat_plane(ac.Edge(1));
+  z2 << ac.ResBvMat_plane(ac.Edge(2)), ac.ResBvMat_plane(ac.Edge(3));
+  for (long i = 1; i < z1.rows(); i += 2) z1.row(i) *= -1;
+  for (long i = 0; i < z1.rows(); i++) {
+    dcomp p = z1.row(i).array().mean();
+    // dcomp p = GeometricMean(z1.row(i).array());
+    z1.row(i) /= p;
+    z2.row(i) /= p;
+  }
+
+  writeMatrix(z1, "z1");
+  writeMatrix(z2, "z2");
+
+  MatrixXcd A(PseudoInverse(z1) * z2);
+  Eigen::ComplexEigenSolver<MatrixXcd> ces;
+  ces.compute(A);
+  VectorXcd ev = ces.eigenvalues();
+  VectorXcd mv = ev.array().abs();
+
+  for (long i = 0; i < ev.size(); i++)
+    std::cout << mv(i) << "\t" << log(ev(i)) / ii / pi << std::endl;
+
+}
+
+TEST_F(PeriodicTest, DISABLED_ResMat_Larger_DtN) {
   // Check if the DtN map derived can be derived for with larger cells.
 
   input::Solution input{path("input2.txt")};
@@ -326,7 +448,7 @@ TEST_F(PeriodicTest, ResMat_Larger_DtN) {
 
   EXPECT_TRUE(ApproxVectRv(t, tt, 2e-2));
 }
-TEST_F(PeriodicTest, Eigenvalue_multiple_DtN) {
+TEST_F(PeriodicTest, DISABLED_Eigenvalue_multiple_DtN) {
   input::Solution input{path("input2.txt")};
   Matrix matrix(input);
   AssemblyConfig<AP> ac(input.assembly_config()[1], &matrix);
@@ -357,7 +479,7 @@ TEST_F(PeriodicTest, Eigenvalue_multiple_DtN) {
   writeMatrix(A, "A");
   writeMatrix(B, "B");
 }
-TEST_F(PeriodicTest, Eigenvalue_multiple) {
+TEST_F(PeriodicTest, DISABLED_Eigenvalue_multiple) {
   input::Solution input{path("input2.txt")};
   Matrix matrix(input);
   AssemblyConfig<AP> ac(input.assembly_config()[1], &matrix);
