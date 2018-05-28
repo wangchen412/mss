@@ -72,7 +72,7 @@ TEST_F(PeriodicTest, DISABLED_ColloDMat) {
   VectorXcd com(f.ColloDMat() * f.CSolve(inc.EffectBv(f.Node())));
   EXPECT_TRUE(ApproxVectRv(ref, com, 1e-10, 0, true));
 }
-TEST_F(PeriodicTest, DtN_single_plane) {
+TEST_F(PeriodicTest, DISABLED_DtN_single_plane) {
   input::Solution input(path("input.txt"));
   Matrix matrix(input);
   IncidentPlaneSH inc(matrix, input.incident()[0]);
@@ -282,7 +282,7 @@ TEST_F(PeriodicTest, DISABLED_ResMat_multiple_DtN_cylindrical) {
   // writeMatrix(A, "A");
   // writeMatrix(B, "B");
 }
-TEST_F(PeriodicTest, ResMat_multiple_plane) {
+TEST_F(PeriodicTest, DISABLED_ResMat_multiple_plane) {
   input::Solution input(path("input3.txt"));
   Matrix matrix(input);
   IncidentPlaneSH inc(matrix, input.incident()[0]);
@@ -299,7 +299,7 @@ TEST_F(PeriodicTest, ResMat_multiple_plane) {
 
   EXPECT_TRUE(ApproxVectRv(ref, com, 3e-5, 0, true));
 }
-TEST_F(PeriodicTest, ResMat_multiple_DtN_plane) {
+TEST_F(PeriodicTest, DISABLED_ResMat_multiple_DtN_plane) {
   input::Solution input(path("input3.txt"));
   Matrix matrix(input);
   IncidentPlaneSH inc(matrix, input.incident()[0]);
@@ -322,7 +322,7 @@ TEST_F(PeriodicTest, ResMat_multiple_DtN_plane) {
   VectorXcd tt = DtN * w;
   EXPECT_TRUE(ApproxVectRv(t, tt, 1e-3, 0, true));
 }
-TEST_F(PeriodicTest, Eigenvalue_single_plane) {
+TEST_F(PeriodicTest, DISABLED_Eigenvalue_single_plane) {
   input::Solution input(path("input3.txt"));
   std::ifstream data(path("BlochK_45.dat"));
   std::string tmp;
@@ -386,8 +386,8 @@ TEST_F(PeriodicTest, Eigenvalue_multiple_plane) {
   z2 << ac.ResBvMat_plane(ac.Edge(2)), ac.ResBvMat_plane(ac.Edge(3));
   for (long i = 1; i < z1.rows(); i += 2) z1.row(i) *= -1;
   for (long i = 0; i < z1.rows(); i++) {
-    dcomp p = z1.row(i).array().mean();
-    // dcomp p = GeometricMean(z1.row(i).array());
+    // dcomp p = z1.row(i).array().mean();
+    dcomp p = GeometricMean(z1.row(i).array());
     z1.row(i) /= p;
     z2.row(i) /= p;
   }
@@ -401,9 +401,22 @@ TEST_F(PeriodicTest, Eigenvalue_multiple_plane) {
   VectorXcd ev = ces.eigenvalues();
   VectorXcd mv = ev.array().abs();
 
-  for (long i = 0; i < ev.size(); i++)
-    std::cout << mv(i) << "\t" << log(ev(i)) / ii / pi << std::endl;
+  Eigen::JacobiSVD<MatrixXcd> svd = z1.jacobiSvd(40);
+  MatrixXcd u = svd.matrixU();
 
+  std::ofstream file("det.dat");
+  for (int i = 0; i < 100000; ++i) {
+    dcomp j = exp(ii * i * pi2 / 100000);
+    MatrixXcd zz = u.adjoint() * z2 - u.adjoint() * z1 * j;
+    dcomp d = zz.determinant();
+    // std::cout << std::abs(j - ev(9)) << "\t" << std::abs(d) << "\t"
+    //           << i * pi2 / 100000 << "\t" << std::abs(j - ev(10))
+    //           << std::endl;
+
+    file << std::abs(d) << std::endl;
+  }
+
+  file.close();
 }
 
 TEST_F(PeriodicTest, DISABLED_ResMat_Larger_DtN) {
