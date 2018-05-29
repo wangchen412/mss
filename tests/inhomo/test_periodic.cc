@@ -356,7 +356,7 @@ TEST_F(PeriodicTest, DISABLED_Eigenvalue_multiple_DtN) {
   writeMatrix(A, "A");
   writeMatrix(B, "B");
 }
-TEST_F(PeriodicTest, DISABLED_Eigenvalue_multiple) {
+TEST_F(PeriodicTest, Eigenvalue_multiple) {
   input::Solution input{path("input2.txt")};
   Matrix matrix(input);
   AssemblyConfig<AP> ac(input.assembly_config()[1], &matrix);
@@ -369,11 +369,31 @@ TEST_F(PeriodicTest, DISABLED_Eigenvalue_multiple) {
   for (long i = 1; i < z1.rows(); i += 2) z1.row(i) *= -1;
   MatrixXcd z(z1.rows() + z2.rows(), z1.cols());
 
-  writeMatrix(z1, "z1");
-  writeMatrix(z2, "z2");
+  for (long i = 0; i < z1.rows(); i++) {
+    dcomp p = z1.row(i).array().mean();
+    // dcomp p = GeometricMean(z1.row(i).array());
+    z1.row(i) /= p;
+    z2.row(i) /= p;
+  }
+
+  // writeMatrix(z1, "z1");
+  // writeMatrix(z2, "z2");
+
+  Eigen::JacobiSVD<MatrixXcd> svd(z1.jacobiSvd(40));
+  MatrixXcd u = svd.matrixU();
+
+  std::ofstream file("det.dat");
+  int N = 10000;
+  for (int i = 0; i < N; i++) {
+    dcomp j = exp(ii * i * pi2 / N);
+    MatrixXcd zz = u.adjoint() * z2 - u.adjoint() * z1 * j;
+    dcomp d = zz.determinant();
+    file << std::abs(d) << std::endl;
+  }
+  file.close();
 }
 
-TEST_F(PeriodicTest, ResMat_improve) {
+TEST_F(PeriodicTest, DISABLED_ResMat_improve) {
   input::Solution input{path("input2.txt")};
   Matrix matrix(input);
   IncidentPlaneSH inc(matrix, input.incident()[0]);
@@ -400,7 +420,7 @@ TEST_F(PeriodicTest, ResMat_improve) {
   ApproxVectRv(w, ww, 1e-40, 0, true, disp_file);
   ApproxVectRv(t, tt, 1e-40, 0, true, trac_file);
 }
-TEST_F(PeriodicTest, Eigen_Disp) {
+TEST_F(PeriodicTest, DISABLED_Eigen_Disp) {
   input::Solution input{path("input2.txt")};
   Matrix matrix(input);
   AssemblyConfig<AP> ac(input.assembly_config()[0], &matrix);
@@ -455,7 +475,6 @@ TEST_F(PeriodicTest, Eigen_Disp) {
   std::cout << "z: " << ConditionNum(z) << std::endl;
   // std::cout << "z11: " << ConditionNum(z11) << std::endl;
   // std::cout << "z22: " << ConditionNum(z22) << std::endl;
-
 
   // MatrixXcd z(z1.rows() + z2.rows(), z1.cols());
   // z << z1, z2;
