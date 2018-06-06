@@ -38,7 +38,7 @@ class IncidentPlaneSH : public IncidentPlane<AP>, public IncidentS<AP> {
   StateAP Effect(const PosiVect& position) const override {
     // The effect of the incident plane S-wave at the point with the position
     // in the global CS.
-
+    std::cout << "k: " << k_ << std::endl;
     dcomp e = _phaseGLB(position, k_);
     return _stateGLB(amp_ * e, k_);
   }

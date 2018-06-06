@@ -63,6 +63,13 @@ class IncidentPlane : virtual public Incident<T> {
   StateAP _stateGLB(const dcomp& w, double k) const {
     // Return the State from known displacement w.
 
+    std::cout << "w: " << w << std::endl;
+    std::cout << "k: " << k << std::endl;
+    std::cout << "1: " << this->m.C(c_, s_) << std::endl;
+    std::cout << "2: " << this->m.C(c_, s_) * ii << std::endl;
+    // std::cout << "3: " << this->m.C(c_, s_) * ii * k << std::endl;
+    // std::cout << "3: " << this->m.C(c_, s_) * ii * w << std::endl;
+
     StressAP t = this->m.C(c_, s_) * ii * k * w;
     return StateAP(w, t);
   }

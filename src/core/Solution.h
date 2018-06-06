@@ -45,6 +45,7 @@ class Solution {
   T Resultant(const CS* objCS) const;
 
   const AssemblyConfig<T>& Config() const { return config_; }
+  AssemblyConfig<T>& Config_v() { return config_; }
   const InciCPtrs<T>& Incident() const { return incident_; }
   const InhomoCPtrs<T>& inhomo() const { return Config().inhomo(); }
   const Inhomo<T>* inhomo(size_t sn) const;
