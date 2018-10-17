@@ -20,9 +20,9 @@
 #ifndef MSS_SOLUTION_H
 #define MSS_SOLUTION_H
 
-#include "../incident/IncidentInput.h"
 #include "../inhomo/Assembly.h"
 #include "../pre/Input.h"
+#include "Incident.h"
 
 namespace mss {
 
@@ -87,7 +87,7 @@ const Inhomo<T>* Solution<T>::inhomo(size_t sn) const {
 
 template <typename T>
 void Solution<T>::add_incident() {
-  IncidentInput<T> f(matrix_);
+  IncidentGen<T> f(matrix_);
   for (auto& i : input_.incident()) incident_.push_back(f(i));
 }
 

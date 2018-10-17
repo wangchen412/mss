@@ -133,7 +133,7 @@ TEST_F(FiberTest, PseudoInciCoeff) {
     outer.segment<2>(2 * i) =
         f2.Scatter(f2.Node(i)).Bv() + f2.Pseudo(f2.Node(i)).Bv();
   }
-  EXPECT_TRUE(ApproxVectRv(inner, outer));
+  EXPECT_TRUE(ApproxVectRv(inner, outer, 1e-13));
 }
 TEST_F(FiberTest, RMatrix) {
   VectorXcd ref(122);

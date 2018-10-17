@@ -86,6 +86,21 @@ class ExpFunctor {
   double n;
 };
 
+// class PlaneEigenFunc {
+//  public:
+//   PlaneEigenFunc(double kx, double ky) : kx_(kx), ky_(ky) {}
+
+//   dcomp operator()(const PosiVect& r) const {
+//     return exp(ii * (kx_ * r.x + ky_ * r.y));
+//   }
+//   dcomp dx(const PosiVect& r) const { return ii * kx_ * (*this)(r); }
+//   dcomp dy(const PosiVect& r) const { return ii * ky_ * (*this)(r); }
+
+//  private:
+//   double kx_, ky_;
+// };
+
+// TODO Rename to CylinEigenFunc
 class EigenFunctor {
   /// The functor for the eigenfunction of scattering problem in cylindrical
   /// CS. Eigenfunction: Bessel(n, k * r) * exp(ii * n * t).

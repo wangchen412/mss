@@ -20,7 +20,7 @@
 #ifndef MSS_ASSEMBLYCONFIG_H
 #define MSS_ASSEMBLYCONFIG_H
 
-#include "../incident/IncidentPlane.h"
+#include "../core/Incident.h"
 #include "../pre/Input.h"
 #include "Boundary.h"
 #include "Fiber.h"

@@ -20,9 +20,9 @@
 #ifndef MSS_FIBERCONFIG_H
 #define MSS_FIBERCONFIG_H
 
+#include "../core/Incident.h"
 #include "../core/Matrix.h"
 #include "../core/Modes.h"
-#include "../incident/Incident.h"
 #include "../pre/Input.h"
 
 namespace mss {

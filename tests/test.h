@@ -58,6 +58,9 @@ class Test : public testing::Test {
   const CSCPtrs& SamplePts(int i = 0) const { return *sp_[i]; }
   const CSCPtrs& SamplePtsBack() const { return *sp_.back(); }
 
+  template <typename T>
+  MatrixXcd Extract(const std::vector<T>& states) const;
+
   std::string path_;          // The path to the data directory.
   std::vector<CSCPtrs*> sp_;  // The sample points.
 
@@ -72,12 +75,16 @@ class Test : public testing::Test {
 template <typename T>
 void Test::ReadSample(const std::string& fn, std::vector<T>& ref, int s) {
   std::ifstream file(path(fn));
-  skip(file, s);
-  ReadSample(file, ref);
+  ReadSample(file, ref, s);
 }
 
 template <typename T>
 void Test::ReadSample(std::ifstream& file, std::vector<T>& ref, int s) {
+  // Read sample points from a file, then:
+  // 1. Create a new empty vector at the end of sp_ (sp_ is a 2D vector of
+  //    sample points), and put the points read from the file into it.
+  // 2. Put the states read from the file into the vector "ref".
+
   skip(file, s);
   sp_.push_back(new CSCPtrs);
   std::string ts;
@@ -96,6 +103,31 @@ inline void Test::ReadCoeff(const std::string& fn, VectorXcd& ref) {
   std::ifstream file(path(fn));
   for (int i = 0; i < ref.size(); i++) file >> ref(i);
   file.close();
+}
+
+template <>
+MatrixXcd Test::Extract(const std::vector<StateIP>& s) const {
+  MatrixXcd rst(s.size(), 6);
+  for (size_t i = 0; i < s.size(); i++) {
+    rst(i, 0) = s[i].AngleGLB();
+    rst(i, 1) = s[i].Displacement().x;
+    rst(i, 2) = s[i].Displacement().y;
+    rst(i, 3) = s[i].Stress().xx;
+    rst(i, 4) = s[i].Stress().yy;
+    rst(i, 5) = s[i].Stress().xy;
+  }
+  return rst;
+}
+template <>
+MatrixXcd Test::Extract(const std::vector<StateAP>& s) const {
+  MatrixXcd rst(s.size(), 4);
+  for (size_t i = 0; i < s.size(); i++) {
+    rst(i, 0) = s[i].AngleGLB();
+    rst(i, 1) = s[i].Displacement().x;
+    rst(i, 2) = s[i].Stress().x;
+    rst(i, 3) = s[i].Stress().y;
+  }
+  return rst;
 }
 
 }  // namespace test

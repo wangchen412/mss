@@ -23,7 +23,7 @@
 #ifndef MSS_INHOMO_H
 #define MSS_INHOMO_H
 
-#include "../incident/Incident.h"
+#include "../core/Incident.h"
 
 namespace mss {
 

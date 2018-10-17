@@ -25,16 +25,16 @@
 
 namespace mss {
 
-using Eigen::VectorXcd;
-
+// Cylindrical modes
+// TODO Rename to CylinL and CylinT
 template <typename T>
 T ModeL(const CS*, const CS*, const EigenFunctor&, const Material&);
 template <typename T>
 T ModeT(const CS*, const CS*, const EigenFunctor&, const Material&);
 
 template <>
-inline StateIP ModeL<IP>(const CS* localCS, const CS* objCS,
-                         const EigenFunctor& f, const Material& m) {
+StateIP ModeL<IP>(const CS* localCS, const CS* objCS, const EigenFunctor& f,
+                  const Material& m) {
   /// Return the effect of the longitude mode in in-plane problems.
 
   // Position in the local CS, which is seen as a polar CS:
@@ -57,8 +57,8 @@ inline StateIP ModeL<IP>(const CS* localCS, const CS* objCS,
   return StateIP(ur, ut, t, &cs).in(objCS);
 }
 template <>
-inline StateIP ModeT<IP>(const CS* localCS, const CS* objCS,
-                         const EigenFunctor& f, const class Material& m) {
+StateIP ModeT<IP>(const CS* localCS, const CS* objCS, const EigenFunctor& f,
+                  const class Material& m) {
   /// Return the effect of the transverse mode in in-plane problems.
 
   // Position in the local CS, which is seen as a polar CS:
@@ -81,8 +81,8 @@ inline StateIP ModeT<IP>(const CS* localCS, const CS* objCS,
   return StateIP(ur, ut, t, &cs).in(objCS);
 }
 template <>
-inline StateAP ModeT<AP>(const CS* localCS, const CS* objCS,
-                         const EigenFunctor& f, const class Material& m) {
+StateAP ModeT<AP>(const CS* localCS, const CS* objCS, const EigenFunctor& f,
+                  const class Material& m) {
   /// Return the effect of the transverse mode in antiplane problems.
 
   // Position in the local CS, which is seen as a polar CS:
@@ -103,14 +103,77 @@ inline StateAP ModeT<AP>(const CS* localCS, const CS* objCS,
   return StateAP(w, t, &cs).in(objCS);
 }
 
+// Plane modes
+template <typename T>
+T PlaneL(const Vector<double>&, const CS*, const Material&);
+template <typename T>
+T PlaneT(const Vector<double>&, const CS*, const Material&);
+
+template <>
+StateIP PlaneL<IP>(const Vector<double>& k, const CS* objCS,
+                   const Material& m) {
+  // The "local CS" in this case is the global CS, so the information of the
+  // "source" is angle, which is carried by wave vector.
+  double n = k.Length();
+  dcomp e = exp(k * objCS->PositionGLB() * ii);
+
+  // Displacement in the global CS:
+  dcomp u = k.x * e / n;
+  dcomp v = k.y * e / n;
+
+  // Stress in the global CS:
+  dcomp gxx = ii * k.x * u;
+  dcomp gyy = ii * k.y * v;
+  dcomp gxy = ii * (k.y * u + k.x * v);
+  StressIP t = m.C(gxx, gyy, gxy);
+
+  return StateIP(u, v, t).in(objCS);
+}
+template <>
+StateIP PlaneT<IP>(const Vector<double>& k, const CS* objCS,
+                   const Material& m) {
+  // The "local CS" in this case is the global CS, and the information of the
+  // "source" is angle, which is carried by wave vector.
+  double n = k.Length();
+  dcomp e = exp(k * objCS->PositionGLB() * ii);
+
+  // Displacement in the global CS:
+  dcomp u = -k.y * e / n;
+  dcomp v = k.x * e / n;
+
+  // Stress in the global CS:
+  dcomp gxx = ii * k.x * u;
+  dcomp gyy = ii * k.y * v;
+  dcomp gxy = ii * (k.y * u + k.x * v);
+  StressIP t = m.C(gxx, gyy, gxy);
+
+  return StateIP(u, v, t).in(objCS);
+}
+template <>
+StateAP PlaneT<AP>(const Vector<double>& k, const CS* objCS,
+                   const Material& m) {
+  // The "local CS" in this case is the global CS, and the information of the
+  // "source" is angle, which is carried by wave vector.
+
+  // Displacement in the global CS:
+  dcomp w = exp(k * objCS->PositionGLB() * ii);
+
+  // Stress in the global CS:
+  dcomp gzx = ii * k.x * w;
+  dcomp gzy = ii * k.y * w;
+  StressAP t = m.C(gzx, gzy);
+
+  return StateAP(w, t).in(objCS);
+}
+
 // The return should be a matrix of which size is 4x4 for in-plane and 2x2 for
 // antiplane.
 template <typename T>
 MatrixNcd<T> GreenT(const CS* localCS, const CS* objCS, const Matrix* matrix);
 
 template <>
-inline Matrix2cd GreenT<AP>(const CS* localCS, const CS* objCS,
-                            const Matrix* matrix) {
+Matrix2cd GreenT<AP>(const CS* localCS, const CS* objCS,
+                     const Matrix* matrix) {
   Matrix2cd rst;
 
   CS X = objCS->inGLB(), Y = localCS->inGLB();

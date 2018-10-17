@@ -71,6 +71,11 @@ TEST_F(IncidentTest, Constructors) {
   EXPECT_EQ(h3.Amplitude(), 1);
   EXPECT_EQ(h3.Phase(), 0);
 }
+TEST_F(IncidentTest, DISABLED_TEMP) {
+  CS p(1, 0);
+  AP rst = h3.Effect(&p);
+  std::cout << rst << std::endl;
+}
 TEST_F(IncidentTest, EffectSH) {
   std::vector<AP> ref1, ref2, ref3;
   std::vector<AP> com1, com2, com3;
@@ -83,9 +88,11 @@ TEST_F(IncidentTest, EffectSH) {
   EXPECT_EQ(com2.size(), 401);
   EXPECT_EQ(com3.size(), 401);
 
-  EXPECT_THAT(com1, testing::ContainerEq(ref1));
-  EXPECT_THAT(com2, testing::ContainerEq(ref2));
-  EXPECT_THAT(com3, testing::ContainerEq(ref3));
+  // The \tau_{yz} of the incident wave propagating along x axis is zero. So
+  // the tolerance is for the absolute error.
+  EXPECT_TRUE(ApproxMatRv(Extract(ref1), Extract(com1), 2e-4, 0, true));
+  EXPECT_TRUE(ApproxMatRv(Extract(ref2), Extract(com2), 2e-4, 0, true));
+  EXPECT_TRUE(ApproxMatRv(Extract(ref3), Extract(com3), 1e-11, 0, true));
 }
 TEST_F(IncidentTest, EffectP) {
   std::vector<IP> ref1, ref2, ref3;
@@ -99,9 +106,9 @@ TEST_F(IncidentTest, EffectP) {
   EXPECT_EQ(com2.size(), 401);
   EXPECT_EQ(com3.size(), 401);
 
-  EXPECT_THAT(com1, testing::ContainerEq(ref1));
-  EXPECT_THAT(com2, testing::ContainerEq(ref2));
-  EXPECT_THAT(com3, testing::ContainerEq(ref3));
+  EXPECT_TRUE(ApproxMatRv(Extract(ref1), Extract(com1), 3e-4, 0, true));
+  EXPECT_TRUE(ApproxMatRv(Extract(ref2), Extract(com2), 3e-4, 0, true));
+  EXPECT_TRUE(ApproxMatRv(Extract(ref3), Extract(com3), 3e-4, 0, true));
 }
 TEST_F(IncidentTest, EffectSV) {
   std::vector<IP> ref1, ref2, ref3;
@@ -115,9 +122,9 @@ TEST_F(IncidentTest, EffectSV) {
   EXPECT_EQ(com2.size(), 401);
   EXPECT_EQ(com3.size(), 401);
 
-  EXPECT_THAT(com1, testing::ContainerEq(ref1));
-  EXPECT_THAT(com2, testing::ContainerEq(ref2));
-  EXPECT_THAT(com3, testing::ContainerEq(ref3));
+  EXPECT_TRUE(ApproxMatRv(Extract(ref1), Extract(com1), 3e-4, 0, true));
+  EXPECT_TRUE(ApproxMatRv(Extract(ref2), Extract(com2), 3e-4, 0, true));
+  EXPECT_TRUE(ApproxMatRv(Extract(ref3), Extract(com3), 3e-4, 0, true));
 }
 
 }  // namespace test

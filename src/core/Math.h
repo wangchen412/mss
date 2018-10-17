@@ -176,8 +176,13 @@ double Lp(std::initializer_list<T> l) {
 
 template <typename T>
 double RelativeDiff(const T& a, const T& b) {
-  if (std::max(std::abs(a), std::abs(b)) == 0) return 0;
-  return std::abs(a - b) / std::max(std::abs(a), std::abs(b));
+  // If one of a and b is zero, then return the norm of the other one as the
+  // difference.
+
+  double aa(std::abs(a)), ab(std::abs(b));
+  double ac(std::max(aa, ab));
+  if (aa * ab == 0) return ac;
+  return std::abs(a - b) / ac;
 }
 
 // Check if the two values are approximately equal with relative error.
@@ -202,6 +207,24 @@ bool ApproxVectRv(const Eigen::Matrix<T, Eigen::Dynamic, 1>& a,
   bool rst = true;
   for (long i = k; i < a.size() - k; i++)
     if (!ApproxRv(a(i), b(i), re, v, os)) {
+      if (v)
+        rst = false;
+      else
+        return false;
+    }
+  return rst;
+}
+
+template <typename T>
+bool ApproxMatRv(const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& a,
+                 const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& b,
+                 double re = epsilon, int k = 0, bool v = false,
+                 std::ostream& os = std::cout) {
+  assert(a.size() == b.size());
+
+  bool rst = true;
+  for (long i = 0; i < a.cols(); i++)
+    if (!ApproxVectRv<T>(a.col(i), b.col(i), re, k, v, os)) {
       if (v)
         rst = false;
       else

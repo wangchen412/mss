@@ -197,7 +197,7 @@ TEST_F(AssemBoundaryTest, PlaneEDMat_Single) {
   MatrixXcd ext_m = c3.PlaneEDMat(c3.Node());
   VectorXcd com = ext_m * in;
 
-  EXPECT_TRUE(ApproxVectRv(ref, com, 6e-3));
+  EXPECT_TRUE(ApproxVectRv(ref, com, 6e-3, 0, true));
 }
 TEST_F(AssemBoundaryTest, PlaneEDMat_Multiple) {
   FiberConfig<AP> fc(s.fiber_config()[2], &matrix);
@@ -211,7 +211,7 @@ TEST_F(AssemBoundaryTest, PlaneEDMat_Multiple) {
   MatrixXcd ext_m = c4.PlaneEDMat(c4.Node());
   VectorXcd com = ext_m * in;
 
-  EXPECT_TRUE(ApproxVectRv(ref, com, 6e-3));
+  EXPECT_TRUE(ApproxVectRv(ref, com, 6e-3, 0, true));
 }
 TEST_F(AssemBoundaryTest, CylinEDMat) {
   FiberConfig<AP> fc(s.fiber_config()[2], &matrix);
