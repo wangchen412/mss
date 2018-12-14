@@ -154,6 +154,9 @@ void Boundary<T, N>::compute_HG() {
   H_.resize(P_, P_);
   G_.resize(P_, P_);
 
+#ifdef NDEBUG
+#pragma omp parallel for
+#endif
   for (size_t i = 0; i < P_; i++)
     for (size_t j = 0; j < P_; j++) {
       MatrixNcd<T> m = panel_[j]->InfMatT(node_[i]);

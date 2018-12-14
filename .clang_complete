@@ -1,2 +1,4 @@
 -std=c++14
 -Wno-unused-variable
+-Wno-deprecated
+-Ic:/Users/Vincent/Programming/include
