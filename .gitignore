@@ -262,4 +262,5 @@ GSYMS
 /doc/html
 /doc/latex
 
-
+# Temp
+.#*
