@@ -31,9 +31,6 @@
     <Filter Include="Header Files\pre">
       <UniqueIdentifier>{e6f0dff1-8305-448e-9906-46c254a7081f}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\incident">
-      <UniqueIdentifier>{e5955534-2ad9-49f9-a0d5-70a872a98d1e}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Header Files\tools">
       <UniqueIdentifier>{491876a6-0e69-4847-91bf-d961934669ad}</UniqueIdentifier>
     </Filter>
@@ -126,35 +123,11 @@
     <ClInclude Include="..\..\..\src\pre\InputData.h">
       <Filter>Header Files\pre</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\src\incident\Incident.h">
-      <Filter>Header Files\incident</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\src\incident\IncidentInput.h">
-      <Filter>Header Files\incident</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\src\incident\IncidentP.h">
-      <Filter>Header Files\incident</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\src\incident\IncidentPlane.h">
-      <Filter>Header Files\incident</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\src\incident\IncidentPlaneP.h">
-      <Filter>Header Files\incident</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\src\incident\IncidentPlaneSH.h">
-      <Filter>Header Files\incident</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\src\incident\IncidentPlaneSV.h">
-      <Filter>Header Files\incident</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\src\incident\IncidentS.h">
-      <Filter>Header Files\incident</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\src\incident\IncidentSV.h">
-      <Filter>Header Files\incident</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\src\tools\FileIO.h">
       <Filter>Header Files\tools</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\core\Incident.h">
+      <Filter>Header Files\core</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
