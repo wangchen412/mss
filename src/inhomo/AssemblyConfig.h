@@ -47,9 +47,13 @@ class AssemblyConfig {
         width_(input.width),
         height_(input.height),
         matrix_(matrix),
-        boundary_(input.pointDensity, height_, width_, matrix),
-        input_(input) {
-    add_inhomo();
+        boundary_(input.pointDensity, height_, width_, matrix) {
+    add_inhomo(input);
+  }
+  AssemblyConfig(const std::string& ID, const InhomoPtrs<T> inhomo,
+                 const Matrix* matrix)
+      : ID_(ID), inhomo_(inhomo), matrix_(matrix) {
+    reg_inhomo();
   }
 
   virtual ~AssemblyConfig() { del_inhomo(); }
@@ -138,10 +142,9 @@ class AssemblyConfig {
   AsmConfigPtrs<T> assembly_config_;
 
   // const size_t P_;
-  const double width_, height_;
+  const double width_{0}, height_{0};
   const class Matrix* matrix_;
-  mss::Boundary<T> boundary_;
-  const input::AssemblyConfig& input_;
+  mss::Boundary<T> boundary_{0, height_, width_, matrix_};
 
   MatrixXcd cc_, cd_;  // Collocation matrices.
   MatrixXcd dc_;
@@ -149,9 +152,10 @@ class AssemblyConfig {
   bool cc_computed_{false}, cd_computed_{false}, dc_computed_{false};
   bool Q_computed_{false};
 
-  void add_inhomo();
-  void add_fiber();
-  void add_assembly();
+  void reg_inhomo();
+  void add_inhomo(const input::AssemblyConfig& input);
+  void add_fiber(const input::AssemblyConfig& input);
+  void add_assembly(const input::AssemblyConfig& input);
   void del_inhomo();
   void del_fiber();
   void del_assembly();
@@ -586,9 +590,7 @@ void AssemblyConfig<T>::PrintCoeff(std::ostream& os) const {
 }
 
 template <typename T>
-void AssemblyConfig<T>::add_inhomo() {
-  add_fiber();
-  add_assembly();
+void AssemblyConfig<T>::reg_inhomo() {
   for (auto& i : inhomo_) {
     num_coeff_ += i->NumCoeff();
     num_bv_in_ += i->NumBv();
@@ -599,8 +601,15 @@ void AssemblyConfig<T>::add_inhomo() {
 }
 
 template <typename T>
-void AssemblyConfig<T>::add_fiber() {
-  for (auto& i : input_.fiber) {
+void AssemblyConfig<T>::add_inhomo(const input::AssemblyConfig& input) {
+  add_fiber(input);
+  add_assembly(input);
+  reg_inhomo();
+}
+
+template <typename T>
+void AssemblyConfig<T>::add_fiber(const input::AssemblyConfig& input) {
+  for (auto& i : input.fiber) {
     FiberConfig<T>* cp = FindPtrID(fiber_config_, i.configID);
     if (cp == nullptr) {
       cp = new FiberConfig<T>(*(i.config), matrix_);
@@ -611,8 +620,8 @@ void AssemblyConfig<T>::add_fiber() {
 }
 
 template <typename T>
-void AssemblyConfig<T>::add_assembly() {
-  for (auto& i : input_.assembly) {
+void AssemblyConfig<T>::add_assembly(const input::AssemblyConfig& input) {
+  for (auto& i : input.assembly) {
     AssemblyConfig<T>* cp = FindPtrID(assembly_config_, i.configID);
     if (cp == nullptr) {
       cp = new AssemblyConfig<T>(*(i.config), matrix_);

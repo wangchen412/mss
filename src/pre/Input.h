@@ -111,7 +111,9 @@ class Solution {
 
 inline bool Solution::is_keyword(const std::string& val) {
   for (auto& i : keyword_) {
-    if (i.first == typeid(Fiber) || i.first == typeid(Assembly)) continue;
+    if (i.first == typeid(Fiber) || i.first == typeid(Assembly) ||
+        i.first == typeid(Array))
+      continue;
     if (iequals(i.second, val)) return true;
   }
   return false;
@@ -166,6 +168,9 @@ inline void Solution::add_entry(std::ifstream& file,
           skip(file, 2, &tmp);
           header_[typeid(Assembly)] = tmp;
           add_entry(file, rst.assembly);
+        } else if (iequals(tmp, keyword_[typeid(Array)])) {
+          skip(file, 2);
+          add_entry(file, rst.array);
         }
       }
       vec.push_back(rst);
@@ -219,6 +224,14 @@ inline void Solution::link() {
   for (auto& i : assembly_config_) {
     i.fiber_config = &fiber_config_;
     i.pointDensity = matrix().kt * matrix().delta;
+    for (auto& j : i.array)
+      for (size_t m = 0; m < j.Ny; m++)
+        for (size_t n = 0; n < j.Nx; n++) {
+          PosiVect p(n * j.d - (j.Nx - 1) * j.d / 2,
+                     m * j.d - (j.Ny - 1) * j.d / 2);
+          p += j.position;
+          i.fiber.push_back({j.configID, p, nullptr});
+        }
     for (auto& j : i.fiber) j.config = FindID(fiber_config_, j.configID);
     for (auto& j : i.assembly)
       j.config = FindID(assembly_config_, j.configID);
@@ -236,6 +249,7 @@ inline void Solution::add_keyword() {
   keyword_[typeid(IncidentPlane)] = "[Incident Waves]";
   keyword_[typeid(FiberConfig)] = "[Fiber Configurations]";
   keyword_[typeid(Fiber)] = "[Fibers]";
+  keyword_[typeid(Array)] = "[Arrays]";
   keyword_[typeid(AssemblyConfig)] = "[Assembly Configurations]";
   keyword_[typeid(Assembly)] = "[Assemblies]";
   keyword_[typeid(Solve)] = "[Solve]";

@@ -18,6 +18,8 @@
 // ----------------------------------------------------------------------
 
 #include "../../src/inhomo/Boundary.h"
+#include "../../src/post/Output.h"
+#include "../../src/post/check/Continuity.h"
 #include "../test.h"
 
 namespace mss {
@@ -34,13 +36,10 @@ class HomoTest : public Test {
   Boundary<AP, 10> b{200, {{-0.3, 0.3}, {0.3, -0.3}}, &matrix};
 };
 
-TEST_F(HomoTest, HnG) {
-  Material rubber{1300, 1.41908e9, 0.832e9};
-  Matrix m{rubber, 1e5};
-  Boundary<AP, 10> b{20 * m.KT(), {{-6e-2, 6e-2}, {6e-2, -6e-2}}, &m};
+TEST_F(HomoTest, H_G_matrices) {
   MatrixXcd e(b.NumNode(), 5);
   for (size_t j = 0; j < 5; j++) {
-    IncidentPlaneSH in{m, pi / 10 * j, 1e-6};
+    IncidentPlaneSH in{matrix, pi / 10 * j, 1e-6};
     VectorXcd w(b.NumNode()), t(b.NumNode());
     for (size_t i = 0; i < b.NumNode(); i++) {
       Vector2cd tmp = in.Effect(b.Node(i)).Bv();
@@ -49,27 +48,9 @@ TEST_F(HomoTest, HnG) {
     }
     e.col(j) = b.MatrixH() * w - b.MatrixG() * t;
   }
-
-  std::cout << e.norm() << std::endl;
+  EXPECT_TRUE(e.norm() < 1e-7);
 }
-TEST_F(HomoTest, HnG2) {
-  MatrixXcd e(b.NumNode(), 5);
-  VectorXcd w(b.NumNode()), t(b.NumNode());
-  for (size_t j = 1; j < 2; j++) {
-    IncidentPlaneSH in{matrix, pi / 10 * j, 1e-6};
-    // VectorXcd w(b.NumNode()), t(b.NumNode());
-    for (size_t i = 0; i < b.NumNode(); i++) {
-      Vector2cd tmp = in.Effect(b.Node(i)).Bv();
-      w(i) = tmp(0);
-      t(i) = tmp(1);
-    }
-    e.col(j) = b.MatrixH() * w - b.MatrixG() * t;
-  }
-  std::cout << e.norm() << std::endl;
-  for (size_t i = 0; i < b.NumNode(); i++)
-    std::cout << w(i) << "\t" << t(i) << std::endl;
-}
-TEST_F(HomoTest, AssemblySolve) {
+TEST_F(HomoTest, DISABLED_AssemblySolve) {
   IncidentPlaneSH in{matrix, pi / 10, 1e-6};
   ac.DSolve({&in});
 
@@ -94,6 +75,29 @@ TEST_F(HomoTest, AssemblySolve) {
   // }
 
   // std::cout << err << std::endl;
+}
+TEST_F(HomoTest, DISABLED_Arrangement) {
+  Material lead(11400, 36e9, 8.43e9), rubber(1300, 1.4e9, 0.832e9);
+  Matrix m(rubber, 55500);
+  FiberConfig<AP> fc("1", 20, 200, 0.06, lead, &m);
+
+  InhomoPtrs<AP> ptrs;
+  for (int i = 0; i < 4; i++)
+    for (int j = 0; j < 3; j++)
+      ptrs.push_back(new Fiber<AP>(&fc, {i * 0.2 - 0.2, j * 0.2 - 0.2}));
+
+  auto ac = new AssemblyConfig<AP>("1", ptrs, &m);
+  IncidentPlaneSH in{matrix, pi / 10, 1e-6};
+  Solution<AP> sol(ac, {&in}, m, path("input.txt"));
+  sol.Solve();
+  post::OutputAP o{&sol};
+  o.Write();
+
+  // CS p;
+  // auto inhomo = ac->InWhich(&p);
+  // std::cout << sol.Resultant(&p, inhomo) << std::endl;
+
+  delete ac;
 }
 
 }  // namespace test

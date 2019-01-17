@@ -32,38 +32,50 @@ class Solution {
   Solution(const input::Solution& input)
       : matrix_(input.matrix()),
         method_(input.method()),
-        config_(input.config(), &matrix_),
-        input_(input) {
-    add_incident();
+        input_file_(input.FN()),
+        original_(true) {
+    config_ = new AssemblyConfig<T>(input.config(), &matrix_);
+    add_incident(input);
   }
+  Solution(AssemblyConfig<T>* config, const InciCPtrs<T>& incident,
+           const Matrix& matrix, const std::string& file)
+      : matrix_(matrix),
+        incident_(incident),
+        config_(config),
+        input_file_(file),
+        original_(false) {}
 
-  virtual ~Solution() { delete_incident(); }
+  virtual ~Solution() {
+    if (original_) {
+      delete config_;
+      for (auto& i : incident_) delete i;
+    }
+  }
 
   const Solution& Solve();
   const Inhomo<T>* InWhich(const CS* objCS) const;
   T Resultant(const CS* objCS, const Inhomo<T>* inhomo) const;
   T Resultant(const CS* objCS) const;
 
-  const AssemblyConfig<T>& Config() const { return config_; }
+  const AssemblyConfig<T>& Config() const { return *config_; }
   const InciCPtrs<T>& Incident() const { return incident_; }
   const InhomoCPtrs<T>& inhomo() const { return Config().inhomo(); }
   const Inhomo<T>* inhomo(size_t sn) const;
-  const input::Solution& Input() const { return input_; }
-  const std::string& InputFN() const { return input_.FN(); }
+  const std::string& InputFN() const { return input_file_; }
 
  protected:
   bool solved_{false};
   const Matrix matrix_;
-  SolveMethod method_;
+  SolveMethod method_{DFT};
   InciCPtrs<T> incident_;
 
   // Only the configuration of the "root" assembly is needed.
   // The instantiation of the "root" assembly is not necessary.
-  AssemblyConfig<T> config_;
-  input::Solution input_;
+  AssemblyConfig<T>* config_;
+  std::string input_file_;
+  bool original_;
 
-  void add_incident();
-  void delete_incident();
+  void add_incident(const input::Solution& input);
 };
 
 typedef Solution<AP> SolutionAP;
@@ -75,7 +87,7 @@ typedef Solution<IP> SolutionIP;
 template <typename T>
 const Solution<T>& Solution<T>::Solve() {
   if (solved_) return *this;
-  config_.Solve(incident_, method_);
+  config_->Solve(incident_, method_);
   solved_ = true;
   return *this;
 }
@@ -86,29 +98,24 @@ const Inhomo<T>* Solution<T>::inhomo(size_t sn) const {
 }
 
 template <typename T>
-void Solution<T>::add_incident() {
+void Solution<T>::add_incident(const input::Solution& input) {
   IncidentGen<T> f(matrix_);
-  for (auto& i : input_.incident()) incident_.push_back(f(i));
-}
-
-template <typename T>
-void Solution<T>::delete_incident() {
-  for (auto& i : incident_) delete i;
+  for (auto& i : input.incident()) incident_.push_back(f(i));
 }
 
 template <typename T>
 const Inhomo<T>* Solution<T>::InWhich(const CS* objCS) const {
-  return config_.InWhich(objCS);
+  return config_->InWhich(objCS);
 }
 
 template <typename T>
 T Solution<T>::Resultant(const CS* objCS, const Inhomo<T>* in) const {
-  return config_.Resultant(objCS, in, incident_);
+  return config_->Resultant(objCS, in, incident_);
 }
 
 template <typename T>
 T Solution<T>::Resultant(const CS* objCS) const {
-  return config_.Resultant(objCS, InWhich(objCS), incident_);
+  return config_->Resultant(objCS, InWhich(objCS), incident_);
 }
 
 }  // namespace mss

@@ -264,3 +264,4 @@ GSYMS
 
 # Temp
 .#*
+__pycache__

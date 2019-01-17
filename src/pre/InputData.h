@@ -55,6 +55,12 @@ struct Fiber {
   PosiVect position;
   const FiberConfig* config;
 };
+struct Array {
+  std::string configID;
+  PosiVect position;
+  size_t Nx, Ny;
+  double d;
+};
 struct Assembly;
 struct AssemblyConfig {
   std::string ID;
@@ -62,6 +68,7 @@ struct AssemblyConfig {
   double width, height;
   std::vector<Fiber> fiber;
   std::vector<Assembly> assembly;
+  std::vector<Array> array;
   const std::vector<FiberConfig>* fiber_config;
   const std::vector<AssemblyConfig>* assembly_config;
 };
@@ -116,6 +123,13 @@ inline void operator>>(std::istream& is, Fiber& f) {
 }
 inline std::ostream& operator<<(std::ostream& os, const Fiber& f) {
   return os << f.position << "\t\t" << f.configID;
+}
+
+inline void operator>>(std::istream& is, Array& a) {
+  is >> a.position >> a.Nx >> a.Ny >> a.d >> a.configID;
+}
+inline std::ostream& operator<<(std::ostream& os, const Array& a) {
+  return os << a.position << a.Nx << a.Ny << a.d << a.configID;
 }
 
 inline void operator>>(std::istream& is, Assembly& a) {
