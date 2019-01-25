@@ -46,6 +46,7 @@ class ContCheck {
   // If any element in the mismatch matrix exceeds the tolerance, return true
   // for "not continuous".
   bool NC() const { return (mis_.array().abs() > tol_).any(); }
+  double Max() const { return mis_.array().abs().maxCoeff(); }
 
   std::ostream& Print(std::ostream& os) const;
 
@@ -104,11 +105,13 @@ class CC_Solution {
   std::string WriteAll() const;
   std::string WriteNC() const;
   void Write() const;
+  double Max() const { return max_; }
 
  private:
   std::vector<ContCheck<T>*> check_;
   std::vector<const ContCheck<T>*> nc_;
   void add_cc(const Solution<T>*, size_t, double, double);
+  double max_{0};
 };
 
 // ---------------------------------------------------------------------------
@@ -160,6 +163,7 @@ void CC_Solution<T>::add_cc(const Solution<T>* solution, size_t np,
         check_.push_back(new CC_Fiber<T>(
             solution, dynamic_cast<const Fiber<T>*>(i), np, gap, tol));
         if (check_.back()->NC()) nc_.push_back(check_.back());
+        max_ = check_.back()->Max() > max_ ? check_.back()->Max() : max_;
         break;
 
       default:

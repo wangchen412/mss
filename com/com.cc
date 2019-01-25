@@ -26,10 +26,11 @@ using namespace mss;
 int main(int argc, char* argv[]) {
   Solution<AP> s{input::Solution(argv[1])};
   s.Solve();
-  std::cout << "[mss]: Solved. Scanning..." << std::endl;
 
-  // post::CC_Solution<AP> cc{&s};
-  // cc.Write();
+  post::CC_Solution<AP> cc{&s};
+  std::cout << "Maximum mismatch: " << cc.Max() << std::endl;
+  cc.WriteAll();
+
   post::Output<AP> o{&s};
   o.Write();
 
