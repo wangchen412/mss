@@ -27,6 +27,9 @@ set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
 # include_directories(${EIGEN3_INCLUDE_DIR})
 add_definitions(-D EIGEN_USE_MKL_ALL)
 
+include_directories(/home/wangchen/.third_party)
+link_directories(/home/wangchen/.third_party)
+
 project(mss)
 
 # set(CMAKE_BUILD_TYPE Debug)
@@ -40,5 +43,5 @@ set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} ${RFLAGS}")
 
 enable_testing()
 
-add_subdirectory(src)
+add_subdirectory(com)
 add_subdirectory(tests)
