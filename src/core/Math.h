@@ -22,6 +22,7 @@
 #ifndef MSS_MATH_H
 #define MSS_MATH_H
 
+#include <complex_bessel.h>
 #include <Eigen/Dense>
 #include <Eigen/Eigenvalues>
 #include <algorithm>
@@ -104,16 +105,32 @@ inline dcomp Jn(int n, double x) {
   return jn(n, x);
 }
 
+inline dcomp Jn(int n, const dcomp& z) {
+  return sp_bessel::besselJ(n, z);
+}
+
 inline dcomp Yn(int n, double x) {
   return yn(n, x);
+}
+
+inline dcomp Yn(int n, const dcomp& z) {
+  return sp_bessel::besselY(n, z);
 }
 
 inline dcomp Hn(int n, double x) {
   return jn(n, x) + ii * yn(n, x);
 }
 
+inline dcomp Hn(int n, const dcomp& z) {
+  return sp_bessel::hankelH1(n, z);
+}
+
 inline dcomp H2n(int n, double x) {
   return jn(n, x) - ii * yn(n, x);
+}
+
+inline dcomp H2n(int n, const dcomp& z) {
+  return sp_bessel::hankelH2(n, z);
 }
 
 // The functor f returns the value of f(x) / f'(x).

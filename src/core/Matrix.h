@@ -50,12 +50,16 @@ class Matrix {
 
   const class Material& Material() const { return material_; }
   double Frequency() const { return omega_; }
-  double KL() const { return kl_; }
-  double KT() const { return kt_; }
+  double KL() const { return kl_.real(); }
+  double KT() const { return kt_.real(); }
+
+  dcomp KL_comp() const { return kl_; }
+  dcomp KT_comp() const { return kt_; }
 
  private:
   const class Material material_;
-  const double omega_, kl_, kt_;
+  const double omega_;
+  const dcomp kl_, kt_;
 };
 
 }  // namespace mss

@@ -63,8 +63,10 @@ class FiberConfig {
   const std::string& ID() const { return ID_; }
   double Radius() const { return r_; }
   const class Material& Material() const { return material_; }
-  double KL() const { return kl_; }
-  double KT() const { return kt_; }
+  double KL() const { return kl_.real(); }
+  double KT() const { return kt_.real(); }
+  dcomp KL_comp() const { return kl_; }
+  dcomp KT_comp() const { return kt_; }
   const class Matrix* Matrix() const { return matrix_; }
   const class Material& Material_m() const { return matrix_->Material(); }
   double KL_m() const { return matrix_->KL(); }
@@ -93,7 +95,8 @@ class FiberConfig {
   const size_t P_;                 // Number of the collocation points.
   const double r_;                 // Radius of the fiber.
   const class Material material_;  // Material of the fiber.
-  const double kl_, kt_;           // Wave numbers of the fiber.
+  // const double kl_, kt_;           // Wave numbers of the fiber.
+  const dcomp kl_, kt_;
   const class Matrix* matrix_;     // The matrix.
   CSCPtrs node_;                   // Nodes.
   MatrixXcd Q_;                    // Transform matrix.

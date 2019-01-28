@@ -57,14 +57,15 @@ class Material {
   double MassDensity() const { return rho_; }
   double Lambda() const { return lambda_; }
   double Mu() const { return mu_; }
-  double CL() const { return cl_; }
-  double CT() const { return ct_; }
+  dcomp CL() const { return cl_; }
+  dcomp CT() const { return ct_; }
 
  private:
-  double rho_, lambda_, mu_, cl_, ct_;
+  double rho_, lambda_, mu_;
+  dcomp cl_, ct_;
 
   void _computeWaveSpeed() {
-    assert(rho_ > 0 && lambda_ > 0 && mu_ > 0);
+    // assert(rho_ > 0 && lambda_ > 0 && mu_ > 0);
     cl_ = std::sqrt((lambda_ + 2 * mu_) / rho_);
     ct_ = std::sqrt(mu_ / rho_);
   }

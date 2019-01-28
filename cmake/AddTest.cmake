@@ -21,6 +21,6 @@
 
 function(mss_add_test test_name)
   add_executable(test_${test_name} test_${test_name}.cc)
-  target_link_libraries(test_${test_name} gtest gtest_main)
+  target_link_libraries(test_${test_name} gtest gtest_main complex_bessel)
   add_test(NAME test_${test_name} COMMAND test_${test_name})
 endfunction()
