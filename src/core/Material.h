@@ -30,7 +30,7 @@ namespace mss {
 
 class Material {
  public:
-  Material(double rho, double lambda, double mu)
+  Material(const dcomp& rho, const dcomp& lambda, const dcomp& mu)
       : rho_(rho), lambda_(lambda), mu_(mu) {
     _computeWaveSpeed();
   }
@@ -54,14 +54,18 @@ class Material {
            (mu_ == other.mu_);
   }
 
-  double MassDensity() const { return rho_; }
-  double Lambda() const { return lambda_; }
-  double Mu() const { return mu_; }
+  double MassDensity() const { return rho_.real(); }
+  double Lambda() const { return lambda_.real(); }
+  double Mu() const { return mu_.real(); }
+
+  dcomp Rho_comp() const { return rho_; }
+  dcomp Lambda_comp() const { return lambda_; }
+  dcomp Mu_comp() const { return mu_; }
   dcomp CL() const { return cl_; }
   dcomp CT() const { return ct_; }
 
  private:
-  double rho_, lambda_, mu_;
+  dcomp rho_, lambda_, mu_;
   dcomp cl_, ct_;
 
   void _computeWaveSpeed() {
