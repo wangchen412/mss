@@ -17,5 +17,5 @@
 #
 # ----------------------------------------------------------------------
 
-add_executable(mss com.cc)
+add_executable(mss main.cc)
 target_link_libraries(mss complex_bessel)

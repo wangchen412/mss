@@ -43,5 +43,5 @@ set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} ${RFLAGS}")
 
 enable_testing()
 
-add_subdirectory(com)
+add_subdirectory(example)
 add_subdirectory(tests)

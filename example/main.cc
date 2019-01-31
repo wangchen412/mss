@@ -28,7 +28,8 @@ int main(int argc, char* argv[]) {
   s.Solve();
 
   post::CC_Solution<AP> cc{&s};
-  std::cout << "Maximum mismatch: " << cc.Max() << std::endl;
+  std::cout << mss_msg({"Maximum mismatch: ", std::to_string(cc.Max())})
+            << std::endl;
   cc.WriteAll();
 
   post::Output<AP> o{&s};
