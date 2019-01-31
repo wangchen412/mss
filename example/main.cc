@@ -17,6 +17,7 @@
 //
 // ----------------------------------------------------------------------
 
+#include <fstream>
 #include <string>
 #include "../src/post/Output.h"
 #include "../src/post/check/Continuity.h"
@@ -32,10 +33,18 @@ int main(int argc, char* argv[]) {
   post::CC_Solution<AP> cc{&s};
   std::cout << mss_msg({"Maximum mismatch: ", std::to_string(cc.Max())})
             << std::endl;
-  cc.WriteAll();
 
-  post::Output<AP> o{&s};
-  o.Write();
+  Boundary<AP, 12> b{500, {{-0.25, 0.25}, {0.25, -0.25}}, s.Matrix()};
 
+  std::vector<StateAP> bv(b.Node().size());
+#ifdef NDEBUG
+#pragma omp parallel for
+#endif
+  for (size_t i = 0; i < bv.size(); i++) bv[i] = s.Resultant(b.Node(i));
+
+  std::ofstream file("bv.dat");
+  for (auto i : bv)
+    file << setMaxPrecision << i.Basis()->PositionGLB() << "\t"
+         << i.Basis()->AngleGLB() << "\t" << i.Bv() << std::endl;
   return 0;
 }

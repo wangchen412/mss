@@ -62,10 +62,11 @@ class Solution {
   const InhomoCPtrs<T>& inhomo() const { return Config().inhomo(); }
   const Inhomo<T>* inhomo(size_t sn) const;
   const std::string& InputFN() const { return input_file_; }
+  const Matrix* Matrix() const { return &matrix_; }
 
  protected:
   bool solved_{false};
-  const Matrix matrix_;
+  const class Matrix matrix_;
   SolveMethod method_{DFT};
   InciCPtrs<T> incident_;
 
