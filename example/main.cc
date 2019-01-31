@@ -24,6 +24,8 @@
 using namespace mss;
 
 int main(int argc, char* argv[]) {
+  if (argc != 2) std::cout << error_msg({"Input required."}) << std::endl;
+
   Solution<AP> s{input::Solution(argv[1])};
   s.Solve();
 

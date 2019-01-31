@@ -110,6 +110,7 @@ class Boundary {
   MatrixXcd H_, G_, DtN_;  // Influence matrices.
   bool HG_computed_{false}, DtN_computed_{false};
 
+  // top-left -> bottom-right
   void add_rect(const PosiVect& p1, const PosiVect& p2);
   void add_line(const PosiVect& p1, const PosiVect& p2);
   void add_circle(const PosiVect& p, double r);
