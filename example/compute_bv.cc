@@ -25,7 +25,7 @@
 using namespace mss;
 
 int main(int argc, char* argv[]) {
-  if (argc != 2) std::cout << error_msg({"Input required."}) << std::endl;
+  if (argc != 2) exit_error_msg({"Input required."});
 
   Solution<AP> s{input::Solution(argv[1])};
   s.Solve();
@@ -40,11 +40,14 @@ int main(int argc, char* argv[]) {
 #ifdef NDEBUG
 #pragma omp parallel for
 #endif
-  for (size_t i = 0; i < bv.size(); i++) bv[i] = s.Resultant(b.Node(i));
+  // for (size_t i = 0; i < bv.size(); i++) bv[i] = s.Resultant(b.Node(i));
+  for (size_t i = 0; i < bv.size(); i++)
+    bv[i] = s.Incident()[0]->Effect(b.Node(i));
 
   std::ofstream file("bv.dat");
   for (auto i : bv)
     file << setMaxPrecision << i.Basis()->PositionGLB() << "\t"
-         << i.Basis()->AngleGLB() << "\t" << i.Bv() << std::endl;
+         << i.Basis()->AngleGLB() << "\t" << i.Bv()(0) << "\t" << i.Bv()(1)
+         << std::endl;
   return 0;
 }

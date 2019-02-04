@@ -189,7 +189,7 @@ Matrix2cd GreenT<AP>(const CS* localCS, const CS* objCS,
   double rnx = (X.Position().x - Y.Position().x) / r * nxx +
                (X.Position().y - Y.Position().y) / r * nyx;
 
-  double mu = matrix->Material().Mu();
+  dcomp mu = matrix->Material().Mu_comp();
   dcomp k = matrix->KT_comp();
 
   dcomp H = Hn(0, k * r), Hd = -k * Hn(1, k * r), H2r = Hn(2, k * r);

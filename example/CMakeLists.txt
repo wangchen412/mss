@@ -17,5 +17,8 @@
 #
 # ----------------------------------------------------------------------
 
-add_executable(mss main.cc)
-target_link_libraries(mss complex_bessel)
+add_executable(compute_bv compute_bv.cc)
+target_link_libraries(compute_bv complex_bessel)
+
+add_executable(homo homo.cc)
+target_link_libraries(homo complex_bessel)
