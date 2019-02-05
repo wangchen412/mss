@@ -26,7 +26,7 @@ int main(int argc, char* argv[]) {
   dcomp rho1{atof(argv[1]), atof(argv[2])}, mu1{atof(argv[3]), atof(argv[4])};
   dcomp rho2{atof(argv[5]), atof(argv[6])}, mu2{atof(argv[7]), atof(argv[8])};
 
-  Scan({rho1, mu1, mu1}, {rho2, mu2, mu2}, 2);
+  Scan({rho1, mu1, mu1}, {rho2, mu2, mu2}, 16);
 
   return 0;
 }
