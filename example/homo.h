@@ -60,17 +60,19 @@ void Scan(const Material& m1, const Material& m2, size_t n) {
 #ifdef NDEBUG
 #pragma omp parallel for
 #endif
-  for (size_t i = 0; i < n; i++)
-    for (size_t j = 0; j < n; j++)
-      for (size_t k = 0; k < n; k++)
-        for (size_t l = 0; l < n; l++) {
-          Material m({m1.Rho_comp().real() + i * dr_rho,
-                      m1.Rho_comp().imag() + j * di_rho},
-                     0,
-                     {m1.Mu_comp().real() + k * dr_mu,
-                      m1.Mu_comp().imag() + l * di_mu});
-          rst[i][j][k][l] = BoundaryMismatch(w, t, m);
-        }
+  for (size_t jj = 0; jj < n * n; jj++) {
+    size_t j = jj % n;
+    size_t i = (jj - j) / n;
+    for (size_t k = 0; k < n; k++)
+      for (size_t l = 0; l < n; l++) {
+        Material m({m1.Rho_comp().real() + i * dr_rho,
+                    m1.Rho_comp().imag() + j * di_rho},
+                   0,
+                   {m1.Mu_comp().real() + k * dr_mu,
+                    m1.Mu_comp().imag() + l * di_mu});
+        rst[i][j][k][l] = BoundaryMismatch(w, t, m);
+      }
+  }
 
   std::ofstream file("mismatch.dat");
   for (size_t i = 0; i < n; i++)
