@@ -64,7 +64,7 @@ class Solution {
   const std::string& InputFN() const { return input_file_; }
   const Matrix* Matrix() const { return &matrix_; }
 
- protected:
+  // protected:
   bool solved_{false};
   const class Matrix matrix_;
   SolveMethod method_{DFT};

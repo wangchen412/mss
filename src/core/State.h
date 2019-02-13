@@ -118,7 +118,7 @@ class State {
   // Displacement values.
   VectorXcd Dv() const;
 
- private:
+//  private:
   T1 displacement_;
   T2 stress_;
   const CS* basis_;

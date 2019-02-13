@@ -68,8 +68,6 @@ class Incident {
  protected:
   double amp_, phase_;
   const Material& material_;
-
- private:
   const double kl_, kt_;
 };
 
@@ -155,6 +153,32 @@ class IncidentPlaneSH : public Incident<AP> {
  private:
   const double a_;
   const Vector<double> k_;
+};
+
+class IncidentCylinSH : public Incident<AP> {
+ public:
+  IncidentCylinSH(const Matrix& matrix, const PosiVect& position,
+                  double amplitude = 1, double phase = 0)
+      : Incident<AP>(matrix, amplitude, phase), localCS_(position) {}
+
+  StateAP Effect(const CS* objCS) const override {
+    const PosiVect pc = objCS->PositionIn(&localCS_);
+    const PosiVect p = pc.Polar();
+    double r = p.x;
+    const CS cs(pc, p.y, &localCS_);
+
+    if (r < 0.1) return StateAP(DispAP(), StressAP(), objCS);
+
+    DispAP w = ii / 4 * Hn(0, kt_ * r);
+    dcomp gzr = -ii * kt_ / 4 * Hn(1, kt_ * r);
+    dcomp gzt = 0;
+    StressAP t = material_.C(gzr, gzt);
+
+    return StateAP(w, t, &cs).in(objCS);
+  }
+
+ private:
+  const CS localCS_;
 };
 
 // ---------------------------------------------------------------------------

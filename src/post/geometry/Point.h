@@ -34,7 +34,13 @@ class Point : public Geometry<T> {
       : Geometry<T>(solution, "Point_" + id),
         localCS_(position, angle),
         in_(solution->InWhich(&localCS_)),
-        state_(solution->Resultant(&localCS_, in_)) {}
+        state_(solution->Resultant(&localCS_, in_)) {
+    // state_.displacement_.x =
+    //     solution->Incident()[0]->Effect(&localCS_).Displacement().x *
+    //     (state_.Displacement().x * std::conj(state_.Displacement().x));
+    state_.displacement_.x =
+        state_.Displacement().x * std::conj(state_.Displacement().x);
+  }
   virtual ~Point() {}
 
   friend std::ostream& operator<<(std::ostream& os, const Point<T>& pt) {
@@ -52,7 +58,7 @@ class Point : public Geometry<T> {
   const CS localCS_;
   const Inhomo<T>* in_;  // The pointer to the inhomogeneity in which
                          // the point is, if the point is in one.
-  const T state_;
+  T state_;
 };
 
 template <typename T>
