@@ -25,8 +25,8 @@ int main() {
   Eigen::VectorXcd w(1000), t(1000);
   ReadBv(w, t);
 
-  Mismatch f(16576.2, w, t, {{8550, 356.25}, 0, {39515625000, 2634375000}});
-  Eigen::Vector4d x0{2, 10, 2, 10};
+  Mismatch f(16576.2, w, t, {{11400, 11400}, 0, {84e9, 84e9}});
+  Eigen::Vector4d x0{1, 1, 1, 1};
   Eigen::Vector4d mm = GradientDescent(f, x0);
   return 0;
 }

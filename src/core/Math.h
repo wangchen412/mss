@@ -145,7 +145,7 @@ double Newton(const Func& f, double x0, double e = 1e-16) {
 template <typename Func, int n>
 Eigen::Matrix<double, n, 1> Gradient(const Func& f,
                                      const Eigen::Matrix<double, n, 1>& x,
-                                     double d = 1e-2) {
+                                     double d = 1e-3) {
   double fx = f(x);
   std::cout << "Residue: " << fx << std::endl;
   Eigen::VectorXd dy(n);
@@ -157,8 +157,8 @@ Eigen::Matrix<double, n, 1> Gradient(const Func& f,
 template <typename Func, int n>
 Eigen::VectorXd GradientDescent(const Func& f,
                                 const Eigen::Matrix<double, n, 1>& x0,
-                                double d = 5e-3, double e = 1e-4,
-                                size_t max_iter = 1e3) {
+                                double d = 1e-3, double e = 1e-4,
+                                size_t max_iter = 1e4) {
   auto x(x0), g(Gradient(f, x0));
   for (size_t i = 0; i < max_iter && g.norm() > e; i++, g = Gradient(f, x)) {
     x -= g * d;
