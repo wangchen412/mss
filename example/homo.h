@@ -45,6 +45,24 @@ double BoundaryMismatch(const Eigen::VectorXcd& w, const Eigen::VectorXcd& t,
   return (b.MatrixH() * w - b.MatrixG() * t).norm();
 }
 
+class Mismatch {
+ public:
+  Mismatch(double omega, const Eigen::VectorXcd& w, const Eigen::VectorXcd& t,
+           const Material& m0)
+      : omega_(omega), w_(w), t_(t), m0_(m0) {}
+
+  double operator()(const Eigen::Vector4d& r) const {
+    Matrix matrix(m0_ * r, omega_);
+    Boundary<AP, 4> b{500, {{-0.25, 0.25}, {0.25, -0.25}}, &matrix};
+    return (b.MatrixH() * w_ - b.MatrixG() * t_).norm();
+  }
+
+ private:
+  double omega_;
+  Eigen::VectorXcd w_, t_;
+  const Material m0_;
+};
+
 void Scan(const Material& m1, const Material& m2, size_t n) {
   double dr_rho = (m2.Rho_comp() - m1.Rho_comp()).real() / n;
   double di_rho = (m2.Rho_comp() - m1.Rho_comp()).imag() / n;

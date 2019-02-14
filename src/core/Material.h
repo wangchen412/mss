@@ -64,6 +64,11 @@ class Material {
   dcomp CL() const { return cl_; }
   dcomp CT() const { return ct_; }
 
+  Material operator*(const Eigen::Vector4d& r) const {
+    return Material({rho_.real() * r(0), rho_.imag() * r(1)}, lambda_,
+                    {mu_.real() * r(2), mu_.imag() * r(3)});
+  }
+
  private:
   dcomp rho_, lambda_, mu_;
   dcomp cl_, ct_;

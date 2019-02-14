@@ -21,12 +21,12 @@
 
 using namespace mss;
 
-int main(int argc, char* argv[]) {
-  if (argc != 9) exit_error_msg({"Material parameters required."});
-  dcomp rho1{atof(argv[1]), atof(argv[2])}, mu1{atof(argv[3]), atof(argv[4])};
-  dcomp rho2{atof(argv[5]), atof(argv[6])}, mu2{atof(argv[7]), atof(argv[8])};
+int main() {
+  Eigen::VectorXcd w(1000), t(1000);
+  ReadBv(w, t);
 
-  Scan({rho1, mu1, mu1}, {rho2, mu2, mu2}, 16);
-
+  Mismatch f(16576.2, w, t, {{8550, 356.25}, 0, {39515625000, 2634375000}});
+  Eigen::Vector4d x0{2, 10, 2, 10};
+  Eigen::Vector4d mm = GradientDescent(f, x0);
   return 0;
 }

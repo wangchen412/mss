@@ -141,6 +141,34 @@ double Newton(const Func& f, double x0, double e = 1e-16) {
   return x -= f(x);
 }
 
+// The function/functor f takes Eigen::VectorXd and returns a double.
+template <typename Func, int n>
+Eigen::Matrix<double, n, 1> Gradient(const Func& f,
+                                     const Eigen::Matrix<double, n, 1>& x,
+                                     double d = 1e-2) {
+  double fx = f(x);
+  std::cout << "Residue: " << fx << std::endl;
+  Eigen::VectorXd dy(n);
+  Eigen::MatrixXd dx = Eigen::MatrixXd::Identity(n, n) * d;
+  for (int i = 0; i < n; i++) dy(i) = (f(x + dx.col(i)) - fx);
+  return dy / d;
+}
+
+template <typename Func, int n>
+Eigen::VectorXd GradientDescent(const Func& f,
+                                const Eigen::Matrix<double, n, 1>& x0,
+                                double d = 5e-3, double e = 1e-4,
+                                size_t max_iter = 1e3) {
+  auto x(x0), g(Gradient(f, x0));
+  for (size_t i = 0; i < max_iter && g.norm() > e; i++, g = Gradient(f, x)) {
+    x -= g * d;
+    std::cout << "Gradient: " << g.transpose() << std::endl;
+    std::cout << "Properties: " << x.transpose() << std::endl;
+  }
+  if (g.norm() > e) std::cout << "Not converged." << std::endl;
+  return x;
+}
+
 // Return a tuple of Pn(x) and P'n(x).
 inline std::pair<double, double> Legendre(int N, double x) {
   // assert(N > 2);
