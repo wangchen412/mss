@@ -40,7 +40,7 @@ void ReadBv(Eigen::VectorXcd& w, Eigen::VectorXcd& t) {
 double BoundaryMismatch(const Eigen::VectorXcd& w, const Eigen::VectorXcd& t,
                         const Material& material) {
   Matrix m(material, 16576.2);
-  Boundary<AP, 4> b{500, {{-0.25, 0.25}, {0.25, -0.25}}, &m};
+  Boundary<AP, 4> b{500, {{-0.3, 0.3}, {0.3, -0.3}}, &m};
 
   return (b.MatrixH() * w - b.MatrixG() * t).norm();
 }
@@ -53,7 +53,7 @@ class Mismatch {
 
   double operator()(const Eigen::Vector4d& r) const {
     Matrix matrix(m0_ * r, omega_);
-    Boundary<AP, 4> b{500, {{-0.25, 0.25}, {0.25, -0.25}}, &matrix};
+    Boundary<AP, 4> b{500, {{-0.3, 0.3}, {0.3, -0.3}}, &matrix};
     return (b.MatrixH() * w_ - b.MatrixG() * t_).norm();
   }
 
