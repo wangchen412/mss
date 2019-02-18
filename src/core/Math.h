@@ -141,31 +141,32 @@ double Newton(const Func& f, double x0, double e = 1e-16) {
   return x -= f(x);
 }
 
-// The function/functor f takes Eigen::VectorXd and returns a double.
-template <typename Func, int n>
-Eigen::Matrix<double, n, 1> Gradient(const Func& f,
-                                     const Eigen::Matrix<double, n, 1>& x,
-                                     double d = 1e-4) {
+// The functor f takes Eigen::VectorXd and returns a double.
+template <typename Func>
+Eigen::VectorXd Gradient(const Func& f, const Eigen::VectorXd& x,
+                         std::ostream* os = nullptr, double d = 1e-4) {
   double fx = f(x);
-  std::cout << "Residue: " << fx << std::endl;
+  if (os != nullptr) *os << fx << "\t";
+  int n = x.rows();
   Eigen::VectorXd dy(n);
   Eigen::MatrixXd dx = Eigen::MatrixXd::Identity(n, n) * d;
-  for (int i = 0; i < n; i++) dy(i) = (f(x + dx.col(i)) - fx);
+  for (int i = 0; i < n; i++) dy(i) = f(x + dx.col(i)) - fx;
   return dy / d;
 }
 
-template <typename Func, int n>
-Eigen::VectorXd GradientDescent(const Func& f,
-                                const Eigen::Matrix<double, n, 1>& x0,
-                                double d = 1e-4, double e = 1e-4,
-                                size_t max_iter = 1e4) {
-  auto x(x0), g(Gradient(f, x0));
-  for (size_t i = 0; i < max_iter && g.norm() > e; i++, g = Gradient(f, x)) {
+template <typename Func>
+Eigen::VectorXd GradientDescent(
+    const Func& f, std::ostream* os = nullptr,
+    const Eigen::VectorXd& x0 = Eigen::VectorXd::Ones(4), double d = 1e-4,
+    double e = 1e-4, size_t max_iter = 1e4) {
+  Eigen::VectorXd x(x0), g(Gradient(f, x0));
+  for (size_t i = 0; i < max_iter && g.norm() > e; i++) {
     x -= g * d;
-    std::cout << "Gradient: " << g.transpose() << std::endl;
-    std::cout << "Properties: " << x.transpose() << std::endl;
+    g = Gradient(f, x, os);
+    if (os != nullptr)
+      *os << x.transpose() << "\t" << g.transpose() << std::endl;
   }
-  if (g.norm() > e) std::cout << "Not converged." << std::endl;
+  // if (g.norm() > e) std::cout << "Not converged." << std::endl;
   return x;
 }
 

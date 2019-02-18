@@ -34,7 +34,7 @@ int main(int argc, char* argv[]) {
   std::cout << mss_msg({"Maximum mismatch: ", std::to_string(cc.Max())})
             << std::endl;
 
-  Boundary<AP, 12> b{500, {{-0.25, 0.25}, {0.25, -0.25}}, s.Matrix()};
+  Boundary<AP, 4> b{500, {{-0.3, 0.3}, {0.3, -0.3}}, s.Matrix()};
 
   std::vector<StateAP> bv(b.Node().size());
 #ifdef NDEBUG
