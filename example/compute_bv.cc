@@ -40,9 +40,7 @@ int main(int argc, char* argv[]) {
 #ifdef NDEBUG
 #pragma omp parallel for
 #endif
-  // for (size_t i = 0; i < bv.size(); i++) bv[i] = s.Resultant(b.Node(i));
-  for (size_t i = 0; i < bv.size(); i++)
-    bv[i] = s.Incident()[0]->Effect(b.Node(i));
+  for (size_t i = 0; i < bv.size(); i++) bv[i] = s.Resultant(b.Node(i));
 
   std::ofstream file("bv.dat");
   for (auto i : bv)
