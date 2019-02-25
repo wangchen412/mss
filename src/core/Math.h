@@ -67,7 +67,7 @@ template <typename T>
 using VectorNcd = Eigen::Matrix<dcomp, T::NumBv, 1>;
 
 enum SolveMethod { COLLOCATION, DFT };
-enum BoundaryShape { RECTANGULAR, HEXAGONAL, CIRCULAR };
+enum BoundaryShape { RECTANGULAR, HEXAGONAL, CIRCULAR, CIRCULAR_EXTERN };
 
 inline dcomp operator+(const dcomp& lhs, int rhs) {
   return lhs + double(rhs);
@@ -248,7 +248,12 @@ bool ApproxVectRv(const Eigen::Matrix<T, Eigen::Dynamic, 1>& a,
                   const Eigen::Matrix<T, Eigen::Dynamic, 1>& b,
                   double re = epsilon, int k = 0, bool v = false,
                   std::ostream& os = std::cout) {
-  assert(a.size() == b.size());
+  if (a.size() != b.size()) {
+    if (v)
+      os << "[mss]: Vector sizes inconsistent: " << std::to_string(a.size())
+         << ", " << std::to_string(b.size()) << std::endl;
+    return false;
+  }
 
   bool rst = true;
   for (long i = k; i < a.size() - k; i++)
@@ -259,7 +264,7 @@ bool ApproxVectRv(const Eigen::Matrix<T, Eigen::Dynamic, 1>& a,
         return false;
     }
   return rst;
-}
+}  // namespace mss
 
 template <typename T>
 bool ApproxMatRv(const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& a,

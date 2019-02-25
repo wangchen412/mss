@@ -43,6 +43,12 @@ class Boundary {
         center_ = CS(positions[0]);
         add_circle(positions[0], r_cc_);
         break;
+      case CIRCULAR_EXTERN:
+        assert(positions.size() == 2);
+        r_cc_ = (positions[0] - positions[1]).Length();
+        center_ = CS(positions[0]);
+        add_circle_extern(positions[0], r_cc_);
+        break;
       default:
         exit_error_msg({"Wrong boundary type."});
     }
@@ -63,6 +69,7 @@ class Boundary {
   size_t NumBv() const { return NumNode() * T::NumBv; }
   size_t NumDv() const { return NumNode() * T::NumDv; }
   size_t NumCoeff() const { return 2 * N_ + 1; }
+  MatrixXcd EffectStateMatT(const CS* objCS) const;
   MatrixXcd EffectMatT(const CS* objCS) const;
   MatrixXcd EffectMatT(const CSCPtrs& objCSs) const;
   MatrixXcd EffectMatT(const InhomoCPtrs<T>& objs) const;
@@ -114,6 +121,7 @@ class Boundary {
   void add_rect(const PosiVect& p1, const PosiVect& p2);
   void add_line(const PosiVect& p1, const PosiVect& p2);
   void add_circle(const PosiVect& p, double r);
+  void add_circle_extern(const PosiVect& p, double r);
   void compute_HG();
 };
 
@@ -220,6 +228,16 @@ MatrixXcd Boundary<T, N>::ColloMatT() {  // TODO: in-plane
   return c_;
 }
 template <typename T, int N>
+MatrixXcd Boundary<T, N>::EffectStateMatT(const CS* objCS) const {
+  const size_t m_ = T::NumV;
+  MatrixXcd rst(m_, n_ * P_);
+  for (size_t i = 0; i < P_; i++)
+    rst.block(0, n_ * i, m_, n_) = panel_[i]->InfStateMatT(objCS);
+  return rst;
+}
+
+// TODO Need renaming. EffectBvMatT. (Not all the state components.)
+template <typename T, int N>
 MatrixXcd Boundary<T, N>::EffectMatT(const mss::CS* objCS) const {
   MatrixXcd rst(n_, n_ * P_);
   for (size_t i = 0; i < P_; i++)
@@ -302,6 +320,16 @@ void Boundary<T, N>::add_circle(const PosiVect& p, double r) {
   double t = pi2 / n;
   for (size_t i = 0; i < n; i++) {
     node_.push_back(new CS(p + PosiVect(r, t * i).Cartesian(), t * i));
+    panel_.push_back(
+        new Panel<T, N>(node_.back(), 2 * tan(pi / n) * r, matrix_));
+  }
+}
+template <typename T, int N>
+void Boundary<T, N>::add_circle_extern(const PosiVect& p, double r) {
+  size_t n = pi2 * r * density_;
+  double t = pi2 / n;
+  for (size_t i = 0; i < n; i++) {
+    node_.push_back(new CS(p + PosiVect(r, t * i).Cartesian(), t * i + pi));
     panel_.push_back(
         new Panel<T, N>(node_.back(), 2 * tan(pi / n) * r, matrix_));
   }

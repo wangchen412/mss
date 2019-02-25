@@ -36,6 +36,7 @@ class Panel {
     for (auto& i : point_) delete i;
   }
 
+  Eigen::Matrix<dcomp, T::NumV, T::NumBv> InfStateMatT(const CS* objCS) const;
   MatrixNcd<T> InfMatT(const CS* objCS) const;
 
  private:
@@ -62,6 +63,17 @@ using PanelPtrs = std::vector<Panel<T, N>*>;
 // ---------------------------------------------------------------------------
 // Inline functions:
 
+template <typename T, int N>
+Eigen::Matrix<dcomp, T::NumV, T::NumBv> Panel<T, N>::InfStateMatT(
+    const CS* objCS) const {
+  Eigen::Matrix<dcomp, T::NumV, T::NumBv> rst;
+  rst.setZero();
+  for (int i = 0; i < N; i++)
+    rst += GreenStateT<T>(point_[i], objCS, matrix_) * l_.weight(i);
+  return rst * hl_;
+}
+
+// TODO Need renaming. InfBvMatT. (Not all the state components.)
 template <typename T, int N>
 MatrixNcd<T> Panel<T, N>::InfMatT(const CS* objCS) const {
   MatrixNcd<T> rst;

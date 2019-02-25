@@ -108,6 +108,7 @@ class State {
   double AngleGLB() const;
   State in(const CS* otherBasis) const;
 
+  static const size_t NumV;   // Number of components.
   static const size_t NumBv;  // Number of boundary values.
   static const size_t NumDv;  // Number of displacement values.
   static const std::string Type;
@@ -117,6 +118,8 @@ class State {
   VectorXcd Bv() const;
   // Displacement values.
   VectorXcd Dv() const;
+  // All components.
+  VectorXcd V() const;
 
  private:
   T1 displacement_;
@@ -138,6 +141,10 @@ template <>
 const size_t StateAP::NumBv = 2;
 template <>
 const size_t StateIP::NumBv = 4;
+template <>
+const size_t StateAP::NumV = 3;
+template <>
+const size_t StateIP::NumV = 5;
 
 template <>
 const std::string StateAP::Type = "Antiplane";
@@ -196,6 +203,16 @@ VectorXcd StateIP::Dv() const {
 template <>
 VectorXcd StateAP::Dv() const {
   return Eigen::Matrix<dcomp, 1, 1>(displacement_.x);
+}
+template <>
+VectorXcd StateIP::V() const {
+  Eigen::Matrix<dcomp, 5, 1> rst;
+  rst << displacement_.x, displacement_.y, stress_.xx, stress_.yy, stress_.xy;
+  return rst;
+}
+template <>
+VectorXcd StateAP::V() const {
+  return Eigen::Vector3cd(displacement_.x, stress_.x, stress_.y);
 }
 
 }  // namespace mss

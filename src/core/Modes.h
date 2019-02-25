@@ -171,6 +171,8 @@ StateAP PlaneT<AP>(const Vector<double>& k, const CS* objCS,
 template <typename T>
 MatrixNcd<T> GreenT(const CS* localCS, const CS* objCS, const Matrix* matrix);
 
+// The matrix transform the boundary value vector of the source point to the
+// one of the field point. TODO Need renaming.
 template <>
 Matrix2cd GreenT<AP>(const CS* localCS, const CS* objCS,
                      const Matrix* matrix) {
@@ -199,6 +201,52 @@ Matrix2cd GreenT<AP>(const CS* localCS, const CS* objCS,
   rst(1, 0) = ii / 4 / r * mu * Hd * (nxx * nxy + nyx * nyy) -
               ii / 4 * k * k * mu * H2r * rnx * rny;
   rst(1, 1) = ii / 4 * Hd * rnx;
+
+  return rst;
+}
+
+template <typename T>
+Eigen::Matrix<dcomp, T::NumV, T::NumBv> GreenStateT(const CS* localCS,
+                                                    const CS* objCS,
+                                                    const Matrix* matrix);
+
+// The matrix transform the boundary value vector of the source point to the
+// vector with all the components of state of the field point.
+// The state components are arranged as (w, tx, ty).
+template <>
+Eigen::Matrix<dcomp, 3, 2> GreenStateT<AP>(const CS* localCS, const CS* objCS,
+                                           const Matrix* matrix) {
+  Eigen::Matrix<dcomp, 3, 2> rst;
+
+  CS X = objCS->inGLB(), Y = localCS->inGLB();
+  // distance
+  double r = (X.Position() - Y.Position()).Length();
+  // n_j(y), n_l(x)
+  double nxy = cos(Y.Angle()), nyy = sin(Y.Angle());
+  double nxx = cos(X.Angle()), nyx = sin(X.Angle());
+  double nxx2 = cos(X.Angle() + pi_2), nyx2 = sin(X.Angle() + pi_2);
+  // r_{,j} n_j(y)
+  double rny = (Y.Position().x - X.Position().x) / r * nxy +
+               (Y.Position().y - X.Position().y) / r * nyy;
+  // r_{,j} n_j(x)
+  double rnx = (X.Position().x - Y.Position().x) / r * nxx +
+               (X.Position().y - Y.Position().y) / r * nyx;
+  double rnx2 = (X.Position().x - Y.Position().x) / r * nxx2 +
+                (X.Position().y - Y.Position().y) / r * nyx2;
+
+  dcomp mu = matrix->Material().Mu_comp();
+  dcomp k = matrix->KT_comp();
+
+  dcomp H = Hn(0, k * r), Hd = -k * Hn(1, k * r), H2r = Hn(2, k * r);
+
+  rst(0, 0) = -ii / 4 * Hd * rny;
+  rst(0, 1) = ii / 4 * H / mu;
+  rst(1, 0) = ii / 4 / r * mu * Hd * (nxx * nxy + nyx * nyy) -
+              ii / 4 * k * k * mu * H2r * rnx * rny;
+  rst(1, 1) = ii / 4 * Hd * rnx;
+  rst(2, 0) = ii / 4 / r * mu * Hd * (nxx2 * nxy + nyx2 * nyy) -
+              ii / 4 * k * k * mu * H2r * rnx2 * rny;
+  rst(2, 1) = ii / 4 * Hd * rnx2;
 
   return rst;
 }

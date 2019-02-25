@@ -67,6 +67,7 @@ class Inhomo {
   // The nth Modes. The n should be the serial number, instead of the order.
   // The transformation from the serial number to the order should be done in
   // the derived class.
+  // TODO Need renaming.
   virtual T ScatterMode(const CS* objCS, size_t sn) const = 0;
   VectorXcd ScatterBv(const CSCPtrs& objCSs, size_t sn) const;
   VectorXcd ScatterDv(const CSCPtrs& objCSs, size_t sn) const;
