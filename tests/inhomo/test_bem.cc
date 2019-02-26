@@ -156,17 +156,19 @@ TEST_F(BEMTest, Scattering) {
   Boundary<AP, 4> bb2(m.KT(), {{6e-3, 6e-3}, {5e-3, 5e-3}}, &ff, CIRCULAR);
   CSCPtrs sp2 = bb2.Node();
 
-  VectorXcd outer_ref(sp.size() * 3), outer_com(sp.size() * 3);
-  for (size_t i = 0; i < sp.size(); i++) {
+  for (long i = 0; i < bv_com.size(); i++)
+    if (i % 2) bv_com(i) *= -1;
 
-    StateAP tmp0 = in.Effect(sp[i]);
+  VectorXcd outer_ref(sp2.size() * 3), outer_com(sp2.size() * 3);
+  for (size_t i = 0; i < sp2.size(); i++) {
+    StateAP tmp0 = in.Effect(sp2[i]);
     Eigen::Vector3cd inci{tmp0.Displacement().x, tmp0.Stress().x,
                           tmp0.Stress().y};
 
-    outer_ref.segment<3>(i * 3) = inci + f1.Scatter(sp[i]).V();
-    outer_com.segment<3>(i * 3) = inci - b1.EffectStateMatT(sp[i]) * bv_com;
+    outer_ref.segment<3>(i * 3) = inci + f1.Scatter(sp2[i]).V();
+    outer_com.segment<3>(i * 3) = inci + b0.EffectStateMatT(sp2[i]) * bv_com;
   }
-  EXPECT_TRUE(ApproxVectRv(inner_ref, inner_com, 3e-3, 0, true));
+  EXPECT_TRUE(ApproxVectRv(outer_ref, outer_com, 3e-3, 0, true));
 }
 
 }  // namespace test
