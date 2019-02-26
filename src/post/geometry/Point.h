@@ -35,6 +35,14 @@ class Point : public Geometry<T> {
         localCS_(position, angle),
         in_(solution->InWhich(&localCS_)),
         state_(solution->Resultant(&localCS_, in_)) {}
+
+  Point(T (*state)(const CS*), const PosiVect& position, double angle = 0,
+        const std::string& id = "1")
+      : Geometry<T>(nullptr, "Point_" + id),
+        localCS_(position, angle),
+        in_(nullptr),
+        state_(state(&localCS_)) {}
+
   virtual ~Point() {}
 
   friend std::ostream& operator<<(std::ostream& os, const Point<T>& pt) {

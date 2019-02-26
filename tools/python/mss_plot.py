@@ -54,6 +54,7 @@ def anim_area(file_name, var):
     ax = plt.Axes(f, [0., 0., 1., 1.])
     ax.set_axis_off()
     f.add_axes(ax)
-    im = plt.imshow(rp, interpolation='none', cmap='Blues', origin='lower')
+    # im = plt.imshow(rp, interpolation='none', cmap='Blues', origin='lower')
+    im = plt.imshow(rp, interpolation='none', cmap='Blues')
     a = lambda i : (im.set_array(rp * np.cos(d*i) + ip*np.sin(d*i)),)
     return animation.FuncAnimation(f, a, interval=50, frames=400, blit=False)

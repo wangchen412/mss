@@ -22,3 +22,7 @@ target_link_libraries(compute_bv complex_bessel)
 
 add_executable(homo homo.cc)
 target_link_libraries(homo complex_bessel)
+
+add_executable(bem bem.cc)
+target_link_libraries(bem complex_bessel)
+

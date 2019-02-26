@@ -99,6 +99,9 @@ class Boundary {
   MatrixXcd ModeMatT(const CSCPtrs& objCSs) const;
   MatrixXcd ModeMatT(const InhomoCPtrs<T>& objs) const;
 
+  void SetBv(const VectorXcd& bv) { bv_ = bv; }
+  T Effect(const CS* objCS) const;
+
  private:
   double density_;
   CSCPtrs node_;
@@ -116,6 +119,8 @@ class Boundary {
 
   MatrixXcd H_, G_, DtN_;  // Influence matrices.
   bool HG_computed_{false}, DtN_computed_{false};
+
+  VectorXcd bv_;
 
   // top-left -> bottom-right
   void add_rect(const PosiVect& p1, const PosiVect& p2);
@@ -284,6 +289,10 @@ template <typename T, int N>
 VectorXcd Boundary<T, N>::EffectBvT(const Inhomo<T>* obj,
                                     const VectorXcd& psi) const {
   return EffectMatT(obj->Node()) * psi;
+}
+template <typename T, int N>
+T Boundary<T, N>::Effect(const CS* objCS) const {
+  return T(Eigen::Matrix<dcomp, T::NumV, 1>(EffectStateMatT(objCS) * bv_));
 }
 template <typename T, int N>
 void Boundary<T, N>::ReverseEdge() {

@@ -49,6 +49,10 @@ class State {
       : displacement_(other.displacement_),
         stress_(other.stress_),
         basis_(other.basis_) {}
+  State(const Eigen::Matrix<dcomp, 5, 1>& v, const CS* basis = nullptr)
+      : displacement_(v(0), v(1)), stress_(v(2), v(3), v(4)), basis_(basis) {}
+  State(const Eigen::Matrix<dcomp, 3, 1>& v, const CS* basis = nullptr)
+      : displacement_(v(0)), stress_(v(1), v(2)), basis_(basis) {}
   virtual ~State() {}
 
   State& operator+=(const State& other) {

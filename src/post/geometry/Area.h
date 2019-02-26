@@ -53,6 +53,26 @@ class Area : public PointSet<T> {
         point_[i + j * Nx] = new Point<T>(solution, p1 + dx * i + dy * j);
   }
 
+  Area(T (*state)(const CS*), const PosiVect& p1, const PosiVect& p2,
+       size_t Nx, size_t Ny, const std::string& id = "1")
+      : PointSet<T>(nullptr, "Area_" + id),
+        p1_(p1),
+        p2_(p2),
+        Nx_(Nx),
+        Ny_(Ny) {
+    // Add points:
+    PosiVect dx((p2 - p1).x / Nx, 0);
+    PosiVect dy(0, (p2 - p1).y / Ny);
+
+    point_.resize(Ny * Nx);
+#ifdef NDEBUG
+#pragma omp parallel for
+#endif
+    for (size_t j = 0; j < Ny; j++)
+      for (size_t i = 0; i < Nx; i++)
+        point_[i + j * Nx] = new Point<T>(state, p1 + dx * i + dy * j);
+  }
+
   std::string Shape() const override { return "Area"; }
   std::ostream& PrintParam(std::ostream& os) const override {
     return os << p1_ << "\t\t" << p2_ << "\t\t" << Nx_ << "\t\t" << Ny_
