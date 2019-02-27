@@ -38,20 +38,26 @@ StateAP rst1(const CS* cs) {
   return in->Effect(cs) + f->Scatter(cs);
 }
 
+CS* tmpCS;
 StateAP rst2(const CS* cs) {
-  if (f->Contains(cs)) return b1->Effect(cs);
-  return in->Effect(cs) + b0->Effect(cs);
+  switch (b1->Contains(cs)) {
+    case 1:
+      return b1->Effect(cs);
+    case -1:
+      return in->Effect(cs) + b0->Effect(cs);
+  }
+  return b1->Effect(cs, true);
 }
 
 int main() {
-  in = new IncidentPlaneSH(m);
+  in = new IncidentPlaneSH(m, pi / 6);
   fc = new FiberConfig<AP>("1", 20, 1413, 3e-3, lead, &m);
   f = new Fiber<AP>(fc);
   f->SetCoeff(f->DSolve(in->EffectBv(f->Node())));
 
-  b0 = new Boundary<AP, 14>(50 * m.KT(), {{0, 0}, {0, 3e-3}}, &m, CIRCULAR,
-                            true);
-  b1 = new Boundary<AP, 14>(50 * m.KT(), {{0, 0}, {0, 3e-3}}, &ff, CIRCULAR);
+  b0 = new Boundary<AP, 14>(50 * m.KT(), {{-4e-3, 4e-3}, {4e-3, -4e-3}}, &m,
+                            RECTANGULAR, true);
+  b1 = new Boundary<AP, 14>(50 * m.KT(), {{-4e-3, 4e-3}, {4e-3, -4e-3}}, &ff);
   Eigen::VectorXcd bv =
       b1->DispToEffect() * (b0->MatrixH() + b0->MatrixG() * b1->DtN())
                                .lu()
@@ -61,10 +67,12 @@ int main() {
     if (i % 2) bv(i) *= -1;
   b0->SetBv(bv);
 
-  post::Area<AP> a1(rst1, {-3e-2, 3e-2}, {3e-2, -3e-2}, 300, 300, "1");
-  post::Area<AP> a2(rst2, {-3e-2, 3e-2}, {3e-2, -3e-2}, 300, 300, "2");
-  a1.Write();
-  a2.Write();
+  // post::Area<AP> a1(rst1, {-3e-2, 3e-2}, {3e-2, -3e-2}, 300, 300, "1");
+  // a1.Write();
+  // post::Area<AP> a2(rst2, {-2e-2, 2e-2}, {2e-2, -2e-2}, 200, 200, "2");
+  // a2.Write();
+  post::Line<AP> l(rst2, {-2e-2, 0}, {2e-2, 0}, 200);
+  l.Write();
 
   delete in;
   delete fc;

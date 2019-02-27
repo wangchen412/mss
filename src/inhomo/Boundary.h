@@ -30,7 +30,11 @@ class Boundary {
   Boundary(double density, const std::vector<PosiVect>& positions,
            const Matrix* matrix, BoundaryShape shape = RECTANGULAR,
            bool external = false)
-      : density_(density), matrix_(matrix), ext_(external) {
+      : shape_(shape),
+        positions_(positions),
+        density_(density),
+        matrix_(matrix),
+        ext_(external) {
     switch (shape) {
       case RECTANGULAR:
         assert(positions.size() == 2);
@@ -95,9 +99,12 @@ class Boundary {
   MatrixXcd ModeMatT(const InhomoCPtrs<T>& objs) const;
 
   void SetBv(const VectorXcd& bv) { bv_ = bv; }
-  T Effect(const CS* objCS) const;
+  T Effect(const CS* objCS, bool overlap = false) const;
+  int Contains(const CS* objCS) const;
 
  private:
+  BoundaryShape shape_;
+  std::vector<PosiVect> positions_;
   double density_;
   CSCPtrs node_;
   std::vector<CSCPtrs> edge_;
@@ -117,12 +124,12 @@ class Boundary {
 
   bool ext_;
   VectorXcd bv_;
+  double epsilon_{1e-4};
 
   // top-left -> bottom-right
   void add_rect(const PosiVect& p1, const PosiVect& p2);
   void add_line(const PosiVect& p1, const PosiVect& p2);
   void add_circle(const PosiVect& p, double r);
-  void add_circle_extern(const PosiVect& p, double r);
   void compute_HG();
 };
 
@@ -287,8 +294,40 @@ VectorXcd Boundary<T, N>::EffectBvT(const Inhomo<T>* obj,
   return EffectMatT(obj->Node()) * psi;
 }
 template <typename T, int N>
-T Boundary<T, N>::Effect(const CS* objCS) const {
+T Boundary<T, N>::Effect(const CS* objCS, bool overlap) const {
+  if (overlap) {
+    PosiVect p = center_.PositionIn(objCS);
+    CS tmpCS = *objCS + p / p.Length() * epsilon_;
+    return Eigen::Matrix<dcomp, T::NumV, 1>(EffectStateMatT(&tmpCS) * bv_);
+  }
   return T(Eigen::Matrix<dcomp, T::NumV, 1>(EffectStateMatT(objCS) * bv_));
+}
+template <typename T, int N>
+int Boundary<T, N>::Contains(const CS* objCS) const {
+  PosiVect p = objCS->PositionGLB();
+  switch (shape_) {
+    case RECTANGULAR:
+      if (p.x > positions_[0].x + epsilon_ &&
+          p.x < positions_[1].x - epsilon_ &&
+          p.y < positions_[0].y - epsilon_ &&
+          p.y > positions_[1].y + epsilon_)
+        return 1;
+      else if (p.x < positions_[0].x - epsilon_ ||
+               p.x > positions_[1].x + epsilon_ ||
+               p.y > positions_[0].y + epsilon_ ||
+               p.y < positions_[1].y - epsilon_)
+        return -1;
+    case CIRCULAR: {
+      double r = (center_.PositionGLB() - p).Length();
+      if (r < r_cc_ - epsilon)
+        return 1;
+      else if (r > r_cc_ + epsilon)
+        return -1;
+    }
+    default:
+      exit_error_msg({"Wrong boundary type."});
+  }
+  return 0;
 }
 template <typename T, int N>
 void Boundary<T, N>::ReverseEdge() {
