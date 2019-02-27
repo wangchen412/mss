@@ -28,8 +28,9 @@ template <typename T, int N = 2>
 class Boundary {
  public:
   Boundary(double density, const std::vector<PosiVect>& positions,
-           const Matrix* matrix, BoundaryShape shape = RECTANGULAR)
-      : density_(density), matrix_(matrix) {
+           const Matrix* matrix, BoundaryShape shape = RECTANGULAR,
+           bool external = false)
+      : density_(density), matrix_(matrix), ext_(external) {
     switch (shape) {
       case RECTANGULAR:
         assert(positions.size() == 2);
@@ -42,12 +43,6 @@ class Boundary {
         r_cc_ = (positions[0] - positions[1]).Length();
         center_ = CS(positions[0]);
         add_circle(positions[0], r_cc_);
-        break;
-      case CIRCULAR_EXTERN:
-        assert(positions.size() == 2);
-        r_cc_ = (positions[0] - positions[1]).Length();
-        center_ = CS(positions[0]);
-        add_circle_extern(positions[0], r_cc_);
         break;
       default:
         exit_error_msg({"Wrong boundary type."});
@@ -120,6 +115,7 @@ class Boundary {
   MatrixXcd H_, G_, DtN_;  // Influence matrices.
   bool HG_computed_{false}, DtN_computed_{false};
 
+  bool ext_;
   VectorXcd bv_;
 
   // top-left -> bottom-right
@@ -313,7 +309,7 @@ void Boundary<T, N>::add_line(const PosiVect& p1, const PosiVect& p2) {
   PosiVect d = (p2 - p1) / n;
   PosiVect de = (p2 - p1) / ne;
   double len = d.Length();
-  double ang = d.Angle() - pi_2;
+  double ang = d.Angle() - pi_2 + ext_ * pi;
   edge_.push_back(CSCPtrs());
 
   for (size_t i = 0; i < n; i++) {
@@ -328,17 +324,8 @@ void Boundary<T, N>::add_circle(const PosiVect& p, double r) {
   size_t n = pi2 * r * density_;
   double t = pi2 / n;
   for (size_t i = 0; i < n; i++) {
-    node_.push_back(new CS(p + PosiVect(r, t * i).Cartesian(), t * i));
-    panel_.push_back(
-        new Panel<T, N>(node_.back(), 2 * tan(pi / n) * r, matrix_));
-  }
-}
-template <typename T, int N>
-void Boundary<T, N>::add_circle_extern(const PosiVect& p, double r) {
-  size_t n = pi2 * r * density_;
-  double t = pi2 / n;
-  for (size_t i = 0; i < n; i++) {
-    node_.push_back(new CS(p + PosiVect(r, t * i).Cartesian(), t * i + pi));
+    node_.push_back(
+        new CS(p + PosiVect(r, t * i).Cartesian(), t * i + ext_ * pi));
     panel_.push_back(
         new Panel<T, N>(node_.back(), 2 * tan(pi / n) * r, matrix_));
   }

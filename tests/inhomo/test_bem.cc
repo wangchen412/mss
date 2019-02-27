@@ -93,7 +93,7 @@ TEST_F(BEMTest, DispMatT) {
 TEST_F(BEMTest, HoleSolution) {
   // Traction free BC.
 
-  Boundary<AP, 10> b(20 * m.KT(), {{0, 0}, {0, 3e-3}}, &m, CIRCULAR_EXTERN);
+  Boundary<AP, 10> b(20 * m.KT(), {{0, 0}, {0, 3e-3}}, &m, CIRCULAR, true);
   VectorXcd ws_com = b.MatrixH().lu().solve(in.EffectDv(b.Node()));
 
   FiberConfig<AP> fc_hole{"hole", 50, 10000, 3e-3, {1e-20, 0, 1e-30}, &m};
@@ -108,7 +108,7 @@ TEST_F(BEMTest, FixedSolution) {
   // Fix BC.
   IncidentPlaneSH in2{m, pi / 6 * 5, 1e-6};
 
-  Boundary<AP, 10> b(50 * m.KT(), {{0, 0}, {0, 3e-3}}, &m, CIRCULAR_EXTERN);
+  Boundary<AP, 10> b(50 * m.KT(), {{0, 0}, {0, 3e-3}}, &m, CIRCULAR, true);
   VectorXcd ts_com =
       -b.MatrixG().lu().solve(in.EffectDv(b.Node()) + in2.EffectDv(b.Node()));
 
@@ -125,7 +125,7 @@ TEST_F(BEMTest, FixedSolution) {
   EXPECT_TRUE(ApproxVectRv(ts_ref, ts_com, 0.04, 0, true));
 }
 TEST_F(BEMTest, Scattering) {
-  Boundary<AP, 14> b0(50 * m.KT(), {{0, 0}, {0, 3e-3}}, &m, CIRCULAR_EXTERN);
+  Boundary<AP, 14> b0(50 * m.KT(), {{0, 0}, {0, 3e-3}}, &m, CIRCULAR, true);
   Boundary<AP, 14> b1(50 * m.KT(), {{0, 0}, {0, 3e-3}}, &ff, CIRCULAR);
 
   // Scattering problem solution.

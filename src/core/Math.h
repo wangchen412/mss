@@ -67,7 +67,11 @@ template <typename T>
 using VectorNcd = Eigen::Matrix<dcomp, T::NumBv, 1>;
 
 enum SolveMethod { COLLOCATION, DFT };
-enum BoundaryShape { RECTANGULAR, HEXAGONAL, CIRCULAR, CIRCULAR_EXTERN };
+enum BoundaryShape {
+  RECTANGULAR,
+  HEXAGONAL,
+  CIRCULAR,
+};
 
 inline dcomp operator+(const dcomp& lhs, int rhs) {
   return lhs + double(rhs);

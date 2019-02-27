@@ -49,8 +49,8 @@ int main() {
   f = new Fiber<AP>(fc);
   f->SetCoeff(f->DSolve(in->EffectBv(f->Node())));
 
-  b0 = new Boundary<AP, 14>(50 * m.KT(), {{0, 0}, {0, 3e-3}}, &m,
-                            CIRCULAR_EXTERN);
+  b0 = new Boundary<AP, 14>(50 * m.KT(), {{0, 0}, {0, 3e-3}}, &m, CIRCULAR,
+                            true);
   b1 = new Boundary<AP, 14>(50 * m.KT(), {{0, 0}, {0, 3e-3}}, &ff, CIRCULAR);
   Eigen::VectorXcd bv =
       b1->DispToEffect() * (b0->MatrixH() + b0->MatrixG() * b1->DtN())
