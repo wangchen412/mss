@@ -317,15 +317,12 @@ int Boundary<T, N>::Contains(const CS* objCS) const {
                p.y > positions_[0].y + epsilon_ ||
                p.y < positions_[1].y - epsilon_)
         return -1;
-    case CIRCULAR: {
+    case CIRCULAR:
       double r = (center_.PositionGLB() - p).Length();
       if (r < r_cc_ - epsilon)
         return 1;
       else if (r > r_cc_ + epsilon)
         return -1;
-    }
-    default:
-      exit_error_msg({"Wrong boundary type."});
   }
   return 0;
 }

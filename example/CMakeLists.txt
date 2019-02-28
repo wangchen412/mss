@@ -26,3 +26,5 @@ target_link_libraries(homo complex_bessel)
 add_executable(bem bem.cc)
 target_link_libraries(bem complex_bessel)
 
+add_executable(mss mss.cc)
+target_link_libraries(mss complex_bessel)

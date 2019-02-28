@@ -50,7 +50,7 @@ StateAP rst2(const CS* cs) {
 }
 
 int main() {
-  in = new IncidentPlaneSH(m, pi / 6);
+  in = new IncidentPlaneSH(m);
   fc = new FiberConfig<AP>("1", 20, 1413, 3e-3, lead, &m);
   f = new Fiber<AP>(fc);
   f->SetCoeff(f->DSolve(in->EffectBv(f->Node())));
@@ -69,10 +69,10 @@ int main() {
 
   // post::Area<AP> a1(rst1, {-3e-2, 3e-2}, {3e-2, -3e-2}, 300, 300, "1");
   // a1.Write();
-  // post::Area<AP> a2(rst2, {-2e-2, 2e-2}, {2e-2, -2e-2}, 200, 200, "2");
-  // a2.Write();
-  post::Line<AP> l(rst2, {-2e-2, 0}, {2e-2, 0}, 200);
-  l.Write();
+  post::Area<AP> a2(rst2, {-2e-2, 2e-2}, {2e-2, -2e-2}, 400, 400, "2");
+  a2.Write();
+  // post::Line<AP> l(rst2, {-2e-2, 0}, {2e-2, 0}, 200);
+  // l.Write();
 
   delete in;
   delete fc;
