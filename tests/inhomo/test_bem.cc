@@ -134,7 +134,7 @@ TEST_F(BEMTest, Scattering) {
                          .solve(in.EffectDv(b0.Node()));
   f1.SetCoeff(f1.DSolve(in.EffectBv(f1.Node())));
   VectorXcd ws_ref = f1.ScatterDv(b0.Node()) + in.EffectDv(b0.Node());
-  EXPECT_TRUE(ApproxVectRv(ws_ref, ws_com, 3e-3, 0, true));
+  EXPECT_TRUE(ApproxVectRv(ws_ref, ws_com, 7e-4, 0, true));
 
   // Traction determination.
   VectorXcd bv_ref = f1.ScatterBv(b1.Node()) + in.EffectBv(b1.Node());
@@ -169,6 +169,26 @@ TEST_F(BEMTest, Scattering) {
     outer_com.segment<3>(i * 3) = inci + b0.EffectStateMatT(sp2[i]) * bv_com;
   }
   EXPECT_TRUE(ApproxVectRv(outer_ref, outer_com, 3e-3, 0, true));
+
+  // Solve without inverse matrix.
+  VectorXcd inV(b0.NumBv());
+  inV.setZero();
+  inV.segment(0, b0.NumDv()) = in.EffectDv(b0.Node());
+  VectorXcd ws_com_2 =
+      b0.CombinedMatrix(b1).lu().solve(inV).segment(0, b0.NumDv());
+  EXPECT_TRUE(ApproxVectRv(ws_ref, ws_com_2, 7e-4, 0, true));
+  EXPECT_TRUE(ApproxVectRv(ws_com, ws_com_2, 4e-13, 0, true));
+
+  VectorXcd trac = b1.MatrixG().lu().solve(b1.MatrixH() * ws_com_2);
+  VectorXcd bv_com_2(b1.NumBv());
+  for (size_t i = 0; i < b1.NumDv(); i++) {
+    bv_com_2(i * 2) = ws_com_2(i);
+    bv_com_2(i * 2 + 1) = trac(i);
+  }
+  EXPECT_TRUE(ApproxVectRv(bv_ref, bv_com_2, 1e-2, 0, true));
+  for (long i = 0; i < bv_com.size(); i++)
+    if (i % 2) bv_com(i) *= -1;
+  EXPECT_TRUE(ApproxVectRv(bv_com, bv_com_2, 3e-11, 0, true));
 }
 
 }  // namespace test

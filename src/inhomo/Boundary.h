@@ -82,6 +82,9 @@ class Boundary {
   MatrixXcd MatrixG();
   MatrixXcd DtN();
 
+  template <int NN>
+  MatrixXcd CombinedMatrix(Boundary<T, NN>& other);
+
   // Transformation from displacement to displacement and traction.
   MatrixXcd DispToEffect();
 
@@ -182,6 +185,17 @@ void Boundary<T, N>::compute_HG() {
       if (i == j) H_(i, j) += 0.5;
     }
   HG_computed_ = true;
+}
+template <typename T, int N>
+template <int NN>
+MatrixXcd Boundary<T, N>::CombinedMatrix(Boundary<T, NN>& other) {
+  long n = this->NumDv();
+  MatrixXcd rst(n * 2, n * 2);
+  rst.block(0, 0, n, n) = this->MatrixH();
+  rst.block(0, n, n, n) = this->MatrixG();
+  rst.block(n, 0, n, n) = other.MatrixH();
+  rst.block(n, n, n, n) = -other.MatrixG();
+  return rst;
 }
 template <typename T, int N>
 MatrixXcd Boundary<T, N>::ModeMatT(const CS* objCS) const {
