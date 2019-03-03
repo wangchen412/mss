@@ -24,22 +24,14 @@
 
 using namespace mss;
 
-Material rubber{1300, 1.41908e9, 0.832e9}, lead{11400, 36.32496e9, 8.43e9};
-Matrix m{rubber, 1e6}, ff{lead, 1e6};
+Material steel{7670, 116e9, 84.3e9}, eff_mat{9261.7818, 1, 52.368372e9};
+Matrix m{steel, 16576.2}, ff{eff_mat, 16576.2};
 
 IncidentPlaneSH* in;
-FiberConfig<AP>* fc;
-Fiber<AP>* f;
 Boundary<AP, 14>* b0;
 Boundary<AP, 14>* b1;
 
-StateAP rst1(const CS* cs) {
-  if (f->Contains(cs)) return f->Inner(cs);
-  return in->Effect(cs) + f->Scatter(cs);
-}
-
-CS* tmpCS;
-StateAP rst2(const CS* cs) {
+StateAP rst(const CS* cs) {
   switch (b1->Contains(cs)) {
     case 1:
       return b1->Effect(cs);
@@ -51,13 +43,10 @@ StateAP rst2(const CS* cs) {
 
 int main() {
   in = new IncidentPlaneSH(m);
-  fc = new FiberConfig<AP>("1", 20, 1413, 3e-3, lead, &m);
-  f = new Fiber<AP>(fc);
-  f->SetCoeff(f->DSolve(in->EffectBv(f->Node())));
 
-  b0 = new Boundary<AP, 14>(50 * m.KT(), {{-4e-3, 4e-3}, {4e-3, -4e-3}}, &m,
-                            RECTANGULAR, true);
-  b1 = new Boundary<AP, 14>(50 * m.KT(), {{-4e-3, 4e-3}, {4e-3, -4e-3}}, &ff);
+  b0 = new Boundary<AP, 14>(50 * m.KT(), {{-2, 2}, {2, -2}}, &m, RECTANGULAR,
+                            true);
+  b1 = new Boundary<AP, 14>(50 * m.KT(), {{-2, 2}, {2, -2}}, &ff);
   Eigen::VectorXcd bv =
       b1->DispToEffect() * (b0->MatrixH() + b0->MatrixG() * b1->DtN())
                                .lu()
@@ -67,16 +56,10 @@ int main() {
     if (i % 2) bv(i) *= -1;
   b0->SetBv(bv);
 
-  // post::Area<AP> a1(rst1, {-3e-2, 3e-2}, {3e-2, -3e-2}, 300, 300, "1");
-  // a1.Write();
-  post::Area<AP> a2(rst2, {-2e-2, 2e-2}, {2e-2, -2e-2}, 400, 400, "2");
+  post::Area<AP> a2(rst, {-6, 6}, {6, -6}, 400, 400, "bem");
   a2.Write();
-  // post::Line<AP> l(rst2, {-2e-2, 0}, {2e-2, 0}, 200);
-  // l.Write();
 
   delete in;
-  delete fc;
-  delete f;
   delete b0;
   delete b1;
   return 0;
