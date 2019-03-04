@@ -38,7 +38,7 @@ class Solution {
     add_incident(input);
   }
   Solution(AssemblyConfig<T>* config, const InciCPtrs<T>& incident,
-           const Matrix& matrix, const std::string& file)
+           const Matrix& matrix, const std::string& file = std::string())
       : matrix_(matrix),
         incident_(incident),
         config_(config),

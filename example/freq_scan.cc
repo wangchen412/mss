@@ -24,43 +24,44 @@
 
 using namespace mss;
 
-Material steel{7670, 116e9, 84.3e9}, eff_mat{9261.7818, 1, 52.368372e9};
-Matrix m{steel, 16576.2}, ff{eff_mat, 16576.2};
-
-IncidentPlaneSH* in;
-Boundary<AP, 14>* b0;
-Boundary<AP, 14>* b1;
+const Material steel(7670, 116e9, 84.3e9), lead(11400, 36e9, 8.43e9);
+const double a(0.2);
+Solution<AP>* solution;
 
 StateAP rst(const CS* cs) {
-  switch (b1->Contains(cs)) {
-    case 1:
-      return b1->Effect(cs);
-    case -1:
-      return in->Effect(cs) + b0->Effect(cs);
-  }
-  return b1->Effect(cs, true);
+  return solution->Resultant(cs);
+}
+
+double omega(double ka) {
+  return ka / a * steel.CT().real();
+}
+void freq_scan(double ka) {
+  Matrix m(steel, omega(ka));
+  IncidentPlaneSH in(m, 0, 1e-6);
+
+  auto fc = new FiberConfig<AP>("1", 40, 400, 0.06, lead, &m);
+  InhomoPtrs<AP> inhomo;
+  int n = 20;
+  double c = (n - 1) * a / 2;
+  for (int i = 0; i < n; i++)
+    for (int j = 0; j < n; j++)
+      inhomo.push_back(new Fiber<AP>(fc, {i * a - c, j * a - c}));
+  auto ac = new AssemblyConfig<AP>("1", inhomo, &m);
+  solution = new Solution<AP>(ac, {&in}, m);
+  solution->Solve();
+
+  post::Area<AP> a(rst, {-4, 4}, {4, -4}, 400, 400,
+                   std::to_string(omega(ka)));
+  a.Write();
+
+  delete solution;
+  delete ac;
 }
 
 int main() {
-  in = new IncidentPlaneSH(m);
-
-  b0 = new Boundary<AP, 14>(50 * m.KT(), {{-2, 2}, {2, -2}}, &m, RECTANGULAR,
-                            true);
-  b1 = new Boundary<AP, 14>(50 * m.KT(), {{-2, 2}, {2, -2}}, &ff);
-  Eigen::VectorXcd bv =
-      b1->DispToEffect() * (b0->MatrixH() + b0->MatrixG() * b1->DtN())
-                               .lu()
-                               .solve(in->EffectDv(b0->Node()));
-  b1->SetBv(bv);
-  for (long i = 0; i < bv.size(); i++)
-    if (i % 2) bv(i) *= -1;
-  b0->SetBv(bv);
-
-  post::Area<AP> a2(rst, {-6, 6}, {6, -6}, 1200, 1200, "bem");
-  a2.Write();
-
-  delete in;
-  delete b0;
-  delete b1;
+  for (double ka = 1; ka < 10; ka += 0.2) {
+    freq_scan(ka);
+    std::cout << ka << std::endl;
+  }
   return 0;
 }

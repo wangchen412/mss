@@ -28,3 +28,7 @@ target_link_libraries(bem complex_bessel)
 
 add_executable(mss mss.cc)
 target_link_libraries(mss complex_bessel)
+
+add_executable(freq_scan freq_scan.cc)
+target_link_libraries(freq_scan complex_bessel)
+
