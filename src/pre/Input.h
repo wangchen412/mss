@@ -44,6 +44,7 @@ class Solution {
   const std::vector<Material>& material() const { return material_; }
   const Matrix& matrix() const { return matrix_[0]; }
   double frequency() const { return matrix().frequency; }
+  void update_frequency(double omega);
   const std::vector<FiberConfig>& fiber_config() const {
     return fiber_config_;
   }
@@ -206,7 +207,10 @@ std::ostream& Solution::print(std::ostream& os, const std::vector<T>& vec,
   print(os, vec);
   return print(os, vecs...);
 }
-
+inline void Solution::update_frequency(double omega) {
+  matrix_[0].frequency = omega;
+  link();
+}
 inline void Solution::link() {
   for (auto& i : material_) {
     i.cl = std::sqrt((i.lambda + 2 * i.mu) / i.rho);

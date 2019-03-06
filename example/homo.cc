@@ -44,9 +44,11 @@ class Mismatch {
 };
 
 int main(int argc, char** argv) {
-  if (argc != 2) exit_error_msg({"Input required."});
+  if (argc != 2) exit_error_msg({"Frequency required."});
 
-  Solution<AP> s{input::Solution(argv[1])};
+  input::Solution in("input.txt");
+  in.update_frequency(atof(argv[1]));
+  Solution<AP> s(in);
   s.Solve();
 
   post::CC_Solution<AP> cc{&s};
