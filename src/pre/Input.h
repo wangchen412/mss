@@ -209,7 +209,11 @@ std::ostream& Solution::print(std::ostream& os, const std::vector<T>& vec,
 }
 inline void Solution::update_frequency(double omega) {
   matrix_[0].frequency = omega;
-  link();
+  matrix_[0].kl = omega / matrix_[0].material->cl;
+  matrix_[0].kt = omega / matrix_[0].material->ct;
+  for (auto& i : fiber_config_)
+    i.P = std::max(size_t(matrix().kt * i.radius * matrix().delta), P_MIN);
+  // TODO Assembly point density not updated.
 }
 inline void Solution::link() {
   for (auto& i : material_) {

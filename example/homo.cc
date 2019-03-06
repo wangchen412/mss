@@ -43,11 +43,9 @@ class Mismatch {
   const Material m0_;
 };
 
-int main(int argc, char** argv) {
-  if (argc != 2) exit_error_msg({"ka required."});
-
+void compute_bv(double omega, Eigen::VectorXcd& w, Eigen::VectorXcd& t) {
   input::Solution in("input.txt");
-  in.update_frequency(in.matrix().material->ct * atof(argv[1]) / 0.2);
+  in.update_frequency(omega);
   Solution<AP> s(in);
   s.Solve();
 
@@ -56,8 +54,6 @@ int main(int argc, char** argv) {
             << std::endl;
 
   Boundary<AP, 4> b{500, {{-0.3, 0.3}, {0.3, -0.3}}, s.Matrix()};
-
-  Eigen::VectorXcd w(1200), t(1200);
 #ifdef NDEBUG
 #pragma omp parallel for
 #endif
@@ -67,8 +63,25 @@ int main(int argc, char** argv) {
     t(i) = bv(1);
   }
 
-  Mismatch f(s.Frequency(), w, t, {{11400, 11400}, 0, {84e9, 84e9}});
+  std::ofstream file("bv.dat");
+  for (size_t i = 0; i < b.NumNode(); i++)
+    file << setMaxPrecision << b.Node(i)->PositionGLB() << "\t"
+         << b.Node(i)->AngleGLB() << "\t" << w(i) << "\t" << t(i)
+         << std::endl;
+  file.close();
+
+  std::cout << mss_msg({"Boundary values computed."}) << std::endl;
+}
+
+int main(int argc, char** argv) {
+  if (argc != 2) exit_error_msg({"ka required."});
+  double omega = 16576.243191120248 * atof(argv[1]);
+
+  Eigen::VectorXcd w(1200), t(1200);
+  compute_bv(omega, w, t);
+  Mismatch f(omega, w, t, {{11400, 11400}, 0, {84e9, 84e9}});
   std::ofstream file("iterations.dat");
   GradientDescent(f, &file);
+  file.close();
   return 0;
 }
