@@ -44,10 +44,10 @@ class Mismatch {
 };
 
 int main(int argc, char** argv) {
-  if (argc != 2) exit_error_msg({"Frequency required."});
+  if (argc != 2) exit_error_msg({"ka required."});
 
   input::Solution in("input.txt");
-  in.update_frequency(atof(argv[1]));
+  in.update_frequency(in.matrix().material->ct * atof(argv[1]) / 0.2);
   Solution<AP> s(in);
   s.Solve();
 
