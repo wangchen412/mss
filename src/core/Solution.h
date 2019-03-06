@@ -63,6 +63,7 @@ class Solution {
   const Inhomo<T>* inhomo(size_t sn) const;
   const std::string& InputFN() const { return input_file_; }
   const Matrix* Matrix() const { return &matrix_; }
+  double Frequency() const { return matrix_.Frequency(); }
 
  protected:
   bool solved_{false};

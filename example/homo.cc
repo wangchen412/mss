@@ -20,19 +20,10 @@
 #include <fstream>
 #include <sstream>
 #include "../src/core/Solution.h"
+#include "../src/post/Output.h"
+#include "../src/post/check/Continuity.h"
 
 using namespace mss;
-
-void ReadBv(Eigen::VectorXcd& w, Eigen::VectorXcd& t) {
-  std::ifstream file("bv.dat");
-  std::string tmp;
-  double x, y, ang;
-  for (int i = 0; i < 1200; i++) {
-    getline(file, tmp);
-    std::stringstream ss(tmp);
-    ss >> x >> y >> ang >> w(i) >> t(i);
-  }
-}
 
 class Mismatch {
  public:
@@ -53,11 +44,28 @@ class Mismatch {
 };
 
 int main(int argc, char** argv) {
-  if (argc != 2) exit_error_msg({"Frequency required."});
+  if (argc != 2) exit_error_msg({"Input required."});
+
+  Solution<AP> s{input::Solution(argv[1])};
+  s.Solve();
+
+  post::CC_Solution<AP> cc{&s};
+  std::cout << mss_msg({"Maximum mismatch: ", std::to_string(cc.Max())})
+            << std::endl;
+
+  Boundary<AP, 4> b{500, {{-0.3, 0.3}, {0.3, -0.3}}, s.Matrix()};
 
   Eigen::VectorXcd w(1200), t(1200);
-  ReadBv(w, t);
-  Mismatch f(atof(argv[1]), w, t, {{11400, 11400}, 0, {84e9, 84e9}});
+#ifdef NDEBUG
+#pragma omp parallel for
+#endif
+  for (size_t i = 0; i < 1200; i++) {
+    VectorXcd bv = s.Resultant(b.Node(i)).Bv();
+    w(i) = bv(0);
+    t(i) = bv(1);
+  }
+
+  Mismatch f(s.Frequency(), w, t, {{11400, 11400}, 0, {84e9, 84e9}});
   std::ofstream file("iterations.dat");
   GradientDescent(f, &file);
   return 0;
