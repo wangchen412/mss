@@ -72,13 +72,26 @@ void compute_bv(double omega, Eigen::VectorXcd& w, Eigen::VectorXcd& t) {
 
   std::cout << mss_msg({"Boundary values computed."}) << std::endl;
 }
+void read_bv(const std::string& fn, Eigen::VectorXcd& w,
+             Eigen::VectorXcd& t) {
+  std::ifstream file(fn);
+  std::string tmp;
+  double x, y, ang;
+  for (int i = 0; i < 1200; i++) {
+    getline(file, tmp);
+    std::stringstream ss(tmp);
+    ss >> x >> y >> ang >> w(i) >> t(i);
+  }
+  std::cout << mss_msg({"Boundary values read from ", fn}) << std::endl;
+}
 
 int main(int argc, char** argv) {
-  if (argc != 2) exit_error_msg({"ka required."});
   double omega = 16576.243191120248 * atof(argv[1]);
 
   Eigen::VectorXcd w(1200), t(1200);
-  compute_bv(omega, w, t);
+  if (argc == 2) compute_bv(omega, w, t);
+  if (argc == 3) read_bv(argv[2], w, t);
+
   Mismatch f(omega, w, t, {{11400, 11400}, 0, {84e9, 84e9}});
   std::ofstream file("iterations.dat");
   GradientDescent(f, &file);
