@@ -38,7 +38,7 @@ void ReadBv(Eigen::VectorXcd& w, Eigen::VectorXcd& t) {
 
 double BoundaryMismatch(const Eigen::VectorXcd& w, const Eigen::VectorXcd& t,
                         const Material& material) {
-  Matrix m(material, 16576.2);
+  Matrix m(material, 16576.243191120248 * 1.95);
   Boundary<AP, 4> b{500, {{-0.3, 0.3}, {0.3, -0.3}}, &m};
 
   return (b.MatrixH() * w - b.MatrixG() * t).norm();
