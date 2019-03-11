@@ -17,11 +17,9 @@
 #
 # ----------------------------------------------------------------------
 
-include(${CMAKE_MODULE_PATH}/AddExe.cmake)
+# set(mss mss_core mss_input)
 
-mss_add_exe(compute_bv)
-mss_add_exe(homo)
-mss_add_exe(bem)
-mss_add_exe(mss)
-mss_add_exe(freq_scan.cc)
-mss_add_exe(mat_scan.cc)
+function(mss_add_exe exe_name)
+  add_executable(${exe_name} ${exe_name}.cc)
+  target_link_libraries(${exe_name} complex_bessel)
+endfunction()
