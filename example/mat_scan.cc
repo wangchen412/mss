@@ -60,6 +60,7 @@ void Scan(const Material& m1, const Material& m2, size_t n) {
 #pragma omp parallel for
 #endif
   for (size_t jj = 0; jj < n * n; jj++) {
+    std::cout << jj << std::endl;
     size_t j = jj % n;
     size_t i = (jj - j) / n;
     for (size_t k = 0; k < n; k++)
@@ -92,7 +93,7 @@ int main(int argc, char* argv[]) {
   dcomp rho1{atof(argv[1]), atof(argv[2])}, mu1{atof(argv[3]), atof(argv[4])};
   dcomp rho2{atof(argv[5]), atof(argv[6])}, mu2{atof(argv[7]), atof(argv[8])};
 
-  Scan({rho1, mu1, mu1}, {rho2, mu2, mu2}, 16);
+  Scan({rho1, mu1, mu1}, {rho2, mu2, mu2}, 12);
 
   return 0;
 }
