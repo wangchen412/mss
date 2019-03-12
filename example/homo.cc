@@ -86,15 +86,17 @@ void read_bv(const std::string& fn, Eigen::VectorXcd& w,
 }
 
 int main(int argc, char** argv) {
+  if (argc != 5) exit_error_msg({"Initial values needed."});
   double omega = 16576.243191120248 * atof(argv[1]);
 
   Eigen::VectorXcd w(1200), t(1200);
-  if (argc == 2) compute_bv(omega, w, t);
-  if (argc == 3) read_bv(argv[2], w, t);
+  // if (argc == 2) compute_bv(omega, w, t);
+  // if (argc == 3) read_bv(argv[2], w, t);
+  read_bv("bv.dat", w, t);
 
   Mismatch f(omega, w, t, {{11400, 11400}, 0, {84e9, 84e9}});
   std::ofstream file("iterations.dat");
-  GradientDescent(f, &file);
+  GradientDescent(f, &file, {atof(argv[1]), atof(argv[2]), atof(argv[3]), atof(argv[4])});
   file.close();
   return 0;
 }
