@@ -87,7 +87,7 @@ void read_bv(const std::string& fn, Eigen::VectorXcd& w,
 
 int main(int argc, char** argv) {
   if (argc != 5) exit_error_msg({"Initial values needed."});
-  double omega = 16576.243191120248 * atof(argv[1]);
+  double omega = 16576.243191120248 * 1.95;
 
   Eigen::VectorXcd w(1200), t(1200);
   // if (argc == 2) compute_bv(omega, w, t);

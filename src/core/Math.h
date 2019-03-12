@@ -161,7 +161,7 @@ Eigen::VectorXd Gradient(const Func& f, const Eigen::VectorXd& x,
 template <typename Func>
 Eigen::VectorXd GradientDescent(
     const Func& f, std::ostream* os = nullptr,
-    const Eigen::Vector4d& x0 = Eigen::Vector4d::Ones(), double d = 1e-4,
+    const Eigen::Vector4d& x0 = Eigen::Vector4d::Ones(), double d = 1e-3,
     double e = 1e-4, size_t max_iter = 1e4) {
   Eigen::VectorXd x(x0), g(Gradient(f, x0));
   for (size_t i = 0; i < max_iter && g.norm() > e; i++) {
