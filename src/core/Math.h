@@ -174,6 +174,67 @@ Eigen::VectorXd GradientDescent(
   return x;
 }
 
+template <typename T>
+Eigen::VectorXi sort_index(const Eigen::Matrix<T, -1, 1>& v) {
+  Eigen::VectorXi x(v.size());
+  x.setLinSpaced(0, x.size());
+  std::sort(x.data(), x.data() + x.size(),
+            [&v](size_t i, size_t j) { return v(i) < v(j); });
+  return x;
+}
+Eigen::MatrixXd Permutation(const Eigen::VectorXi& index) {
+  Eigen::MatrixXd p = Eigen::MatrixXd::Zero(index.size(), index.size());
+  for (long i = 0; i < index.size(); i++) p(index(i), i) = 1;
+  return p;
+}
+template <typename Func>
+Eigen::VectorXd NelderMead(
+    const Func& f, std::ostream* os = nullptr,
+    const Eigen::VectorXd& x0 = Eigen::VectorXd::Ones(), double e = 1e-4,
+    size_t max_iter = 1e4) {
+  long N = x0.size();
+
+  Eigen::MatrixXd x = x0 * Eigen::VectorXd::Ones(N + 1).transpose();
+  Eigen::VectorXd y(N + 1);
+
+  for (long i = 1; i < N + 1; i++)
+    x(i - 1, i) =
+        std::abs(x(i - 1, i)) < epsilon ? 0.00025 : x(i - 1, i) * 1.05;
+
+  for (size_t i = 0; i < max_iter; i++) {
+    for (long j = 0; j < N + 1; j++) y(j) = f(x.col(j));
+    Eigen::VectorXi s = sort_index(y);
+    x *= Permutation(s);
+    std::sort(y.data(), y.data() + y.size());
+    if (os != nullptr)
+      *os << y(0) << "\t" << x.col(0).transpose() << std::endl;
+    if ((x.col(N) - x.col(0)).norm() < e) break;
+    Eigen::VectorXd m = x.block(0, 0, N, N).rowwise().mean();
+    Eigen::VectorXd r = 2 * m - x.col(N);
+    double fr = f(r);
+    if (fr < y(0)) {
+      Eigen::VectorXd c = m + 2 * (m - x.col(N));
+      if (f(c) < fr)
+        x.col(N) = c;
+      else
+        x.col(N) = r;
+      continue;
+    } else if (fr < y(N - 1)) {
+      x.col(N) = r;
+      continue;
+    } else {
+      Eigen::VectorXd c = m + (fr < y(N) ? r : x.col(N) - m) / 2;
+      if (f(c) < std::min(fr, y(N))) {
+        x.col(N) = c;
+        continue;
+      }
+    }
+    for (long j = 1; j < N + 1; j++)
+      x.col(j) = x.col(0) + (x.col(j) - x.col(0)) / 2;
+  }
+  return x.col(0);
+}
+
 // Return a tuple of Pn(x) and P'n(x).
 inline std::pair<double, double> Legendre(int N, double x) {
   // assert(N > 2);
