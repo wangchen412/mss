@@ -28,13 +28,13 @@ double f(const Eigen::VectorXd& x) {
 }
 
 int main(int argc, char** argv) {
-  // if (argc != 5) exit_error_msg({"Initial values needed."});
-  double omega = 16576.243191120248 * 1.2;
+  double omega = 16576.243191120248 * 1.95;
 
   Eigen::VectorXcd w(1200), t(1200);
   // if (argc == 2) compute_bv(omega, w, t);
   // if (argc == 3) read_bv(argv[2], w, t);
   read_bv("bv.dat", w, t);
+
 
   // Mismatch f(omega, w, t, {{11400, 11400}, 0, {84e9, 84e9}});
   // std::ofstream file("iterations.dat");
