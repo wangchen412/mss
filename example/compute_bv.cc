@@ -30,11 +30,15 @@ int main(int argc, char* argv[]) {
   Solution<AP> s{input::Solution(argv[1])};
   s.Solve();
 
-  post::CC_Solution<AP> cc{&s};
+  post::CC_Solution<AP> cc(&s);
   std::cout << mss_msg({"Maximum mismatch: ", std::to_string(cc.Max())})
             << std::endl;
 
-  Boundary<AP, 4> b{500, {{-0.3, 0.3}, {0.3, -0.3}}, s.Matrix()};
+  post::Output<AP> o(&s);
+  o.Write();
+
+  // 20 x 20 in total. Start from the fourth unit from left.
+  Boundary<AP, 4> b{500, {{-1.4, 0.3}, {-0.8, -0.3}}, s.Matrix()};
 
   std::vector<StateAP> bv(b.Node().size());
 #ifdef NDEBUG
