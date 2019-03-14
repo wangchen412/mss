@@ -175,11 +175,12 @@ Eigen::VectorXd GradientDescent(
 }
 
 template <typename T>
-Eigen::VectorXi sort_index(const Eigen::Matrix<T, -1, 1>& v) {
+Eigen::VectorXi sort_index(Eigen::Matrix<T, -1, 1>& v) {
   Eigen::VectorXi x(v.size());
   x.setLinSpaced(0, x.size());
   std::sort(x.data(), x.data() + x.size(),
             [&v](size_t i, size_t j) { return v(i) < v(j); });
+  std::sort(v.data(), v.data() + v.size());
   return x;
 }
 Eigen::MatrixXd Permutation(const Eigen::VectorXi& index) {
@@ -200,12 +201,9 @@ Eigen::VectorXd NelderMead(
   for (long i = 1; i < N + 1; i++)
     x(i - 1, i) =
         std::abs(x(i - 1, i)) < epsilon ? 0.00025 : x(i - 1, i) * 1.05;
-
+  for (long i = 0; i < N + 1; i++) y(i) = f(x.col(i));
   for (size_t i = 0; i < max_iter; i++) {
-    for (long j = 0; j < N + 1; j++) y(j) = f(x.col(j));
-    Eigen::VectorXi s = sort_index(y);
-    x *= Permutation(s);
-    std::sort(y.data(), y.data() + y.size());
+    x *= Permutation(sort_index(y));
     if (os != nullptr)
       *os << y(0) << "\t" << x.col(0).transpose() << std::endl;
     if ((x.col(N) - x.col(0)).norm() < e) break;
@@ -214,23 +212,25 @@ Eigen::VectorXd NelderMead(
     double fr = f(r);
     if (fr < y(0)) {
       Eigen::VectorXd c = m + 2 * (m - x.col(N));
-      if (f(c) < fr)
-        x.col(N) = c;
-      else
-        x.col(N) = r;
-      continue;
+      double fc = f(c);
+      x.col(N) = fc < fr ? c : r;
+      y(N) = std::min(fc, fr);
     } else if (fr < y(N - 1)) {
       x.col(N) = r;
-      continue;
+      y(N) = fr;
     } else {
       Eigen::VectorXd c = m + (fr < y(N) ? r : x.col(N) - m) / 2;
-      if (f(c) < std::min(fr, y(N))) {
+      double fc = f(c);
+      if (fc < std::min(fr, y(N))) {
         x.col(N) = c;
-        continue;
+        y(N) = fc;
+      } else {
+        for (long j = 1; j < N + 1; j++) {
+          x.col(j) = x.col(0) + (x.col(j) - x.col(0)) / 2;
+          y(j) = f(x.col(j));
+        }
       }
     }
-    for (long j = 1; j < N + 1; j++)
-      x.col(j) = x.col(0) + (x.col(j) - x.col(0)) / 2;
   }
   return x.col(0);
 }
