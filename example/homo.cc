@@ -86,7 +86,7 @@ void read_bv(const std::string& fn, Eigen::VectorXcd& w,
 }
 
 int main(int argc, char** argv) {
-  if (argc != 5) exit_error_msg({"Initial values needed."});
+  if (argc != 6) exit_error_msg({"Initial values and step size needed."});
   double omega = 16576.243191120248 * 1.95;
 
   Eigen::VectorXcd w(1200), t(1200);
@@ -96,7 +96,7 @@ int main(int argc, char** argv) {
 
   Mismatch f(omega, w, t, {{11400, 11400}, 0, {84e9, 84e9}});
   std::ofstream file("iterations.dat");
-  GradientDescent(f, &file, {atof(argv[1]), atof(argv[2]), atof(argv[3]), atof(argv[4])});
+  GradientDescent(f, &file, {atof(argv[1]), atof(argv[2]), atof(argv[3]), atof(argv[4])}, atof(argv[5]));
   file.close();
   return 0;
 }
