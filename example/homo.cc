@@ -25,7 +25,7 @@ int main(int argc, char** argv) {
   if (argc != 5) exit_error_msg({"Initial values needed."});
   double omega = 32323.674222684484;
 
-  Solution<AP> s{input::Solution("Input.txt")};
+  Solution<AP> s{input::Solution("input.txt")};
   s.Solve();
   Boundary<AP, 4> b{500, {{-1.8, 0.3}, {-0.6, -0.3}}, s.Matrix()};
   Eigen::VectorXcd w(b.NumNode()), t(b.NumNode());
