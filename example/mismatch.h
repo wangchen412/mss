@@ -36,7 +36,7 @@ class Mismatch {
 
   double operator()(const Eigen::Vector4d& r) const {
     Matrix matrix(m0_ * r, omega_);
-    Boundary<AP, 4> b{500, {{-1.8, 0.3}, {-0.6, -0.3}}, &matrix};
+    Boundary<AP, 4> b{500, {{-1.8, 0.4}, {-1.0, -0.4}}, &matrix};
     return (b.MatrixH() * w_ - b.MatrixG() * t_).norm();
   }
 

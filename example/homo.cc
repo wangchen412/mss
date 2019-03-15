@@ -27,16 +27,27 @@ int main(int argc, char** argv) {
 
   Solution<AP> s{input::Solution("input.txt")};
   s.Solve();
-  Boundary<AP, 4> b{500, {{-1.8, 0.3}, {-0.6, -0.3}}, s.Matrix()};
+
+  // 4 x 4 from the second.
+  Boundary<AP, 4> b{500, {{-1.8, 0.4}, {-1.0, -0.4}}, s.Matrix()};
   Eigen::VectorXcd w(b.NumNode()), t(b.NumNode());
+
+  std::vector<StateAP> v(b.Node().size());
 #ifdef NDEBUG
 #pragma omp parallel for
 #endif
   for (size_t i = 0; i < b.NumNode(); i++) {
-    VectorXcd bv = s.Resultant(b.Node(i)).Bv();
-    w(i) = bv(0);
-    t(i) = bv(1);
+    v[i] = s.Resultant(b.Node(i));
+    w(i) = v[i].Bv()(0);
+    t(i) = v[i].Bv()(1);
   }
+
+  std::ofstream bv_out("bv.dat");
+  for (size_t i = 0; i < b.NumNode(); i++)
+    bv_out << setMaxPrecision << v[i].Basis()->PositionGLB() << "\t"
+           << v[i].Basis()->AngleGLB() << "\t" << w(i) << "\t" << t(i)
+           << std::endl;
+  bv_out.close();
 
   Mismatch f(omega, w, t, {{11400, 11400}, 0, {84e9, 84e9}});
   std::ofstream file("iterations.dat");

@@ -51,5 +51,6 @@ int main(int argc, char* argv[]) {
     file << setMaxPrecision << i.Basis()->PositionGLB() << "\t"
          << i.Basis()->AngleGLB() << "\t" << i.Bv()(0) << "\t" << i.Bv()(1)
          << std::endl;
+  file.close();
   return 0;
 }
