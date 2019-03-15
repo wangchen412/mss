@@ -25,8 +25,18 @@ int main(int argc, char** argv) {
   if (argc != 5) exit_error_msg({"Initial values needed."});
   double omega = 32323.674222684484;
 
-  Eigen::VectorXcd w(1200), t(1200);
-  read_bv("bv.dat", w, t);
+  Solution<AP> s{input::Solution("Input.txt")};
+  s.Solve();
+  Boundary<AP, 4> b{500, {{-1.8, 0.3}, {-0.6, -0.3}}, s.Matrix()};
+  Eigen::VectorXcd w(b.NumNode()), t(b.NumNode());
+#ifdef NDEBUG
+#pragma omp parallel for
+#endif
+  for (size_t i = 0; i < b.NumNode(); i++) {
+    VectorXcd bv = s.Resultant(b.Node(i)).Bv();
+    w(i) = bv(0);
+    t(i) = bv(1);
+  }
 
   Mismatch f(omega, w, t, {{11400, 11400}, 0, {84e9, 84e9}});
   std::ofstream file("iterations.dat");
