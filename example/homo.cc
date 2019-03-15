@@ -23,7 +23,7 @@ using namespace mss;
 
 int main(int argc, char** argv) {
   if (argc != 5) exit_error_msg({"Initial values needed."});
-  double omega = 16576.243191120248 * 1.95;
+  double omega = 32323.674222684484;
 
   Eigen::VectorXcd w(1200), t(1200);
   read_bv("bv.dat", w, t);

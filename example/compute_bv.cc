@@ -34,11 +34,11 @@ int main(int argc, char* argv[]) {
   std::cout << mss_msg({"Maximum mismatch: ", std::to_string(cc.Max())})
             << std::endl;
 
-  post::Output<AP> o(&s);
-  o.Write();
+  // post::Output<AP> o(&s);
+  // o.Write();
 
-  // 20 x 20 in total. Start from the fourth unit from left.
-  Boundary<AP, 4> b{500, {{-1.4, 0.3}, {-0.8, -0.3}}, s.Matrix()};
+  // 20 x 20 in total. Start from the second.
+  Boundary<AP, 4> b{500, {{-1.8, 0.3}, {-1.2, -0.3}}, s.Matrix()};
 
   std::vector<StateAP> bv(b.Node().size());
 #ifdef NDEBUG
