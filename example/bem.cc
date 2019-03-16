@@ -24,8 +24,8 @@
 
 using namespace mss;
 
-Material steel{7670, 116e9, 84.3e9}, eff_mat{9261.7818, 1, 52.368372e9};
-Matrix m{steel, 16576.2}, ff{eff_mat, 16576.2};
+Material steel{7670, 116e9, 84.3e9}, eff_mat{{5287.719, 23978.873999999996}, 1, {36935052000.0, 95687760000.0}};
+Matrix m{steel, 32323.674222684484}, ff{eff_mat, 32323.674222684484};
 
 IncidentPlaneSH* in;
 Boundary<AP, 14>* b0;
