@@ -33,16 +33,22 @@ class Mismatch {
   Mismatch(double omega, const Eigen::VectorXcd& w, const Eigen::VectorXcd& t,
            const Material& m0, double width = 0.6, double height = 0.6,
            double density = 500)
-      : omega_(omega), w_(w), t_(t), m0_(m0) {}
+      : omega_(omega),
+        width_(width),
+        height_(height),
+        density_(density),
+        w_(w),
+        t_(t),
+        m0_(m0) {}
 
   double operator()(const Eigen::Vector4d& r) const {
     Matrix matrix(m0_ * r, omega_);
-    Boundary<AP, 4> b{density, {{0, height}, {width, 0}}, &matrix};
+    Boundary<AP, 4> b{density_, {{0, height_}, {width_, 0}}, &matrix};
     return (b.MatrixH() * w_ - b.MatrixG() * t_).norm();
   }
 
  private:
-  double omega_;
+  double omega_, width_, height_, density_;
   Eigen::VectorXcd w_, t_;
   const Material m0_;
 };
@@ -51,14 +57,14 @@ void read_bv(const std::string& fn, Eigen::VectorXcd& w,
   std::ifstream file(fn);
   std::string tmp;
   double x, y, ang, t1, t2;
-  std::vector<double> ww, tt;
+  std::vector<dcomp> ww, tt;
   while (getline(file, tmp)) {
     std::stringstream(tmp) >> x >> y >> ang >> t1 >> t2;
     ww.push_back(t1);
     tt.push_back(t2);
   }
-  w = Eigen::VectorXcd(ww.data());
-  t = Eigen::VectorXcd(tt.data());
+  w = Eigen::Map<Eigen::VectorXcd>(&ww[0], ww.size());
+  t = Eigen::Map<Eigen::VectorXcd>(&tt[0], tt.size());
   std::cout << mss_msg({"Boundary values read from ", fn}) << std::endl;
 }
 void compute_bv(double omega, Eigen::VectorXcd& w, Eigen::VectorXcd& t,
