@@ -47,9 +47,7 @@ class Mismatch {
     return (b.MatrixH() * w_ - b.MatrixG() * t_).norm();
   }
 
-  Material material(const Eigen::Vector4d& r) const {
-    return m0_ * r;
-  }
+  Material material(const Eigen::Vector4d& r) const { return m0_ * r; }
 
  private:
   double omega_, width_, height_, density_;
@@ -60,7 +58,8 @@ void read_bv(const std::string& fn, Eigen::VectorXcd& w,
              Eigen::VectorXcd& t) {
   std::ifstream file(fn);
   std::string tmp;
-  double x, y, ang, t1, t2;
+  double x, y, ang;
+  dcomp t1, t2;
   std::vector<dcomp> ww, tt;
   while (getline(file, tmp)) {
     std::stringstream(tmp) >> x >> y >> ang >> t1 >> t2;
@@ -69,11 +68,13 @@ void read_bv(const std::string& fn, Eigen::VectorXcd& w,
   }
   w = Eigen::Map<Eigen::VectorXcd>(&ww[0], ww.size());
   t = Eigen::Map<Eigen::VectorXcd>(&tt[0], tt.size());
-  std::cout << mss_msg({"Boundary values read from ", fn}) << std::endl;
+  std::cout << mss_msg({std::to_string(w.size()),
+                        " pairs of boundary values were read from ", fn})
+            << std::endl;
 }
 void compute_bv(double omega, Eigen::VectorXcd& w, Eigen::VectorXcd& t,
-                double width = 0.6, double height = 0.6, double xc = 0,
-                double yc = 0, double density = 500) {
+                double x1, double y1, double x2, double y2,
+                double density = 500) {
   input::Solution in("input.txt");
   in.update_frequency(omega);
   Solution<AP> s(in);
@@ -83,10 +84,7 @@ void compute_bv(double omega, Eigen::VectorXcd& w, Eigen::VectorXcd& t,
   std::cout << mss_msg({"Maximum mismatch: ", std::to_string(cc.Max())})
             << std::endl;
 
-  Boundary<AP, 4> b{
-      density,
-      {{xc - width / 2, yc + height / 2}, {xc + width / 2, yc - height / 2}},
-      s.Matrix()};
+  Boundary<AP, 4> b{density, {{x1, y1}, {x2, y2}}, s.Matrix()};
 
   w.resize(b.NumNode());
   t.resize(b.NumNode());

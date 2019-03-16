@@ -39,7 +39,8 @@ int main(int argc, char** argv) {
   if (argc != 2) exit_error_msg({"X of the center is needed."});
   VectorXcd w, t;
   double omega = 32323.674222684484;
-  compute_bv(omega, w, t, 0.8, 0.8, atof(argv[1]));
+  double x1 = atof(argv[1]) * 0.2 - 2.2;
+  compute_bv(omega, w, t, x1, 0.4, x1 + 0.8, -0.4);
   Mismatch f(omega, w, t, {{11400, 11400}, 0, {84e9, 84e9}}, 0.8, 0.8);
   std::ofstream file("iterations.dat");
   VectorXd p = NelderMead(f, Vector4d::Ones(), &file);
