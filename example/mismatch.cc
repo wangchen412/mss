@@ -25,7 +25,7 @@ int main(int argc, char** argv) {
   if (argc != 6) exit_error_msg({"Ka and initial values needed."});
 
   double omega = 16576.243191120248 * atof(argv[1]);
-  Eigen::VectorXcd w(1200), t(1200);
+  Eigen::VectorXcd w(1600), t(1600);
   read_bv("bv.dat", w, t);
 
   Mismatch f(omega, w, t, {{11400, 11400}, 0, {84e9, 84e9}});

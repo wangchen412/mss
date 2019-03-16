@@ -50,7 +50,7 @@ void read_bv(const std::string& fn, Eigen::VectorXcd& w,
   std::ifstream file(fn);
   std::string tmp;
   double x, y, ang;
-  for (int i = 0; i < 1200; i++) {
+  for (int i = 0; i < 1600; i++) {
     getline(file, tmp);
     std::stringstream ss(tmp);
     ss >> x >> y >> ang >> w(i) >> t(i);
