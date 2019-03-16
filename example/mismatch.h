@@ -31,12 +31,13 @@ using namespace mss;
 class Mismatch {
  public:
   Mismatch(double omega, const Eigen::VectorXcd& w, const Eigen::VectorXcd& t,
-           const Material& m0)
+           const Material& m0, double width = 0.6, double height = 0.6,
+           double density = 500)
       : omega_(omega), w_(w), t_(t), m0_(m0) {}
 
   double operator()(const Eigen::Vector4d& r) const {
     Matrix matrix(m0_ * r, omega_);
-    Boundary<AP, 4> b{500, {{-1.8, 0.4}, {-1.0, -0.4}}, &matrix};
+    Boundary<AP, 4> b{density, {{0, height}, {width, 0}}, &matrix};
     return (b.MatrixH() * w_ - b.MatrixG() * t_).norm();
   }
 
@@ -49,15 +50,20 @@ void read_bv(const std::string& fn, Eigen::VectorXcd& w,
              Eigen::VectorXcd& t) {
   std::ifstream file(fn);
   std::string tmp;
-  double x, y, ang;
-  for (int i = 0; i < 1600; i++) {
-    getline(file, tmp);
-    std::stringstream ss(tmp);
-    ss >> x >> y >> ang >> w(i) >> t(i);
+  double x, y, ang, t1, t2;
+  std::vector<double> ww, tt;
+  while (getline(file, tmp)) {
+    std::stringstream(tmp) >> x >> y >> ang >> t1 >> t2;
+    ww.push_back(t1);
+    tt.push_back(t2);
   }
+  w = Eigen::VectorXcd(ww.data());
+  t = Eigen::VectorXcd(tt.data());
   std::cout << mss_msg({"Boundary values read from ", fn}) << std::endl;
 }
-void compute_bv(double omega, Eigen::VectorXcd& w, Eigen::VectorXcd& t) {
+void compute_bv(double omega, Eigen::VectorXcd& w, Eigen::VectorXcd& t,
+                double width = 0.6, double height = 0.6, double xc = 0,
+                double yc = 0, double density = 500) {
   input::Solution in("input.txt");
   in.update_frequency(omega);
   Solution<AP> s(in);
@@ -67,11 +73,17 @@ void compute_bv(double omega, Eigen::VectorXcd& w, Eigen::VectorXcd& t) {
   std::cout << mss_msg({"Maximum mismatch: ", std::to_string(cc.Max())})
             << std::endl;
 
-  Boundary<AP, 4> b{500, {{-0.3, 0.3}, {0.3, -0.3}}, s.Matrix()};
+  Boundary<AP, 4> b{
+      density,
+      {{xc - width / 2, yc + height / 2}, {xc + width / 2, yc - height / 2}},
+      s.Matrix()};
+
+  w.resize(b.NumNode());
+  t.resize(b.NumNode());
 #ifdef NDEBUG
 #pragma omp parallel for
 #endif
-  for (size_t i = 0; i < 1200; i++) {
+  for (size_t i = 0; i < b.NumNode(); i++) {
     VectorXcd bv = s.Resultant(b.Node(i)).Bv();
     w(i) = bv(0);
     t(i) = bv(1);
@@ -84,7 +96,9 @@ void compute_bv(double omega, Eigen::VectorXcd& w, Eigen::VectorXcd& t) {
          << std::endl;
   file.close();
 
-  std::cout << mss_msg({"Boundary values computed."}) << std::endl;
+  std::cout << mss_msg({std::to_string(b.NumNode()),
+                        " pairs of boundary values computed."})
+            << std::endl;
 }
 
 #endif
