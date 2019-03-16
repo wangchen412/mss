@@ -42,10 +42,7 @@ int main(int argc, char** argv) {
   compute_bv(omega, w, t, 0.8, 0.8, atof(argv[1]));
   Mismatch f(omega, w, t, {{11400, 11400}, 0, {84e9, 84e9}}, 0.8, 0.8);
   std::ofstream file("iterations.dat");
-  VectorXd p = NelderMead(
-      f, &file,
-      Vector4d(atof(argv[1]), atof(argv[2]), atof(argv[3]), atof(argv[4])),
-      1e-3);
+  VectorXd p = NelderMead(f, Vector4d::Ones(), &file);
   file.close();
   std::cout << mss_msg({"Effective properties: "}) << p.transpose()
             << std::endl;
