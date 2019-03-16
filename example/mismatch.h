@@ -47,6 +47,10 @@ class Mismatch {
     return (b.MatrixH() * w_ - b.MatrixG() * t_).norm();
   }
 
+  Material material(const Eigen::Vector4d& r) const {
+    return m0_ * r;
+  }
+
  private:
   double omega_, width_, height_, density_;
   Eigen::VectorXcd w_, t_;
