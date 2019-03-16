@@ -40,7 +40,7 @@ int main(int argc, char** argv) {
   VectorXcd w, t;
   double omega = 32323.674222684484;
   compute_bv(omega, w, t, 0.8, 0.8, atof(argv[1]));
-  Mismatch f(omega, w, t, {{11400, 11400}, 0, {84e9, 84e9}});
+  Mismatch f(omega, w, t, {{11400, 11400}, 0, {84e9, 84e9}}, 0.8, 0.8);
   std::ofstream file("iterations.dat");
   VectorXd p = NelderMead(
       f, &file,
