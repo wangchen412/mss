@@ -21,16 +21,18 @@
 
 using namespace mss;
 
-int main(int argc, char** argv) {
-  if (argc != 6) exit_error_msg({"Ka and initial values needed."});
-
-  double omega = 16576.243191120248 * atof(argv[1]);
-  Eigen::VectorXcd w(1600), t(1600);
+int main() {
+  double omega = 32323.674222684484;
+  Eigen::VectorXcd w, t;
   read_bv("bv.dat", w, t);
+  Mismatch f(omega, w, t, {{11400, 11400}, 0, {84e9, 84e9}}, 0.8, 0.8);
 
-  Mismatch f(omega, w, t, {{11400, 11400}, 0, {84e9, 84e9}});
-  std::cout << f({atof(argv[2]), atof(argv[3]), atof(argv[4]), atof(argv[5])})
-            << std::endl;
+  while (1) {
+    double rr, ri, mr, mi;
+    std::cin >> rr >> ri >> mr >> mi;
+    std::cout << setMaxPrecision << f({rr, ri, mr, mi}) << std::endl;
+    std::cout.flush();
+  }
 
   return 0;
 }

@@ -68,9 +68,6 @@ void read_bv(const std::string& fn, Eigen::VectorXcd& w,
   }
   w = Eigen::Map<Eigen::VectorXcd>(&ww[0], ww.size());
   t = Eigen::Map<Eigen::VectorXcd>(&tt[0], tt.size());
-  std::cout << mss_msg({std::to_string(w.size()),
-                        " pairs of boundary values were read from ", fn})
-            << std::endl;
 }
 void compute_bv(double omega, Eigen::VectorXcd& w, Eigen::VectorXcd& t,
                 double x1, double y1, double x2, double y2,
