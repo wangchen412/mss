@@ -20,7 +20,7 @@
 include(${CMAKE_MODULE_PATH}/AddExe.cmake)
 
 mss_add_exe(compute_bv)
-mss_add_exe(homo)
+# mss_add_exe(homo)
 mss_add_exe(bem)
 mss_add_exe(mss)
 mss_add_exe(freq_scan)
