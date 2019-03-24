@@ -17,18 +17,18 @@
 //
 // ----------------------------------------------------------------------
 
+#include "../src/post/Output.h"
+#include "../src/post/check/Continuity.h"
 #include "mismatch.h"
 
 using namespace mss;
 
-int main(int argc, char** argv) {
-  double omega = 32323.674222684484;
+int main(int argc, char* argv[]) {
+  if (argc != 2) exit_error_msg({"Input required."});
 
-  Solution<AP> s{input::Solution("input.txt")};
-  s.Solve();
+  Solution<AP> s{input::Solution(argv[1])};
+  Boundary<AP, 4> b(0, {}, s.Matrix(), INPUT);
 
-  // 4 x 4 from the second.
-  Boundary<AP, 4> b{500, {{-1.8, 0.4}, {-1.0, -0.4}}, s.Matrix()};
   Eigen::VectorXcd w(b.NumNode()), t(b.NumNode());
 
   std::vector<StateAP> v(b.Node().size());
@@ -48,7 +48,7 @@ int main(int argc, char** argv) {
            << std::endl;
   bv_out.close();
 
-  Mismatch f(omega, w, t, {{11400, 11400}, 0, {84e9, 84e9}});
+  Mismatch f(s.Frequency(), w, t, {{11400, 11400}, 0, {84e9, 84e9}});
   std::ofstream file("iterations.dat");
   NelderMead(f,
              Eigen::Vector4d(atof(argv[1]), atof(argv[2]), atof(argv[3]),

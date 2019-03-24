@@ -20,6 +20,8 @@
 #ifndef MSS_BOUNDARY_H
 #define MSS_BOUNDARY_H
 
+#include <fstream>
+#include <sstream>
 #include "Panel.h"
 
 namespace mss {
@@ -47,6 +49,9 @@ class Boundary {
         r_cc_ = (positions[0] - positions[1]).Length();
         center_ = CS(positions[0]);
         add_circle(positions[0], r_cc_);
+        break;
+      case INPUT:
+        add_input_node();
         break;
       default:
         exit_error_msg({"Wrong boundary type."});
@@ -133,6 +138,7 @@ class Boundary {
   void add_rect(const PosiVect& p1, const PosiVect& p2);
   void add_line(const PosiVect& p1, const PosiVect& p2);
   void add_circle(const PosiVect& p, double r);
+  void add_input_node();
   void compute_HG();
 };
 
@@ -359,7 +365,7 @@ void Boundary<T, N>::add_line(const PosiVect& p1, const PosiVect& p2) {
   PosiVect d = (p2 - p1) / n;
   PosiVect de = (p2 - p1) / ne;
   double len = d.Length();
-  double ang = d.Angle() - pi_2 + ext_ * pi;
+  double ang = d.Angle(len) - pi_2 + ext_ * pi;
   edge_.push_back(CSCPtrs());
 
   for (size_t i = 0; i < n; i++) {
@@ -379,6 +385,29 @@ void Boundary<T, N>::add_circle(const PosiVect& p, double r) {
     panel_.push_back(
         new Panel<T, N>(node_.back(), 2 * tan(pi / n) * r, matrix_));
   }
+}
+template <typename T, int N>
+void Boundary<T, N>::add_input_node() {
+  std::ifstream file("boundary.txt");
+  std::string tmp;
+  PosiVect p0, p1, p2;
+  getline(file, tmp);
+  std::stringstream(tmp) >> p1;
+  p0 = p1;
+  while (getline(file, tmp)) {
+    std::stringstream(tmp) >> p2;
+    PosiVect d = p2 - p1;
+    double len = d.Length();
+    double ang = d.Angle(len) - pi_2 + ext_ * pi;
+    node_.push_back(new CS(p1 + d * 0.5, ang));
+    panel_.push_back(new Panel<T, N>(node_.back(), len, matrix_));
+    p1 = p2;
+  }
+  PosiVect d = p0 - p1;
+  double len = d.Length();
+  double ang = d.Angle(len) - pi_2 + ext_ * pi;
+  node_.push_back(new CS(p1 + d * 0.5, ang));
+  panel_.push_back(new Panel<T, N>(node_.back(), len, matrix_));
 }
 
 }  // namespace mss

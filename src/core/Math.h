@@ -71,6 +71,7 @@ enum BoundaryShape {
   RECTANGULAR,
   HEXAGONAL,
   CIRCULAR,
+  INPUT
 };
 
 inline dcomp operator+(const dcomp& lhs, int rhs) {
