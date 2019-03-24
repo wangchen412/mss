@@ -44,7 +44,7 @@ class Mismatch {
   double operator()(const Eigen::Vector4d& r) const {
     Matrix matrix(m0_ * r, omega_);
     Boundary<AP, 4> b{density_, {{0, height_}, {width_, 0}}, &matrix};
-    return (t_.dot(b.MatrixH() * w_ - b.MatrixG() * t_)).real();
+    return (b.MatrixH() * w_ - b.MatrixG() * t_).norm();
   }
 
   Material material(const Eigen::Vector4d& r) const { return m0_ * r; }
