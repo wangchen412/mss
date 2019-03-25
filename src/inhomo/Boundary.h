@@ -390,10 +390,9 @@ template <typename T, int N>
 void Boundary<T, N>::add_input_node() {
   std::ifstream file("boundary.txt");
   std::string tmp;
-  PosiVect p0, p1, p2;
+  PosiVect p1, p2;
   getline(file, tmp);
   std::stringstream(tmp) >> p1;
-  p0 = p1;
   while (getline(file, tmp)) {
     std::stringstream(tmp) >> p2;
     PosiVect d = p2 - p1;
@@ -403,11 +402,6 @@ void Boundary<T, N>::add_input_node() {
     panel_.push_back(new Panel<T, N>(node_.back(), len, matrix_));
     p1 = p2;
   }
-  PosiVect d = p0 - p1;
-  double len = d.Length();
-  double ang = d.Angle(len) - pi_2 + ext_ * pi;
-  node_.push_back(new CS(p1 + d * 0.5, ang));
-  panel_.push_back(new Panel<T, N>(node_.back(), len, matrix_));
 }
 
 }  // namespace mss
