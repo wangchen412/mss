@@ -19,10 +19,9 @@
 
 #include "../src/post/Output.h"
 #include "../src/post/check/Continuity.h"
-#include "mismatch.h"
+
 
 using namespace mss;
-using namespace Eigen;
 
 IncidentPlaneSH* in;
 Boundary<AP, 14>* b0;
@@ -37,6 +36,28 @@ StateAP rst(const CS* cs) {
   }
   return b1->Effect(cs, true);
 }
+
+class Mismatch {
+public:
+  Mismatch(double omega, const Eigen::VectorXcd& w, const Eigen::VectorXcd& t,
+           const Material& m0)
+    : omega_(omega),
+      w_(w),
+      t_(t),
+      m0_(m0) {}
+  double operator()(const Eigen::Vector4d& r) const {
+    Matrix matrix(m0_ * r, omega_);
+    Boundary<AP, 4> b{0, {}, &matrix, INPUT};
+    return (b.MatrixH() * w_ - b.MatrixG() * t_).norm();
+  }
+
+  Material material(const Eigen::Vector4d& r) const { return m0_ * r; }
+
+private:
+  double omega_;
+  Eigen::VectorXcd w_, t_;
+  const Material m0_;
+};
 
 int main() {
   // 1. Solve and output the wave field of multiple scattering.
@@ -70,7 +91,7 @@ int main() {
   // 3. Homogenization.
   Mismatch f(s.Frequency(), w, t, {{11400, 11400}, 0, {84e9, 84e9}});
   std::ofstream file("iterations.dat");
-  VectorXd p = NelderMead(f, Vector4d::Ones(), &file);
+  Eigen::VectorXd p = NelderMead(f, Eigen::Vector4d::Ones(), &file);
   file.close();
   std::cout << mss_msg({"Effective properties: "}) << p.transpose()
             << std::endl;
