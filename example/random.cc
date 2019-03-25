@@ -22,6 +22,21 @@
 #include "mismatch.h"
 
 using namespace mss;
+using namespace Eigen;
+
+IncidentPlaneSH* in;
+Boundary<AP, 14>* b0;
+Boundary<AP, 14>* b1;
+
+StateAP rst(const CS* cs) {
+  switch (b1->Contains(cs)) {
+  case 1:
+    return b1->Effect(cs);
+  case -1:
+    return in->Effect(cs) + b0->Effect(cs);
+  }
+  return b1->Effect(cs, true);
+}
 
 int main(int argc, char* argv[]) {
   if (argc != 2) exit_error_msg({"Input required."});
@@ -50,11 +65,32 @@ int main(int argc, char* argv[]) {
 
   Mismatch f(s.Frequency(), w, t, {{11400, 11400}, 0, {84e9, 84e9}});
   std::ofstream file("iterations.dat");
-  NelderMead(f,
-             Eigen::Vector4d(atof(argv[1]), atof(argv[2]), atof(argv[3]),
-                             atof(argv[4])),
-             &file, 1e-3);
+  VectorXd p = NelderMead(f, Vector4d::Ones(), &file);
   file.close();
+  std::cout << mss_msg({"Effective properties: "}) << p.transpose()
+            << std::endl;
 
+  Material steel(7670, 116e9, 84.3e9);
+  mss::Matrix m{steel, s.Frequency()}, ff{f.material(p), s.Frequency()};
+  in = new IncidentPlaneSH(m);
+  b0 = new Boundary<AP, 14>(50 * m.KT(), {{-2, 2}, {2, -2}}, &m, RECTANGULAR,
+                            true);
+  b1 = new Boundary<AP, 14>(50 * m.KT(), {{-2, 2}, {2, -2}}, &ff);
+
+  Eigen::VectorXcd bv =
+    b1->DispToEffect() * (b0->MatrixH() + b0->MatrixG() * b1->DtN())
+    .lu()
+    .solve(in->EffectDv(b0->Node()));
+  b1->SetBv(bv);
+  for (long i = 0; i < bv.size(); i++)
+    if (i % 2) bv(i) *= -1;
+  b0->SetBv(bv);
+
+  post::Area<AP> a2(rst, {-6, 6}, {6, -6}, 1200, 1200, "bem");
+  a2.Write();
+
+  delete in;
+  delete b0;
+  delete b1;
   return 0;
 }
