@@ -38,14 +38,19 @@ StateAP rst(const CS* cs) {
   return b1->Effect(cs, true);
 }
 
-int main(int argc, char* argv[]) {
-  if (argc != 2) exit_error_msg({"Input required."});
+int main() {
+  // 1. Solve and output the wave field of multiple scattering.
+  Solution<AP> s{input::Solution("input.txt")};
+  s.Solve();
+  post::CC_Solution<AP> cc{&s};
+  std::cout << mss_msg({"Maximum mismatch: ", std::to_string(cc.Max())})
+            << std::endl;
+  post::Output<AP> o{&s};
+  o.Write();
 
-  Solution<AP> s{input::Solution(argv[1])};
+  // 2. Compute boundary values around the RVE.
   Boundary<AP, 4> b(0, {}, s.Matrix(), INPUT);
-
   Eigen::VectorXcd w(b.NumNode()), t(b.NumNode());
-
   std::vector<StateAP> v(b.Node().size());
 #ifdef NDEBUG
 #pragma omp parallel for
@@ -55,7 +60,6 @@ int main(int argc, char* argv[]) {
     w(i) = v[i].Bv()(0);
     t(i) = v[i].Bv()(1);
   }
-
   std::ofstream bv_out("bv.dat");
   for (size_t i = 0; i < b.NumNode(); i++)
     bv_out << setMaxPrecision << v[i].Basis()->PositionGLB() << "\t"
@@ -63,6 +67,7 @@ int main(int argc, char* argv[]) {
            << std::endl;
   bv_out.close();
 
+  // 3. Homogenization.
   Mismatch f(s.Frequency(), w, t, {{11400, 11400}, 0, {84e9, 84e9}});
   std::ofstream file("iterations.dat");
   VectorXd p = NelderMead(f, Vector4d::Ones(), &file);
@@ -70,6 +75,7 @@ int main(int argc, char* argv[]) {
   std::cout << mss_msg({"Effective properties: "}) << p.transpose()
             << std::endl;
 
+  // 4. Solve and output the wave field of effective homogeneous scatterer.
   Material steel(7670, 116e9, 84.3e9);
   mss::Matrix m{steel, s.Frequency()}, ff{f.material(p), s.Frequency()};
   in = new IncidentPlaneSH(m);
