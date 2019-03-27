@@ -21,14 +21,14 @@
 
 using namespace mss;
 
-int main(int argc, char** argv) {
-  double omega = 32323.674222684484;
+int main() {
+  double omega = 16576.24319;
 
   Solution<AP> s{input::Solution("input.txt")};
   s.Solve();
 
   // 4 x 4 from the second.
-  Boundary<AP, 4> b{500, {{-1.8, 0.4}, {-1.0, -0.4}}, s.Matrix()};
+  Boundary<AP, 4> b{500, {{-0.3, 0.3}, {0.3, -0.3}}, s.Matrix()};
   Eigen::VectorXcd w(b.NumNode()), t(b.NumNode());
 
   std::vector<StateAP> v(b.Node().size());
@@ -50,10 +50,7 @@ int main(int argc, char** argv) {
 
   Mismatch f(omega, w, t, {{11400, 11400}, 0, {84e9, 84e9}});
   std::ofstream file("iterations.dat");
-  NelderMead(f,
-             Eigen::Vector4d(atof(argv[1]), atof(argv[2]), atof(argv[3]),
-                             atof(argv[4])),
-             &file, 1e-3);
+  NelderMead(f, Eigen::Vector4d::Ones(), &file);
   file.close();
 
   return 0;
