@@ -22,8 +22,6 @@
 using namespace mss;
 
 int main() {
-  double omega = 16576.24319;
-
   Solution<AP> s{input::Solution("input.txt")};
   s.Solve();
 
@@ -48,7 +46,7 @@ int main() {
            << std::endl;
   bv_out.close();
 
-  Mismatch f(omega, w, t, {{11400, 11400}, 0, {84e9, 84e9}});
+  Mismatch f(s.Frequency(), w, t, {{11400, 11400}, 0, {84e9, 84e9}});
   std::ofstream file("iterations.dat");
   NelderMead(f, Eigen::Vector4d::Ones(), &file);
   file.close();
