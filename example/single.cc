@@ -21,12 +21,17 @@
 
 using namespace mss;
 
-int main() {
-  Solution<AP> s{input::Solution("input.txt")};
-  s.Solve();
+Eigen::MatrixXd single_homo(double ka) {
+  double omega = ka * 16576.24319112025;
 
-  // 4 x 4 from the second.
-  Boundary<AP, 4> b{500, {{-0.1, 0.1}, {0.1, -0.1}}, s.Matrix()};
+  const Material steel(7670, 116e9, 84.3e9), lead(11400, 36e9, 8.43e9);
+  Matrix m(steel, omega);
+  IncidentPlaneSH in(m);
+  FiberConfig<AP> fc{"1", 20, 1000, 0.06, lead, &m};
+  Fiber<AP> f1{&fc};
+  f1.SetCoeff(f1.DSolve({&in}));
+
+  Boundary<AP, 4> b{500, {{-0.1, 0.1}, {0.1, -0.1}}, &m};
   Eigen::VectorXcd w(b.NumNode()), t(b.NumNode());
 
   std::vector<StateAP> v(b.Node().size());
@@ -34,23 +39,26 @@ int main() {
 #pragma omp parallel for
 #endif
   for (size_t i = 0; i < b.NumNode(); i++) {
-    v[i] = s.Resultant(b.Node(i));
+    v[i] = f1.Scatter(b.Node(i)) + in.Effect(b.Node(i));
     w(i) = v[i].Bv()(0);
     t(i) = v[i].Bv()(1);
   }
 
-  std::ofstream bv_out("bv.dat");
-  for (size_t i = 0; i < b.NumNode(); i++)
-    bv_out << setMaxPrecision << v[i].Basis()->PositionGLB() << "\t"
-           << v[i].Basis()->AngleGLB() << "\t" << w(i) << "\t" << t(i)
-           << std::endl;
-  bv_out.close();
-
-  Mismatch f(s.Frequency(), w, t, {{11400, 11400}, 0, {84e9, 84e9}}, 0.2,
-             0.2);
-  std::ofstream file("iterations.dat");
-  NelderMead(f, Eigen::Vector4d::Ones(), &file);
+  Mismatch f(omega, w, t, {{11400, 11400}, 0, {84e9, 84e9}}, 0.2, 0.2);
+  std::ofstream file("iterations_" + std::to_string(ka) + ".dat");
+  Eigen::VectorXd rst = NelderMead(f, Eigen::Vector4d::Ones(), &file);
   file.close();
+  return rst.transpose();
+}
 
+int main() {
+  std::ofstream file("frequency.txt");
+  int N = 20;
+  double d = 1.0 / N;
+  for (int i = 0; i < N; i++) {
+    std::cout << i << std::endl;
+    file << single_homo(1 + d * i) << std::endl;
+  }
+  file.close();
   return 0;
 }

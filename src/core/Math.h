@@ -67,12 +67,7 @@ template <typename T>
 using VectorNcd = Eigen::Matrix<dcomp, T::NumBv, 1>;
 
 enum SolveMethod { COLLOCATION, DFT };
-enum BoundaryShape {
-  RECTANGULAR,
-  HEXAGONAL,
-  CIRCULAR,
-  INPUT
-};
+enum BoundaryShape { RECTANGULAR, HEXAGONAL, CIRCULAR, INPUT };
 
 inline dcomp operator+(const dcomp& lhs, int rhs) {
   return lhs + double(rhs);
@@ -205,7 +200,8 @@ Eigen::VectorXd NelderMead(const Func& f, const Eigen::VectorXd& x0,
   for (size_t i = 0; i < max_iter; i++) {
     x *= Permutation(sort_index(y));
     if (os != nullptr)
-      *os << y(0) << "\t" << x.col(0).transpose() << std::endl;
+      *os << setMaxPrecision << y(0) << "\t" << x.col(0).transpose()
+          << std::endl;
     if ((x.col(N) - x.col(0)).norm() < e) break;
     Eigen::VectorXd m = x.block(0, 0, N, N).rowwise().mean();
     Eigen::VectorXd r = 2 * m - x.col(N);

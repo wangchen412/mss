@@ -20,7 +20,7 @@
 include(${CMAKE_MODULE_PATH}/AddExe.cmake)
 
 mss_add_exe(compute_bv)
-# mss_add_exe(homo)
+mss_add_exe(homo)
 mss_add_exe(bem)
 mss_add_exe(mss)
 mss_add_exe(freq_scan)
@@ -28,3 +28,4 @@ mss_add_exe(loc_scan)
 mss_add_exe(mat_scan)
 mss_add_exe(mismatch)
 mss_add_exe(random)
+mss_add_exe(single)
