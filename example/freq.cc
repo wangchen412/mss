@@ -21,17 +21,32 @@
 
 using namespace mss;
 
-Eigen::MatrixXd single_homo(double ka) {
+// nc: number of layers of center inhomos.
+// ns: number of layers of surrounding inhomos.
+// Fox example, nc = 1, ns = 2 will be 5 x 5 with considering the center one
+// as the RVE; nc = 2, ns = 1 will be 4 x 4 with considering the center 2 x 2
+// as the RVE.
+Eigen::MatrixXd homo(double ka, size_t nc, size_t ns) {
   double omega = ka * 16576.24319112025;
 
   const Material steel(7670, 116e9, 84.3e9), lead(11400, 36e9, 8.43e9);
   Matrix m(steel, omega);
   IncidentPlaneSH in(m);
   FiberConfig<AP> fc{"1", 20, 1000, 0.06, lead, &m};
-  Fiber<AP> f1{&fc};
-  f1.SetCoeff(f1.DSolve({&in}));
+  InhomoPtrs<AP> fibers;
 
-  Boundary<AP, 4> b{500, {{-0.1, 0.1}, {0.1, -0.1}}, &m};
+  size_t nn = nc + ns * 2;
+  double d = 0.2;
+  PosiVect lbp(-(nn - 1) / 2 * d, -(nn - 1) / 2 * d);
+
+  for (size_t i = 0; i < nn; i++)
+    for (size_t j = 0; j < nn; j++)
+      fibers.push_back(new Fiber<AP>(&fc, lbp + PosiVect(i * d, j * d)));
+  auto ac = new AssemblyConfig<AP>("1", fibers, &m);
+  Solution<AP> sol(ac, {&in}, m);
+
+  double hw = nn / 2.0 * d;  // half width of the RVE
+  Boundary<AP, 4> b{500, {{-hw, hw}, {hw, -hw}}, &m};
   Eigen::VectorXcd w(b.NumNode()), t(b.NumNode());
 
   std::vector<StateAP> v(b.Node().size());
@@ -39,25 +54,33 @@ Eigen::MatrixXd single_homo(double ka) {
 #pragma omp parallel for
 #endif
   for (size_t i = 0; i < b.NumNode(); i++) {
-    v[i] = f1.Scatter(b.Node(i)) + in.Effect(b.Node(i));
+    v[i] = sol.Resultant(b.Node(i));
     w(i) = v[i].Bv()(0);
     t(i) = v[i].Bv()(1);
   }
 
-  Mismatch f(omega, w, t, {{11400, 11400}, 0, {84e9, 84e9}}, 0.2, 0.2);
+  Mismatch f(omega, w, t, {{11400, 11400}, 0, {84e9, 84e9}}, hw * 2, hw * 2);
   std::ofstream file("iterations_" + std::to_string(ka) + ".dat");
   Eigen::VectorXd rst = NelderMead(f, Eigen::Vector4d::Ones(), &file);
   file.close();
+
+  delete ac;
   return rst.transpose();
 }
 
-int main() {
-  std::ofstream file("frequency.txt");
+int main(int argc, char** argv) {
+  if (argc != 3) exit_error_msg({"Fiber numbers needed."});
+  std::string fn("C");
+  fn += argv[1];
+  fn += "_S";
+  fn += argv[2];
+  fn += ".txt";
+  std::ofstream file(fn);
   int N = 20;
   double d = 1.0 / N;
   for (int i = 0; i < N; i++) {
     std::cout << i << std::endl;
-    file << single_homo(1 + d * i) << std::endl;
+    file << homo(1 + d * i, atoi(argv[1]), atoi(argv[2])) << std::endl;
   }
   file.close();
   return 0;
