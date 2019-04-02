@@ -26,24 +26,25 @@ using namespace mss;
 // Fox example, nc = 1, ns = 2 will be 5 x 5 with considering the center one
 // as the RVE; nc = 2, ns = 1 will be 4 x 4 with considering the center 2 x 2
 // as the RVE.
-Eigen::MatrixXd homo(double ka, size_t nc, size_t ns) {
+Eigen::MatrixXd homo(double ka, int nc, int ns) {
   double omega = ka * 16576.24319112025;
 
   const Material steel(7670, 116e9, 84.3e9), lead(11400, 36e9, 8.43e9);
   Matrix m(steel, omega);
   IncidentPlaneSH in(m);
-  FiberConfig<AP> fc{"1", 20, 1000, 0.06, lead, &m};
+  auto fc = new FiberConfig<AP>("1", 40, 400, 0.06, lead, &m);
   InhomoPtrs<AP> fibers;
 
-  size_t nn = nc + ns * 2;
+  int nn = nc + ns * 2;
   double d = 0.2;
-  PosiVect lbp(-(nn - 1) / 2 * d, -(nn - 1) / 2 * d);
+  PosiVect lbp(-(nn - 1) / 2.0 * d, -(nn - 1) / 2.0 * d);
 
-  for (size_t i = 0; i < nn; i++)
-    for (size_t j = 0; j < nn; j++)
-      fibers.push_back(new Fiber<AP>(&fc, lbp + PosiVect(i * d, j * d)));
+  for (int i = 0; i < nn; i++)
+    for (int j = 0; j < nn; j++)
+      fibers.push_back(new Fiber<AP>(fc, lbp + PosiVect(i * d, j * d)));
   auto ac = new AssemblyConfig<AP>("1", fibers, &m);
-  Solution<AP> sol(ac, {&in}, m);
+  auto sol = new Solution<AP>(ac, {&in}, m);
+  sol->Solve();
 
   double hw = nn / 2.0 * d;  // half width of the RVE
   Boundary<AP, 4> b{500, {{-hw, hw}, {hw, -hw}}, &m};
@@ -54,7 +55,7 @@ Eigen::MatrixXd homo(double ka, size_t nc, size_t ns) {
 #pragma omp parallel for
 #endif
   for (size_t i = 0; i < b.NumNode(); i++) {
-    v[i] = sol.Resultant(b.Node(i));
+    v[i] = sol->Resultant(b.Node(i));
     w(i) = v[i].Bv()(0);
     t(i) = v[i].Bv()(1);
   }
@@ -64,6 +65,7 @@ Eigen::MatrixXd homo(double ka, size_t nc, size_t ns) {
   Eigen::VectorXd rst = NelderMead(f, Eigen::Vector4d::Ones(), &file);
   file.close();
 
+  delete sol;
   delete ac;
   return rst.transpose();
 }
