@@ -187,7 +187,7 @@ Eigen::MatrixXd Permutation(const Eigen::VectorXi& index) {
 template <typename Func>
 Eigen::VectorXd NelderMead(const Func& f, const Eigen::VectorXd& x0,
                            std::ostream* os = nullptr, double e = 1e-4,
-                           size_t max_iter = 1e4) {
+                           size_t max_iter = 1e3) {
   long N = x0.size();
 
   Eigen::MatrixXd x = x0 * Eigen::VectorXd::Ones(N + 1).transpose();

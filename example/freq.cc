@@ -78,11 +78,11 @@ int main(int argc, char** argv) {
   fn += argv[2];
   fn += ".txt";
   std::ofstream file(fn);
-  int N = 20;
-  double d = 1.0 / N;
+  int N = 18;
+
   for (int i = 0; i < N; i++) {
     std::cout << i << std::endl;
-    file << homo(1 + d * i, atoi(argv[1]), atoi(argv[2])) << std::endl;
+    file << homo(1 + 0.05 * i, atoi(argv[1]), atoi(argv[2])) << std::endl;
   }
   file.close();
   return 0;
