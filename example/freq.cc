@@ -32,7 +32,7 @@ Eigen::MatrixXd homo(double ka, int nc, int ns) {
   const Material steel(7670, 116e9, 84.3e9), lead(11400, 36e9, 8.43e9);
   Matrix m(steel, omega);
   IncidentPlaneSH in(m);
-  auto fc = new FiberConfig<AP>("1", 40, 400, 0.06, lead, &m);
+  auto fc = new FiberConfig<AP>("1", 20, 200, 0.06, lead, &m);
   InhomoPtrs<AP> fibers;
 
   int nn = nc + ns * 2;
@@ -46,7 +46,7 @@ Eigen::MatrixXd homo(double ka, int nc, int ns) {
   auto sol = new Solution<AP>(ac, {&in}, m);
   sol->Solve();
 
-  double hw = nn / 2.0 * d;  // half width of the RVE
+  double hw = nc / 2.0 * d;  // half width of the RVE
   Boundary<AP, 4> b{500, {{-hw, hw}, {hw, -hw}}, &m};
   Eigen::VectorXcd w(b.NumNode()), t(b.NumNode());
 
