@@ -284,10 +284,11 @@ Eigen::VectorXd BasinHopping(size_t num_iter, size_t num_hop, const Func& f,
 
     for (size_t j = 0; j < num_hop; j++) {
       double yy;
-      Eigen::VectorXd xx =
-          NelderMead(f, perturb(x, s), os, e, max_iter, &yy, &conv);
+      Eigen::VectorXd xx0 = perturb(x, s);
+      Eigen::VectorXd xx = NelderMead(f, xx0, os, e, max_iter, &yy, &conv);
+      file << "  " << j << " Start from: " << xx0.transpose();
       if (conv) {
-        file << "  " << j << " local min: " << yy << "\t" << xx.transpose()
+        file << "\t local min: " << yy << "\t" << xx.transpose()
              << "\t Dist: " << (x - xx).norm() << std::endl;
         if (yy < y && (x - xx).norm() > e * 10) {
           x = xx;
@@ -296,7 +297,7 @@ Eigen::VectorXd BasinHopping(size_t num_iter, size_t num_hop, const Func& f,
           break;
         }
       } else {
-        file << "  " << j << " not converged: " << yy << "\t"
+        file << "\t not converged: " << yy << "\t"
              << xx.transpose() << std::endl;
       }
     }
