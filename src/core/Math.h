@@ -270,20 +270,14 @@ Eigen::VectorXd BasinHopping(size_t num_iter, size_t num_hop, const Func& f,
       file << "  " << j << " local min: " << yy << "\t" << xx.transpose()
            << "\t Dist: " << (x - xx).norm() << std::endl;
 
-      if ((x - xx).norm() < e * 10)
-        ++nb;
-      else if (yy < y) {
+      if (yy < y && (x - xx).norm() > e * 10) {
         x = xx;
         y = yy;
-        ++na;
+        s *= 0.8;
+        break;
       }
     }
-    if (nb > num_hop / 2 || na > num_hop / 2)
-      s *= 1.25;
-    else
-      s *= 0.8;
-
-    file << na << "  accepted, " << nb << "  close to orginal." << std::endl;
+    s *= 1.25;
   }
 
   return x;
