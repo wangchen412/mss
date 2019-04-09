@@ -189,8 +189,10 @@ Eigen::MatrixXd Permutation(const Eigen::VectorXi& index) {
 template <typename Func>
 Eigen::VectorXd NelderMead(const Func& f, const Eigen::VectorXd& x0,
                            std::ostream* os = nullptr, double e = 1e-4,
-                           size_t max_iter = 1e3, double* fval = nullptr) {
+                           size_t max_iter = 1e3, double* fval = nullptr,
+                           bool* conv = nullptr) {
   long N = x0.size();
+  bool converge = false;
 
   Eigen::MatrixXd x = x0 * Eigen::VectorXd::Ones(N + 1).transpose();
   Eigen::VectorXd y(N + 1);
@@ -204,7 +206,11 @@ Eigen::VectorXd NelderMead(const Func& f, const Eigen::VectorXd& x0,
     if (os != nullptr)
       *os << setMaxPrecision << y(0) << "\t" << x.col(0).transpose()
           << std::endl;
-    if ((x.col(N) - x.col(0)).norm() < e) break;
+    if (x.col(N).norm() > 100 * x0.norm()) break;
+    if ((x.col(N) - x.col(0)).norm() < e) {
+      converge = true;
+      break;
+    }
     Eigen::VectorXd m = x.block(0, 0, N, N).rowwise().mean();
     Eigen::VectorXd r = 2 * m - x.col(N);
     double fr = f(r);
@@ -231,6 +237,7 @@ Eigen::VectorXd NelderMead(const Func& f, const Eigen::VectorXd& x0,
     }
   }
   if (fval != nullptr) *fval = y(0);
+  if (conv != nullptr) *conv = converge;
   return x.col(0);
 }
 template <typename T>
@@ -252,9 +259,20 @@ Eigen::VectorXd BasinHopping(size_t num_iter, size_t num_hop, const Func& f,
                              const Eigen::VectorXd& x0,
                              std::ostream* os = nullptr, double e = 1e-4,
                              size_t max_iter = 1e3) {
+  bool conv;
   double y;
-  Eigen::VectorXd x = NelderMead(f, x0, os, e, max_iter, &y);
-  Eigen::VectorXd s = x - x0;
+  Eigen::VectorXd x = x0, s = x0;
+
+  for (size_t i = 0; i < num_hop; i++) {
+    x = NelderMead(f, perturb(x, s), os, e, max_iter, &y, &conv);
+    if (conv) break;
+  }
+
+  if (!conv) {
+    std::cout << "[mss]: Basin Hopping: First minimum not found."
+              << std::endl;
+    exit(1);
+  }
 
   std::ofstream file("BasinHopping.dat");
   file << "First min: " << y << "  " << x.transpose() << std::endl;
@@ -266,15 +284,20 @@ Eigen::VectorXd BasinHopping(size_t num_iter, size_t num_hop, const Func& f,
 
     for (size_t j = 0; j < num_hop; j++) {
       double yy;
-      Eigen::VectorXd xx = NelderMead(f, perturb(x, s), os, e, max_iter, &yy);
-      file << "  " << j << " local min: " << yy << "\t" << xx.transpose()
-           << "\t Dist: " << (x - xx).norm() << std::endl;
-
-      if (yy < y && (x - xx).norm() > e * 10) {
-        x = xx;
-        y = yy;
-        s *= 0.8;
-        break;
+      Eigen::VectorXd xx =
+          NelderMead(f, perturb(x, s), os, e, max_iter, &yy, &conv);
+      if (conv) {
+        file << "  " << j << " local min: " << yy << "\t" << xx.transpose()
+             << "\t Dist: " << (x - xx).norm() << std::endl;
+        if (yy < y && (x - xx).norm() > e * 10) {
+          x = xx;
+          y = yy;
+          s *= 0.8;
+          break;
+        }
+      } else {
+        file << "  " << j << " not converged: " << yy << "\t"
+             << xx.transpose() << std::endl;
       }
     }
     s *= 1.25;
