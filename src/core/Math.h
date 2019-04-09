@@ -29,11 +29,13 @@
 #include <cassert>
 #include <complex>
 #include <cstdlib>
+#include <ctime>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
 #include <limits>
 #include <map>
+#include <random>
 #include <string>
 #include <tuple>
 #include <typeindex>
@@ -187,7 +189,7 @@ Eigen::MatrixXd Permutation(const Eigen::VectorXi& index) {
 template <typename Func>
 Eigen::VectorXd NelderMead(const Func& f, const Eigen::VectorXd& x0,
                            std::ostream* os = nullptr, double e = 1e-4,
-                           size_t max_iter = 1e3) {
+                           size_t max_iter = 1e3, double* fval = nullptr) {
   long N = x0.size();
 
   Eigen::MatrixXd x = x0 * Eigen::VectorXd::Ones(N + 1).transpose();
@@ -228,9 +230,64 @@ Eigen::VectorXd NelderMead(const Func& f, const Eigen::VectorXd& x0,
       }
     }
   }
+  if (fval != nullptr) *fval = y(0);
   return x.col(0);
 }
+template <typename T>
+T perturb(const T& x, const T& step_size) {
+  std::random_device rd;
+  std::mt19937 mt(rd());
 
+  T xx(x);
+  for (long i = 0; i < x.size(); i++) {
+    std::uniform_real_distribution<double> dist(-step_size(i), step_size(i));
+    // std::normal_distribution<double> dist(0, step_size(i));
+    xx(i) += dist(mt);
+  }
+
+  return xx;
+}
+template <typename Func>
+Eigen::VectorXd BasinHopping(size_t num_iter, size_t num_hop, const Func& f,
+                             const Eigen::VectorXd& x0,
+                             std::ostream* os = nullptr, double e = 1e-4,
+                             size_t max_iter = 1e3) {
+  double y;
+  Eigen::VectorXd x = NelderMead(f, x0, os, e, max_iter, &y);
+  Eigen::VectorXd s = x - x0;
+
+  std::ofstream file("BasinHopping.dat");
+  file << "First min: " << y << "  " << x.transpose() << std::endl;
+
+  for (size_t i = 0; i < num_iter; i++) {
+    size_t na = 0;
+    size_t nb = 0;
+    file << i << "  step size: " << s.transpose() << std::endl;
+
+    for (size_t j = 0; j < num_hop; j++) {
+      double yy;
+      Eigen::VectorXd xx = NelderMead(f, perturb(x, s), os, e, max_iter, &yy);
+      file << "  " << j << " local min: " << yy << "\t" << xx.transpose()
+           << "\t Dist: " << (x - xx).norm() << std::endl;
+
+      if ((x - xx).norm() < e * 10)
+        ++nb;
+      else if (yy < y) {
+        x = xx;
+        y = yy;
+        ++na;
+      }
+    }
+    if (nb > num_hop / 2 || na > num_hop / 2)
+      s *= 1.25;
+    else
+      s *= 0.8;
+
+    file << na << "  accepted, " << nb << "  close to orginal." << std::endl;
+  }
+
+  return x;
+}
 // Return a tuple of Pn(x) and P'n(x).
 inline std::pair<double, double> Legendre(int N, double x) {
   // assert(N > 2);

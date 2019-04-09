@@ -62,7 +62,9 @@ Eigen::MatrixXd homo(double ka, int nc, int ns) {
 
   Mismatch f(omega, w, t, {{11400, 11400}, 0, {84e9, 84e9}}, hw * 2, hw * 2);
   std::ofstream file("iterations_" + std::to_string(ka) + ".dat");
-  Eigen::VectorXd rst = NelderMead(f, Eigen::Vector4d::Ones(), &file);
+  // Eigen::VectorXd rst = NelderMead(f, Eigen::Vector4d::Ones(), &file);
+  Eigen::VectorXd rst =
+      BasinHopping(5, 10, f, Eigen::Vector4d::Ones(), &file);
   file.close();
 
   delete sol;
@@ -71,19 +73,6 @@ Eigen::MatrixXd homo(double ka, int nc, int ns) {
 }
 
 int main(int argc, char** argv) {
-  if (argc != 3) exit_error_msg({"Fiber numbers needed."});
-  std::string fn("C");
-  fn += argv[1];
-  fn += "_S";
-  fn += argv[2];
-  fn += ".txt";
-  std::ofstream file(fn);
-  int N = 18;
-
-  for (int i = 0; i < N; i++) {
-    std::cout << i << std::endl;
-    file << homo(1 + 0.05 * i, atoi(argv[1]), atoi(argv[2])) << std::endl;
-  }
-  file.close();
+  std::cout << homo(1.5, 1, 1) << std::endl;
   return 0;
 }
