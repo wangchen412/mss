@@ -264,10 +264,13 @@ Eigen::VectorXd BasinHopping(size_t num_iter, size_t num_hop, const Func& f,
   Eigen::VectorXd x = x0, s = x0;
   s.setOnes();
 
-  for (size_t i = 0; i < num_hop; i++) {
-    x = NelderMead(f, perturb(x0, s), os, e, max_iter, &y, &conv);
-    if (conv) break;
-  }
+  x = NelderMead(f, perturb(x0, s), os, e, max_iter, &y, &conv);
+
+  if (!conv)
+    for (size_t i = 0; i < num_hop; i++) {
+      x = NelderMead(f, perturb(x0, s), os, e, max_iter, &y, &conv);
+      if (conv) break;
+    }
 
   if (!conv) {
     std::cout << "[mss]: Basin Hopping: First minimum not found."
