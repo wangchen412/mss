@@ -293,12 +293,12 @@ Eigen::VectorXd BasinHopping(size_t num_iter, size_t num_hop, const Func& f,
         if (yy < y && (x - xx).norm() > e * 10) {
           x = xx;
           y = yy;
-          s *= 0.8;
+          s = x0 * 0.6;  // Newly found min, start from 0.75 (0.6 * 1.25) x0.
           break;
         }
       } else {
-        file << "\t not converged: " << yy << "\t"
-             << xx.transpose() << std::endl;
+        file << "\t not converged: " << yy << "\t" << xx.transpose()
+             << std::endl;
       }
     }
     s *= 1.25;
