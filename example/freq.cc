@@ -26,7 +26,8 @@ using namespace mss;
 // Fox example, nc = 1, ns = 2 will be 5 x 5 with considering the center one
 // as the RVE; nc = 2, ns = 1 will be 4 x 4 with considering the center 2 x 2
 // as the RVE.
-Eigen::MatrixXd homo(double ka, int nc, int ns) {
+// np: number of nodes along RVE boundary.
+Eigen::MatrixXd homo(double ka, int nc, int ns, size_t np) {
   double omega = ka * 16576.24319112025;
 
   const Material steel(7670, 116e9, 84.3e9), lead(11400, 36e9, 8.43e9);
@@ -47,8 +48,11 @@ Eigen::MatrixXd homo(double ka, int nc, int ns) {
   sol->Solve();
 
   double hw = nc / 2.0 * d;  // half width of the RVE
-  Boundary<AP, 4> b{500, {{-hw, hw}, {hw, -hw}}, &m};
+  double node_dens = np / hw / 8;
+  Boundary<AP, 4> b{node_dens, {{-hw, hw}, {hw, -hw}}, &m};
   Eigen::VectorXcd w(b.NumNode()), t(b.NumNode());
+
+  std::cout << "Number of nodes: " << b.NumNode() << ":\t";
 
   std::vector<StateAP> v(b.Node().size());
 #ifdef NDEBUG
@@ -60,11 +64,12 @@ Eigen::MatrixXd homo(double ka, int nc, int ns) {
     t(i) = v[i].Bv()(1);
   }
 
-  Mismatch f(omega, w, t, {{11400, 11400}, 0, {84e9, 84e9}}, hw * 2, hw * 2);
+  Mismatch f(omega, w, t, {{11400, 11400}, 0, {84e9, 84e9}}, hw * 2, hw * 2,
+             node_dens);
   std::ofstream file("iterations_" + std::to_string(ka) + ".dat");
   // Eigen::VectorXd rst = NelderMead(f, Eigen::Vector4d::Ones(), &file);
   Eigen::VectorXd rst =
-      BasinHopping(10, 20, f, Eigen::Vector4d::Ones(), &file);
+      BasinHopping(10, 40, f, Eigen::Vector4d::Ones(), &file);
   file.close();
 
   delete sol;
@@ -72,7 +77,8 @@ Eigen::MatrixXd homo(double ka, int nc, int ns) {
   return rst.transpose();
 }
 
-int main(int argc, char** argv) {
-  std::cout << homo(1.5, 1, 10) << std::endl;
+int main() {
+  for (int i = 0; i < 9; i++)
+    std::cout << homo(1.2, 2, 5, 400 + i * 100) << std::endl;
   return 0;
 }
