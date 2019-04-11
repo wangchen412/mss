@@ -68,8 +68,7 @@ Eigen::MatrixXd homo(double ka, int nc, int ns, size_t np) {
              node_dens);
   std::ofstream file("iterations_" + std::to_string(ka) + ".dat");
   // Eigen::VectorXd rst = NelderMead(f, Eigen::Vector4d::Ones(), &file);
-  Eigen::VectorXd rst =
-      BasinHopping(10, 40, f, Eigen::Vector4d::Ones(), &file);
+  Eigen::VectorXd rst = BasinHopping(2, 5, f, Eigen::Vector4d::Ones(), &file);
   file.close();
 
   delete sol;
@@ -78,7 +77,12 @@ Eigen::MatrixXd homo(double ka, int nc, int ns, size_t np) {
 }
 
 int main() {
-  for (int i = 0; i < 9; i++)
-    std::cout << homo(1.2, 2, 5, 400 + i * 100) << std::endl;
+  std::ofstream file("C10_S10.txt");
+  int N = 20;
+
+  for (int i = 0; i < N; i++)
+    file << homo(1 + 0.05 * i, 10, 10, 1600) << std::endl;
+
+  file.close();
   return 0;
 }
