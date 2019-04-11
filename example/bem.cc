@@ -24,7 +24,7 @@
 
 using namespace mss;
 
-Material steel{7670, 116e9, 84.3e9}, eff_mat{{5287.719, 23978.873999999996}, 1, {36935052000.0, 95687760000.0}};
+Material steel{7670, 116e9, 84.3e9}, eff_mat{9261.7818, 1, 52.368372e9};
 Matrix m{steel, 32323.674222684484}, ff{eff_mat, 32323.674222684484};
 
 IncidentPlaneSH* in;
@@ -44,9 +44,9 @@ StateAP rst(const CS* cs) {
 int main() {
   in = new IncidentPlaneSH(m);
 
-  b0 = new Boundary<AP, 14>(50 * m.KT(), {{-2, 2}, {2, -2}}, &m, RECTANGULAR,
+  b0 = new Boundary<AP, 14>(10 * m.KT(), {{-2, 2}, {2, -2}}, &m, RECTANGULAR,
                             true);
-  b1 = new Boundary<AP, 14>(50 * m.KT(), {{-2, 2}, {2, -2}}, &ff);
+  b1 = new Boundary<AP, 14>(10 * m.KT(), {{-2, 2}, {2, -2}}, &ff);
   Eigen::VectorXcd bv =
       b1->DispToEffect() * (b0->MatrixH() + b0->MatrixG() * b1->DtN())
                                .lu()
@@ -56,8 +56,10 @@ int main() {
     if (i % 2) bv(i) *= -1;
   b0->SetBv(bv);
 
-  post::Area<AP> a2(rst, {-6, 6}, {6, -6}, 1200, 1200, "bem");
-  a2.Write();
+  post::Line<AP>(rst, {-6, 0}, {6, 0}, 1200, "h_0").Write();
+  post::Line<AP>(rst, {-6, 4}, {6, 4}, 1200, "h_4").Write();
+  post::Line<AP>(rst, {0, 6}, {0, -6}, 1200, "v_0").Write();
+  post::Line<AP>(rst, {4, 6}, {4, -6}, 1200, "v_4").Write();
 
   delete in;
   delete b0;
