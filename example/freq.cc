@@ -27,7 +27,8 @@ using namespace mss;
 // as the RVE; nc = 2, ns = 1 will be 4 x 4 with considering the center 2 x 2
 // as the RVE.
 // np: number of nodes along RVE boundary.
-Eigen::MatrixXd homo(double ka, int nc, int ns, size_t np) {
+Eigen::MatrixXd homo(const Eigen::VectorXd& x0, double ka, int nc, int ns,
+                     size_t np) {
   double omega = ka * 16576.24319112025;
 
   const Material steel(7670, 116e9, 84.3e9), lead(11400, 36e9, 8.43e9);
@@ -66,7 +67,7 @@ Eigen::MatrixXd homo(double ka, int nc, int ns, size_t np) {
              node_dens);
   std::ofstream file("iterations_" + std::to_string(ka) + ".dat");
   // Eigen::VectorXd rst = NelderMead(f, Eigen::Vector4d::Ones(), &file);
-  Eigen::VectorXd rst = BasinHopping(2, 5, f, Eigen::Vector4d::Ones(), &file);
+  Eigen::VectorXd rst = BasinHopping(1, 1, f, x0, &file);
   file.close();
 
   delete sol;
@@ -84,10 +85,11 @@ int main(int argc, char** argv) {
   std::ofstream file(fn);
   int N = 18;
 
+  Eigen::VectorXd x0(4);
+  x0.setOnes();
   for (int i = 0; i < N; i++) {
-    std::cout << i << std::endl;
-    file << homo(1 + 0.05 * i, atoi(argv[1]), atoi(argv[2]), 2000)
-         << std::endl;
+    x0 = homo(x0, 1 + 0.05 * i, atoi(argv[1]), atoi(argv[2]), 800);
+    file << x0 << std::endl;
   }
   file.close();
   return 0;
