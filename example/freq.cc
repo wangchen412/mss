@@ -52,8 +52,6 @@ Eigen::MatrixXd homo(double ka, int nc, int ns, size_t np) {
   Boundary<AP, 4> b{node_dens, {{-hw, hw}, {hw, -hw}}, &m};
   Eigen::VectorXcd w(b.NumNode()), t(b.NumNode());
 
-  std::cout << "Number of nodes: " << b.NumNode() << ":\t";
-
   std::vector<StateAP> v(b.Node().size());
 #ifdef NDEBUG
 #pragma omp parallel for
@@ -76,13 +74,21 @@ Eigen::MatrixXd homo(double ka, int nc, int ns, size_t np) {
   return rst.transpose();
 }
 
-int main() {
-  std::ofstream file("C10_S10.txt");
-  int N = 20;
+int main(int argc, char** argv) {
+  if (argc != 3) exit_error_msg({"Fiber numbers needed."});
+  std::string fn("C");
+  fn += argv[1];
+  fn += "_S";
+  fn += argv[2];
+  fn += ".txt";
+  std::ofstream file(fn);
+  int N = 18;
 
-  for (int i = 0; i < N; i++)
-    file << homo(1 + 0.05 * i, 10, 10, 1600) << std::endl;
-
+  for (int i = 0; i < N; i++) {
+    std::cout << i << std::endl;
+    file << homo(1 + 0.05 * i, atoi(argv[1]), atoi(argv[2]), 2000)
+         << std::endl;
+  }
   file.close();
   return 0;
 }
