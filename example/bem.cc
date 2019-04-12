@@ -24,7 +24,10 @@
 
 using namespace mss;
 
-Material steel{7670, 116e9, 84.3e9}, eff_mat{9261.7818, 1, 52.368372e9};
+Material steel{7670, 116e9, 84.3e9};
+Material norm{{11400, 11400}, 1, {84e9, 84e9}};
+Material eff_mat{norm *
+                 Eigen::Vector4d(-0.129907, 0.927331, 0.0357903, 0.519424)};
 Matrix m{steel, 32323.674222684484}, ff{eff_mat, 32323.674222684484};
 
 IncidentPlaneSH* in;
@@ -44,9 +47,9 @@ StateAP rst(const CS* cs) {
 int main() {
   in = new IncidentPlaneSH(m);
 
-  b0 = new Boundary<AP, 14>(10 * m.KT(), {{-2, 2}, {2, -2}}, &m, RECTANGULAR,
+  b0 = new Boundary<AP, 14>(50 * m.KT(), {{-2, 2}, {2, -2}}, &m, RECTANGULAR,
                             true);
-  b1 = new Boundary<AP, 14>(10 * m.KT(), {{-2, 2}, {2, -2}}, &ff);
+  b1 = new Boundary<AP, 14>(50 * m.KT(), {{-2, 2}, {2, -2}}, &ff);
   Eigen::VectorXcd bv =
       b1->DispToEffect() * (b0->MatrixH() + b0->MatrixG() * b1->DtN())
                                .lu()
