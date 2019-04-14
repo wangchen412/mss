@@ -32,8 +32,7 @@ namespace post {
 template <typename T>
 class Geometry {
  public:
-  Geometry(const Solution<T>* solution, const std::string& id)
-      : solution_(solution), id_(id) {}
+  Geometry(const std::string& id) : id_(id) {}
   virtual ~Geometry() {}
   virtual std::ostream& Print(std::ostream& os) const = 0;
   void Write() const;
@@ -41,7 +40,6 @@ class Geometry {
   const std::string& ID() const { return id_; }
 
  protected:
-  const Solution<T>* solution_;
   const std::string id_;
 };
 

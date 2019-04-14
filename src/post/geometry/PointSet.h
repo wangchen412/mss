@@ -29,8 +29,7 @@ namespace post {
 template <typename T>
 class PointSet : public Geometry<T> {
  public:
-  PointSet(const Solution<T>* solution, const std::string& id)
-      : Geometry<T>(solution, id) {}
+  PointSet(const std::string& id) : Geometry<T>(id) {}
   virtual ~PointSet() {
     for (auto& i : point_) delete i;
     point_.clear();

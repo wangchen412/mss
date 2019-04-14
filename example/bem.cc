@@ -17,55 +17,20 @@
 //
 // ----------------------------------------------------------------------
 
-#include <fstream>
-#include <sstream>
-#include "../src/core/Solution.h"
-#include "../src/post/Output.h"
+#include "BEM_Solution.h"
 
 using namespace mss;
 
-Material steel{7670, 116e9, 84.3e9};
-Material norm{{11400, 11400}, 1, {84e9, 84e9}};
-Material eff_mat{norm *
-                 Eigen::Vector4d(-0.129907, 0.927331, 0.0357903, 0.519424)};
-Matrix m{steel, 32323.674222684484}, ff{eff_mat, 32323.674222684484};
-
-IncidentPlaneSH* in;
-Boundary<AP, 14>* b0;
-Boundary<AP, 14>* b1;
-
-StateAP rst(const CS* cs) {
-  switch (b1->Contains(cs)) {
-    case 1:
-      return b1->Effect(cs);
-    case -1:
-      return in->Effect(cs) + b0->Effect(cs);
-  }
-  return b1->Effect(cs, true);
-}
-
-int main() {
-  in = new IncidentPlaneSH(m);
-
-  b0 = new Boundary<AP, 14>(50 * m.KT(), {{-2, 2}, {2, -2}}, &m, RECTANGULAR,
-                            true);
-  b1 = new Boundary<AP, 14>(50 * m.KT(), {{-2, 2}, {2, -2}}, &ff);
-  Eigen::VectorXcd bv =
-      b1->DispToEffect() * (b0->MatrixH() + b0->MatrixG() * b1->DtN())
-                               .lu()
-                               .solve(in->EffectDv(b0->Node()));
-  b1->SetBv(bv);
-  for (long i = 0; i < bv.size(); i++)
-    if (i % 2) bv(i) *= -1;
-  b0->SetBv(bv);
-
-  post::Line<AP>(rst, {-6, 0}, {6, 0}, 1200, "h_0").Write();
-  post::Line<AP>(rst, {-6, 4}, {6, 4}, 1200, "h_4").Write();
-  post::Line<AP>(rst, {0, 6}, {0, -6}, 1200, "v_0").Write();
-  post::Line<AP>(rst, {4, 6}, {4, -6}, 1200, "v_4").Write();
-
-  delete in;
-  delete b0;
-  delete b1;
+int main(int argc, char** argv) {
+  if (argc != 6) exit_error_msg({"Effective material properties needed."});
+  double omega = atof(argv[1]);
+  Material steel{7670, 116e9, 84.3e9};
+  Material norm{{11400, 11400}, 1, {84e9, 84e9}};
+  Eigen::Vector4d eff{atof(argv[2]), atof(argv[3]), atof(argv[4]),
+                      atof(argv[5])};
+  Material eff_mat{norm * eff};
+  BEM_Solution<AP, 10> s(omega, eff_mat);
+  post::Line<AP> l1(&s, {-6, 0}, {6, 0}, 1200);
+  l1.Write();
   return 0;
 }

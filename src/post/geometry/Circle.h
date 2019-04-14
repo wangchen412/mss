@@ -31,9 +31,10 @@ class Circle : public PointSet<T> {
   using PointSet<T>::point_;
 
  public:
-  Circle(const Solution<T>* solution, const PosiVect& center, double R,
-         size_t N, const std::string& id = "1")
-      : PointSet<T>(solution, "Circle_" + id), center_(center), R_(R) {
+  template <typename S>
+  Circle(const S* solution, const PosiVect& center, double R, size_t N,
+         const std::string& id = "1")
+      : PointSet<T>("Circle_" + id), center_(center), R_(R) {
     // Add points:
     for (size_t i = 0; i < N; i++)
       point_.push_back(new Point<T>(

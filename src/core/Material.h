@@ -38,6 +38,8 @@ class Material {
       : Material(input.rho, input.lambda, input.mu) {
     assert(input.cl == cl_ && input.ct == ct_);
   }
+  Material(const Material& other)
+      : Material(other.rho_, other.lambda_, other.mu_) {}
 
   StressAP C(const dcomp& gzx, const dcomp& gzy) const {
     return StressAP(mu_ * gzx, mu_ * gzy);

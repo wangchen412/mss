@@ -31,22 +31,14 @@ class Line : public PointSet<T> {
   using PointSet<T>::point_;
 
  public:
-  Line(const Solution<T>* solution, const PosiVect& p1, const PosiVect& p2,
-       size_t N, const std::string& id = "1")
-      : PointSet<T>(solution, "Line_" + id), p1_(p1), p2_(p2) {
+  template <typename S>
+  Line(const S* solution, const PosiVect& p1, const PosiVect& p2, size_t N,
+       const std::string& id = "1")
+      : PointSet<T>("Line_" + id), p1_(p1), p2_(p2) {
     // Add points:
     PosiVect d = (p2 - p1) / N;
     for (size_t i = 0; i < N; i++)
       point_.push_back(new Point<T>(solution, p1 + d * i));
-  }
-  
-  Line(T (*state)(const CS*), const PosiVect& p1, const PosiVect& p2,
-       size_t N, const std::string& id = "1")
-      : PointSet<T>(nullptr, "Line_" + id), p1_(p1), p2_(p2) {
-    // Add points:
-    PosiVect d = (p2 - p1) / N;
-    for (size_t i = 0; i < N; i++)
-      point_.push_back(new Point<T>(state, p1 + d * i));
   }
 
   std::string Shape() const override { return "Line"; }

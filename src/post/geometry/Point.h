@@ -31,17 +31,18 @@ class Point : public Geometry<T> {
  public:
   Point(const Solution<T>* solution, const PosiVect& position,
         double angle = 0, const std::string& id = "1")
-      : Geometry<T>(solution, "Point_" + id),
+      : Geometry<T>("Point_" + id),
         localCS_(position, angle),
         in_(solution->InWhich(&localCS_)),
         state_(solution->Resultant(&localCS_, in_)) {}
 
-  Point(T (*state)(const CS*), const PosiVect& position, double angle = 0,
+  template <typename S>
+  Point(const S* solution, const PosiVect& position, double angle = 0,
         const std::string& id = "1")
-      : Geometry<T>(nullptr, "Point_" + id),
+      : Geometry<T>("Point_" + id),
         localCS_(position, angle),
         in_(nullptr),
-        state_(state(&localCS_)) {}
+        state_(solution->Resultant(&localCS_)) {}
 
   virtual ~Point() {}
 

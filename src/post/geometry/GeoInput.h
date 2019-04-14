@@ -32,7 +32,10 @@ namespace post {
 template <typename T>
 class GeoInput {
  public:
-  GeoInput(const Solution<T>* solution) : sol_(solution) { add_map(); }
+  template <typename S>
+  GeoInput(const S* solution) {
+    add_map(solution);
+  }
   Geometry<T>* operator()(std::stringstream& ss) {
     std::string type;
     ss >> type;
@@ -42,47 +45,48 @@ class GeoInput {
  private:
   typedef std::function<Geometry<T>*(std::stringstream&)> funcType;
   std::map<std::string, funcType, ci_comp> funcMap;
-  const Solution<T>* sol_;
 
-  void add_map();
+  template <typename S>
+  void add_map(const S* solution);
 };
 
 // ---------------------------------------------------------------------------
 // Inline functions:
 
 template <typename T>
-void GeoInput<T>::add_map() {
-  funcMap["Point"] = [this](std::stringstream& ss) {
+template <typename S>
+void GeoInput<T>::add_map(const S* solution) {
+  funcMap["Point"] = [solution](std::stringstream& ss) {
     std::string ID;
     PosiVect position;
     double angle;
     ss >> ID >> position >> angle;
-    return new Point<T>(sol_, position, angle, ID);
+    return new Point<T>(solution, position, angle, ID);
   };
 
-  funcMap["Line"] = [this](std::stringstream& ss) {
+  funcMap["Line"] = [solution](std::stringstream& ss) {
     std::string ID;
     PosiVect p1, p2;
     size_t N;
     ss >> ID >> p1 >> p2 >> N;
-    return new Line<T>(sol_, p1, p2, N, ID);
+    return new Line<T>(solution, p1, p2, N, ID);
   };
 
-  funcMap["Circle"] = [this](std::stringstream& ss) {
+  funcMap["Circle"] = [solution](std::stringstream& ss) {
     std::string ID;
     PosiVect center;
     double R;
     size_t N;
     ss >> ID >> center >> R >> N;
-    return new Circle<T>(sol_, center, R, N, ID);
+    return new Circle<T>(solution, center, R, N, ID);
   };
 
-  funcMap["Area"] = [this](std::stringstream& ss) {
+  funcMap["Area"] = [solution](std::stringstream& ss) {
     std::string ID;
     PosiVect p1, p2;
     size_t Nx, Ny;
     ss >> ID >> p1 >> p2 >> Nx >> Ny;
-    return new Area<T>(sol_, p1, p2, Nx, Ny, ID);
+    return new Area<T>(solution, p1, p2, Nx, Ny, ID);
   };
 }
 
