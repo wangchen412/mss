@@ -30,7 +30,7 @@ using namespace mss;
 
 class Mismatch {
  public:
-  Mismatch(double omega, const Eigen::VectorXcd& w, const Eigen::VectorXcd& t,
+  Mismatch(double omega, const Eigen::MatrixXcd& w, const Eigen::MatrixXcd& t,
            const Material& m0, double width = 0.6, double height = 0.6,
            double density = 500)
       : omega_(omega),
@@ -51,9 +51,10 @@ class Mismatch {
 
  private:
   double omega_, width_, height_, density_;
-  Eigen::VectorXcd w_, t_;
+  Eigen::MatrixXcd w_, t_;
   const Material m0_;
 };
+
 void read_bv(const std::string& fn, Eigen::VectorXcd& w,
              Eigen::VectorXcd& t) {
   std::ifstream file(fn);
