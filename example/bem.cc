@@ -30,7 +30,9 @@ int main(int argc, char** argv) {
                       atof(argv[5])};
   Material eff_mat{norm * eff};
   BEM_Solution<AP, 10> s(omega, eff_mat);
-  post::Line<AP> l1(&s, {-6, 0}, {6, 0}, 1200);
-  l1.Write();
+  post::Line<AP>(&s, {-6, 0}, {6, 0}, 1200, "h_0").Write();
+  post::Line<AP>(&s, {-6, 4}, {6, 4}, 1200, "h_4").Write();
+  post::Line<AP>(&s, {0, 6}, {0, -6}, 1200, "v_0").Write();
+  post::Line<AP>(&s, {4, 6}, {4, -6}, 1200, "v_4").Write();
   return 0;
 }
