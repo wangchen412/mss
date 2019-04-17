@@ -112,8 +112,9 @@ int main(int argc, char** argv) {
   x0.setOnes();
 
   for (int i = 0; i < N; i++) {
-    x0 = multi_homo(1 + 0.05 * i, nx, ny, cx, cy, xx, yy, ax, ay, x0);
-    file << x0.transpose() << std::endl;
+    double ka = 1 + 0.05 * i;
+    x0 = multi_homo(ka, nx, ny, cx, cy, xx, yy, ax, ay, x0);
+    file << ka << ": " << x0.transpose() << std::endl;
   }
   file.close();
 
