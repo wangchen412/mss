@@ -30,7 +30,7 @@ using namespace mss;
 
 Eigen::VectorXd multi_homo(double ka, int nx, int ny, int cx, int cy, int xx,
                            int yy, int ax, int ay, const Eigen::VectorXd& x0,
-                           int n_iter = 1, int n_hop = 1, double d = 0.2) {
+                           int n_iter = 0, int n_hop = 1, double d = 0.2) {
   double omega = ka * 16576.24319112025;
   const Material steel(7670, 116e9, 84.3e9), lead(11400, 36e9, 8.43e9);
   const Material norm_mat({11400, 11400}, 0, {84e9, 84e9});
