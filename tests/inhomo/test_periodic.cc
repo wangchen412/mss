@@ -156,7 +156,7 @@ TEST_F(PeriodicTest, DISABLED_Eigenvalue_DtN_check) {
   VectorXcd tt = dtn * u;
   EXPECT_TRUE(ApproxVectRv(t, tt, 1e-4, 0, true));
 }
-TEST_F(PeriodicTest, DISABLED_Eigenvalue_single) {
+TEST_F(PeriodicTest, Eigenvalue_single) {
   input::Solution input{path("input2.txt")};
   std::ifstream data(path("BlochK_45.dat"));
   std::string tmp;
@@ -322,7 +322,7 @@ TEST_F(PeriodicTest, DISABLED_ResMat_multiple_DtN_plane) {
   VectorXcd tt = DtN * w;
   EXPECT_TRUE(ApproxVectRv(t, tt, 1e-3, 0, true));
 }
-TEST_F(PeriodicTest, DISABLED_Eigenvalue_single_plane) {
+TEST_F(PeriodicTest, Eigenvalue_single_plane) {
   input::Solution input(path("input3.txt"));
   std::ifstream data(path("BlochK_45.dat"));
   std::string tmp;
@@ -372,9 +372,9 @@ TEST_F(PeriodicTest, DISABLED_Eigenvalue_single_plane) {
       com_k(n) = (log(ev(ue[1])) / ii / pi).real();
   }
 
-  EXPECT_TRUE(ApproxVectRv(ref_k, com_k, 2e-2));
+  EXPECT_TRUE(ApproxVectRv(ref_k, com_k, 2e-2, 0, true));
 }
-TEST_F(PeriodicTest, Eigenvalue_multiple_plane) {
+TEST_F(PeriodicTest, DISABLED_Eigenvalue_multiple_plane) {
   input::Solution input(path("input3.txt"));
   Matrix matrix(input);
   AssemblyConfig<AP> ac(input.assembly_config("Test"), &matrix);

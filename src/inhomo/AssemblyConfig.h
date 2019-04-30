@@ -55,6 +55,16 @@ class AssemblyConfig {
       : ID_(ID), inhomo_(inhomo), matrix_(matrix) {
     reg_inhomo();
   }
+  AssemblyConfig(const std::string& ID, const InhomoPtrs<T> inhomo,
+                 double width, double height, double pd, const Matrix* matrix)
+      : ID_(ID),
+        inhomo_(inhomo),
+        width_(width),
+        height_(height),
+        matrix_(matrix),
+        boundary_(pd, height, width, matrix) {
+    reg_inhomo();
+  }
 
   virtual ~AssemblyConfig() { del_inhomo(); }
 
