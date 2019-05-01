@@ -56,8 +56,12 @@ void bv(VectorXcd& w, VectorXcd& t) {
   dcomp ee = ev(17);  // Selected manually.
   std::cout << ee << std::endl;
 
-  VectorXcd xx = evt.col(17);
-  std::cout << xx << std::endl;
+  VectorXcd xx = InverseIteration(z2, z1, ee);
+  // VectorXcd xx = InverseIteration(A, ee);
+  // VectorXcd xx = evt.col(17);
+
+  // for (int i = 0; i < xx.rows(); i++)
+  //   std::cout << xx(i) << "\t" << evt.col(17)(i) << std::endl;
 
   Fiber<AP> f(fc);
   f.SetCoeff(xx);
@@ -74,11 +78,9 @@ void bv(VectorXcd& w, VectorXcd& t) {
   }
 
   std::ofstream file("wt_com.txt");
-  for (int i = 0; i < 400; i++)
-    file << w(i) << "\t" << t(i) << std::endl;
+  for (int i = 0; i < 400; i++) file << w(i) << "\t" << t(i) << std::endl;
   file.close();
 }
-
 int read(VectorXcd& w, VectorXcd& t) {
   auto file = std::ifstream("data.txt");
   std::string tmp;
@@ -93,10 +95,8 @@ int read(VectorXcd& w, VectorXcd& t) {
   }
   return i;
 }
-
 int main() {
   VectorXcd w(400), t(400);
-
   bv(w, t);
 
   // std::cout << read(w, t) << std::endl;
@@ -104,7 +104,6 @@ int main() {
   const Material norm_mat({11400, 11400}, 0, {84e9, 84e9});
   Eigen::VectorXd x0(4);
   x0.setOnes();
-
   Mismatch f(16576.24319112025, w, t, norm_mat, 0.2, 0.2, 500);
   BasinHopping(1, 1, f, x0, &std::cout);
 

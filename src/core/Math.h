@@ -514,6 +514,56 @@ std::vector<long> FindUnitEigenvalue(const VectorXcd& v,
   return rst;
 }
 
+VectorXcd InverseIteration(const MatrixXcd& A, const dcomp& e,
+                           size_t max_iter = 1e2, double tol = 1e-8) {
+  VectorXcd v1 = VectorXcd::Random(A.cols());
+  v1 /= v1.norm();
+  VectorXcd v2(v1);
+
+  std::ofstream file("iter.dat");
+
+  size_t i = 0;
+  while (i++ < max_iter) {
+    v2 = (A - MatrixXcd::Identity(A.rows(), A.cols()) * e).lu().solve(v1);
+    v2 /= v2.norm();
+    file << v2.transpose() << std::endl;
+    if ((v2 - v1).norm() < tol) {
+      std::cout << i << std::endl;
+      return v2;
+    } else
+      v1 = v2;
+  }
+  std::cout << "[mss:] Inverse Iteration didn't converge." << std::endl;
+  return v2;
+}
+
+VectorXcd InverseIteration(const MatrixXcd& A, const MatrixXcd& B,
+                           const dcomp& e, size_t max_iter = 1e2,
+                           double tol = 1e-8) {
+  // Av = eBv
+  // (A - eB) v_n = B v_n_1
+
+  // MatrixXcd inv = PseudoInverse(A - B * e) * B;
+
+  VectorXcd v1 = VectorXcd::Random(A.cols());
+  v1 /= v1.norm();
+  VectorXcd v2(v1);
+
+  size_t i = 0;
+  while (i++ < max_iter) {
+    v2 = (A - B * e).jacobiSvd(40).solve(B * v1);
+    v2 /= v2.norm();
+    dcomp theta = v1.dot(v2);
+    if ((v2 - theta * v1).norm() < tol * std::abs(theta)) {
+      std::cout << i << std::endl;
+      return v2;
+    } else
+      v1 = v2;
+  }
+  std::cout << "[mss:] Inverse Iteration didn't converge." << std::endl;
+  return v2;
+}
+
 }  // namespace mss
 
 #include "Integrators.h"
