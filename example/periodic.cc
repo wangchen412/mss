@@ -22,11 +22,11 @@
 using namespace mss;
 
 void bv(VectorXcd& w, VectorXcd& t) {
-  double omega(16576.24319112025);
+  double omega(1745.371253 * pi2);
   const Material steel(7670, 116e9, 84.3e9), lead(11400, 36e9, 8.43e9);
 
   Matrix matrix(steel, omega);
-  auto fc = new FiberConfig<AP>("1", 16, 200, 0.06, lead, &matrix);
+  auto fc = new FiberConfig<AP>("1", 12, 200, 0.06, lead, &matrix);
   InhomoPtrs<AP> fibers;
   fibers.push_back(new Fiber<AP>(fc, {0.1, 0.1}));
   auto ac = new AssemblyConfig<AP>("1", fibers, 0.2, 0.2, 80000, &matrix);
@@ -45,18 +45,20 @@ void bv(VectorXcd& w, VectorXcd& t) {
     z1.row(i) /= p;
     z2.row(i) /= p;
   }
-  MatrixXcd A(PseudoInverse(z1) * z2);
-  Eigen::ComplexEigenSolver<MatrixXcd> ces;
-  ces.compute(A);
-  VectorXcd ev = ces.eigenvalues();
-  VectorXcd mv = ev.array().abs() - 1;
+  dcomp ee = MinDet(z2, z1, pi / 5);
+  std::cout << "Eigenvalue: " << ee << std::endl;
 
-  auto evt = ces.eigenvectors();
+  // MatrixXcd A(PseudoInverse(z1) * z2);
+  // Eigen::ComplexEigenSolver<MatrixXcd> ces;
+  // ces.compute(A);
+  // VectorXcd ev = ces.eigenvalues();
+  // VectorXcd mv = ev.array().abs() - 1;
+  // auto evt = ces.eigenvectors();
+  // dcomp ee = ev(17);  // Selected manually.
 
-  dcomp ee = ev(17);  // Selected manually.
-  std::cout << ee << std::endl;
-
-  VectorXcd xx = InverseIteration(z2, z1, ee);
+  MatrixXcd A = z2 - PhaseShift(exp(ii * ee * pi), pi / 5, z1.rows()) * z1;
+  VectorXcd xx = NewtonEigen(A);
+  // VectorXcd xx = InverseIteration(z2, z1, ee);
   // VectorXcd xx = InverseIteration(A, ee);
   // VectorXcd xx = evt.col(17);
 
@@ -98,13 +100,12 @@ int read(VectorXcd& w, VectorXcd& t) {
 int main() {
   VectorXcd w(400), t(400);
   bv(w, t);
-
   // std::cout << read(w, t) << std::endl;
 
   const Material norm_mat({11400, 11400}, 0, {84e9, 84e9});
   Eigen::VectorXd x0(4);
   x0.setOnes();
-  Mismatch f(16576.24319112025, w, t, norm_mat, 0.2, 0.2, 500);
+  Mismatch f(1745.371253 * pi2, w, t, norm_mat, 0.2, 0.2, 500);
   BasinHopping(1, 1, f, x0, &std::cout);
 
   return 0;

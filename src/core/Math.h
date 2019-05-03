@@ -564,6 +564,59 @@ VectorXcd InverseIteration(const MatrixXcd& A, const MatrixXcd& B,
   return v2;
 }
 
+MatrixXcd PhaseShift(const dcomp& x, double angle, long m) {
+  MatrixXcd rst(m, m);
+  rst.setZero();
+  double c = cos(angle), s = sin(angle);
+  for (long i = 0; i < m / 2; i++) {
+    rst(i, i) = pow(x, c);
+    rst(i + m / 2, i + m / 2) = pow(x, s);
+  }
+  return rst;
+}
+
+double MinDet(const MatrixXcd& A, const MatrixXcd& B, double angle,
+              int num_det = 10000) {
+  // Return KL for minimum |A - SB| of Av = S Bv
+
+  Eigen::JacobiSVD<MatrixXcd> svd = B.jacobiSvd(40);
+  MatrixXcd u = svd.matrixU();
+  Eigen::VectorXd det(num_det);
+#ifdef NDEBUG
+#pragma omp parallel for
+#endif
+  for (int i = 0; i < num_det; ++i)
+    det(i) = std::abs(
+        (u.adjoint() * A -
+         u.adjoint() *
+             PhaseShift(exp(ii * i / num_det * pi), angle, B.rows()) * B)
+            .determinant());
+  long index;
+  det.minCoeff(&index);
+  return double(index) / double(num_det);
+}
+
+VectorXcd NewtonEigen(const MatrixXcd& A, size_t max_iter = 1e2,
+                      double tol = 1e-10) {
+  VectorXcd v1 = VectorXcd::Random(A.cols());
+  v1 /= v1.norm();
+  VectorXcd v2(v1);
+
+  size_t i = 0;
+  while (i++ < max_iter) {
+    v2 = A.jacobiSvd(40).solve(A.transpose() * v1);
+    v2 /= v2.norm();
+    dcomp theta = v1.dot(v2);
+    if ((v2 - theta * v1).norm() < tol * std::abs(theta)) {
+      std::cout << i << std::endl;
+      return v2;
+    } else
+      v1 = v2;
+  }
+  std::cout << "[mss:] Inverse Iteration didn't converge." << std::endl;
+  return v2;
+}
+
 }  // namespace mss
 
 #include "Integrators.h"
