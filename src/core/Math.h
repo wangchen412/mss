@@ -576,7 +576,7 @@ MatrixXcd PhaseShift(const dcomp& x, double angle, long m) {
 }
 
 double MinDet(const MatrixXcd& A, const MatrixXcd& B, double angle,
-              int num_det = 10000) {
+              int num_det = 1000) {
   // Return KL for minimum |A - SB| of Av = S Bv
 
   Eigen::JacobiSVD<MatrixXcd> svd = B.jacobiSvd(40);
@@ -598,7 +598,9 @@ double MinDet(const MatrixXcd& A, const MatrixXcd& B, double angle,
 
 VectorXcd NewtonEigen(const MatrixXcd& A, size_t max_iter = 1e2,
                       double tol = 1e-10) {
-  VectorXcd v1 = VectorXcd::Random(A.cols());
+  // VectorXcd v1 = VectorXcd::Random(A.cols());
+  VectorXcd v1(A.cols());
+  v1.setOnes();
   v1 /= v1.norm();
   VectorXcd v2(v1);
 
@@ -613,9 +615,37 @@ VectorXcd NewtonEigen(const MatrixXcd& A, size_t max_iter = 1e2,
     } else
       v1 = v2;
   }
-  std::cout << "[mss:] Inverse Iteration didn't converge." << std::endl;
+  std::cout << "[mss:] Newton Iteration didn't converge." << std::endl;
   return v2;
 }
+
+// VectorXcd NewtonEigen(const MatrixXcd& A, const MatrixXcd& B, dcomp& kl,
+//                       double angle, size_t max_iter = 1e2,
+//                       double tol = 1e-10) {
+//   // VectorXcd v1 = VectorXcd::Random(A.cols());
+
+//   VectorXcd v1(A.cols());
+//   v1.setOnes();
+//   v1 /= v1.norm();
+//   VectorXcd v2(v1);
+
+//   size_t i = 0;
+//   while (i++ < max_iter) {
+//     MatrixXcd M(A - PhaseShift(exp(ii * kl * pi), angle, A.rows()) * B);
+//     v2 = M.jacobiSvd(40).solve(M.transpose() * v1);
+//     v2 /= v2.norm();
+//     dcomp theta = v1.dot(v2);
+//     if ((v2 - theta * v1).norm() < tol * std::abs(theta)) {
+//       std::cout << i << std::endl;
+//       return v2;
+//     } else {
+//       v1 = v2;
+//       kl -= 1/theta;
+//     }
+//   }
+//   std::cout << "[mss:] Inverse Iteration didn't converge." << std::endl;
+//   return v2;
+// }
 
 }  // namespace mss
 

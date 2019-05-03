@@ -21,8 +21,24 @@
 
 using namespace mss;
 
+double omega(1745.371253 * pi2);
+
+class FiberRes {
+ public:
+  FiberRes(const Fiber<AP>& fiber) : fiber(fiber) {}
+
+  StateAP Resultant(const CS* cs) const {
+    if (fiber.Contains(cs))
+      return fiber.Inner(cs);
+    else
+      return fiber.Scatter(cs) + fiber.Pseudo(cs);
+  }
+
+ private:
+  const Fiber<AP>& fiber;
+};
+
 void bv(VectorXcd& w, VectorXcd& t) {
-  double omega(1745.371253 * pi2);
   const Material steel(7670, 116e9, 84.3e9), lead(11400, 36e9, 8.43e9);
 
   Matrix matrix(steel, omega);
@@ -56,8 +72,21 @@ void bv(VectorXcd& w, VectorXcd& t) {
   // auto evt = ces.eigenvectors();
   // dcomp ee = ev(17);  // Selected manually.
 
-  MatrixXcd A = z2 - PhaseShift(exp(ii * ee * pi), pi / 5, z1.rows()) * z1;
-  VectorXcd xx = NewtonEigen(A);
+  VectorXcd xx =
+      NewtonEigen(z2 - PhaseShift(exp(ii * ee * pi), pi / 5, z1.rows()) * z1);
+
+  // for (int i = 0; i < 50; i++) {
+  //   VectorXcd yy = NewtonEigen(
+  //       z2 - PhaseShift(exp(ii * ee * pi), pi / 5, z1.rows()) * z1);
+
+  //   std::cout << xx.dot(yy) << std::endl;
+  // }
+
+  // std::cout << "Original ee: " << ee << std::endl;
+  // VectorXcd yy = NewtonEigen(z2, z1, ee, pi/5);
+  // std::cout << "After iterations: " << ee << std::endl;
+  // std::cout << xx.dot(yy) << (xx - yy / xx.dot(yy)).norm() << std::endl;
+
   // VectorXcd xx = InverseIteration(z2, z1, ee);
   // VectorXcd xx = InverseIteration(A, ee);
   // VectorXcd xx = evt.col(17);
@@ -67,6 +96,11 @@ void bv(VectorXcd& w, VectorXcd& t) {
 
   Fiber<AP> f(fc);
   f.SetCoeff(xx);
+
+  // FiberRes fr(f);
+  // post::Area<AP>(&fr, {-0.1, 0.1}, {0.1, -0.1}, 400, 400,
+  //                std::to_string(xx.dot(yy).real()))
+  //     .Write();
 
   Boundary<AP, 4> box(w.rows() / 0.8, {{-0.1, 0.1}, {0.1, -0.1}}, &matrix);
   std::vector<StateAP> v(box.Node().size());
@@ -97,16 +131,21 @@ int read(VectorXcd& w, VectorXcd& t) {
   }
   return i;
 }
-int main() {
-  VectorXcd w(400), t(400);
-  bv(w, t);
-  // std::cout << read(w, t) << std::endl;
 
+Eigen::VectorXd homo(const VectorXcd& w, const VectorXcd& t) {
   const Material norm_mat({11400, 11400}, 0, {84e9, 84e9});
   Eigen::VectorXd x0(4);
   x0.setOnes();
-  Mismatch f(1745.371253 * pi2, w, t, norm_mat, 0.2, 0.2, 500);
-  BasinHopping(1, 1, f, x0, &std::cout);
+  Mismatch f(omega, w, t, norm_mat, 0.2, 0.2, 500);
+  return BasinHopping(0, 1, f, x0, &std::cout);
+}
+
+int main() {
+  VectorXcd w(400), t(400);
+
+  // std::cout << read(w, t) << std::endl;
+  bv(w, t);
+  std::cout << homo(w, t) << std::endl;
 
   return 0;
 }
