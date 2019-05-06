@@ -21,8 +21,7 @@
 
 using namespace mss;
 
-const double omega(4878.317319725237 * pi2);  // Frequency
-const double theta(0);                        // Incident angle
+const double theta(0);  // Incident angle
 
 class FiberRes {
  public:
@@ -39,8 +38,9 @@ class FiberRes {
   const Fiber<AP>& fiber;
 };
 
-void bv(VectorXcd& w, VectorXcd& t) {
+void bv(double freq, VectorXcd& w, VectorXcd& t) {
   const Material steel(7670, 116e9, 84.3e9), lead(11400, 36e9, 8.43e9);
+  double omega = freq * pi2;
 
   Matrix matrix(steel, omega);
   auto fc = new FiberConfig<AP>("1", 14, 200, 0.06, lead, &matrix);
@@ -87,9 +87,9 @@ void bv(VectorXcd& w, VectorXcd& t) {
     t(k) = v[k].Bv()(1);
   }
 
-  std::ofstream file("wt_com.txt");
-  for (int i = 0; i < 400; i++) file << w(i) << "\t" << t(i) << std::endl;
-  file.close();
+  // std::ofstream file("wt_com.txt");
+  // for (int i = 0; i < 400; i++) file << w(i) << "\t" << t(i) << std::endl;
+  // file.close();
 }
 double read(int n, VectorXcd& w, VectorXcd& t) {
   auto file = std::ifstream(std::string("wt/") + std::to_string(n));
@@ -112,7 +112,6 @@ double read(int n, VectorXcd& w, VectorXcd& t) {
   if (i != 400) std::cout << "error: " << i << std::endl;
   return f;
 }
-
 Eigen::VectorXd homo(double freq, const VectorXcd& w, const VectorXcd& t) {
   const Material norm_mat({11400, 11400}, 0, {84e9, 84e9});
   Eigen::VectorXd x0(4);
@@ -122,13 +121,21 @@ Eigen::VectorXd homo(double freq, const VectorXcd& w, const VectorXcd& t) {
 }
 
 int main() {
-  // bv(w, t);
-  std::ofstream file("1.txt");
-  for (int i = 1; i < 2; i++) {
-    VectorXcd w(400), t(400);
-    double f = read(i, w, t);
-    file << f << "\t" << homo(f, w, t).transpose() << std::endl;
+  std::ifstream freq_file("freq.txt");
+  std::ofstream out_file("mss_pbc.txt");
+  std::vector<double> freq(80);
+  std::string tmp;
+  for (int i = 0; i < 80; i++) {
+    std::getline(freq_file, tmp);
+    std::stringstream s(tmp);
+    s >> freq[i];
   }
-  file.close();
+  for (int i = 0; i < 80; i++) {
+    VectorXcd w(400), t(400);
+    bv(freq[i], w, t);
+    out_file << freq[i] << "\t" << homo(freq[i], w, t).transpose()
+             << std::endl;
+  }
+  out_file.close();
   return 0;
 }
