@@ -21,7 +21,8 @@
 
 using namespace mss;
 
-double omega(1745.371253 * pi2);
+const double omega(4878.317319725237 * pi2);  // Frequency
+const double theta(0);                        // Incident angle
 
 class FiberRes {
  public:
@@ -42,7 +43,7 @@ void bv(VectorXcd& w, VectorXcd& t) {
   const Material steel(7670, 116e9, 84.3e9), lead(11400, 36e9, 8.43e9);
 
   Matrix matrix(steel, omega);
-  auto fc = new FiberConfig<AP>("1", 12, 200, 0.06, lead, &matrix);
+  auto fc = new FiberConfig<AP>("1", 14, 200, 0.06, lead, &matrix);
   InhomoPtrs<AP> fibers;
   fibers.push_back(new Fiber<AP>(fc, {0.1, 0.1}));
   auto ac = new AssemblyConfig<AP>("1", fibers, 0.2, 0.2, 80000, &matrix);
@@ -61,38 +62,11 @@ void bv(VectorXcd& w, VectorXcd& t) {
     z1.row(i) /= p;
     z2.row(i) /= p;
   }
-  dcomp ee = MinDet(z2, z1, pi / 5);
-  std::cout << "Eigenvalue: " << ee << std::endl;
-
-  // MatrixXcd A(PseudoInverse(z1) * z2);
-  // Eigen::ComplexEigenSolver<MatrixXcd> ces;
-  // ces.compute(A);
-  // VectorXcd ev = ces.eigenvalues();
-  // VectorXcd mv = ev.array().abs() - 1;
-  // auto evt = ces.eigenvectors();
-  // dcomp ee = ev(17);  // Selected manually.
+  dcomp ee = MinDet(z2, z1, theta);
+  std::cout << "Ka (pi): " << ee << std::endl;
 
   VectorXcd xx =
-      NewtonEigen(z2 - PhaseShift(exp(ii * ee * pi), pi / 5, z1.rows()) * z1);
-
-  // for (int i = 0; i < 50; i++) {
-  //   VectorXcd yy = NewtonEigen(
-  //       z2 - PhaseShift(exp(ii * ee * pi), pi / 5, z1.rows()) * z1);
-
-  //   std::cout << xx.dot(yy) << std::endl;
-  // }
-
-  // std::cout << "Original ee: " << ee << std::endl;
-  // VectorXcd yy = NewtonEigen(z2, z1, ee, pi/5);
-  // std::cout << "After iterations: " << ee << std::endl;
-  // std::cout << xx.dot(yy) << (xx - yy / xx.dot(yy)).norm() << std::endl;
-
-  // VectorXcd xx = InverseIteration(z2, z1, ee);
-  // VectorXcd xx = InverseIteration(A, ee);
-  // VectorXcd xx = evt.col(17);
-
-  // for (int i = 0; i < xx.rows(); i++)
-  //   std::cout << xx(i) << "\t" << evt.col(17)(i) << std::endl;
+      NewtonEigen(z2 - PhaseShift(exp(ii * ee * pi), theta, z1.rows()) * z1);
 
   Fiber<AP> f(fc);
   f.SetCoeff(xx);
@@ -117,9 +91,15 @@ void bv(VectorXcd& w, VectorXcd& t) {
   for (int i = 0; i < 400; i++) file << w(i) << "\t" << t(i) << std::endl;
   file.close();
 }
-int read(VectorXcd& w, VectorXcd& t) {
-  auto file = std::ifstream("data.txt");
+double read(int n, VectorXcd& w, VectorXcd& t) {
+  auto file = std::ifstream(std::string("wt/") + std::to_string(n));
   std::string tmp;
+
+  std::getline(file, tmp);
+  std::stringstream s(tmp);
+  double f;
+  s >> f;
+
   int i = 0;
   while (std::getline(file, tmp)) {
     std::stringstream s(tmp);
@@ -129,23 +109,26 @@ int read(VectorXcd& w, VectorXcd& t) {
     t(i) = dcomp(tr, ti);
     ++i;
   }
-  return i;
+  if (i != 400) std::cout << "error: " << i << std::endl;
+  return f;
 }
 
-Eigen::VectorXd homo(const VectorXcd& w, const VectorXcd& t) {
+Eigen::VectorXd homo(double freq, const VectorXcd& w, const VectorXcd& t) {
   const Material norm_mat({11400, 11400}, 0, {84e9, 84e9});
   Eigen::VectorXd x0(4);
   x0.setOnes();
-  Mismatch f(omega, w, t, norm_mat, 0.2, 0.2, 500);
-  return BasinHopping(0, 1, f, x0, &std::cout);
+  Mismatch f(freq * pi2, w, t, norm_mat, 0.2, 0.2, 500);
+  return BasinHopping(2, 2, f, x0);
 }
 
 int main() {
-  VectorXcd w(400), t(400);
-
-  // std::cout << read(w, t) << std::endl;
-  bv(w, t);
-  std::cout << homo(w, t) << std::endl;
-
+  // bv(w, t);
+  std::ofstream file("1.txt");
+  for (int i = 1; i < 2; i++) {
+    VectorXcd w(400), t(400);
+    double f = read(i, w, t);
+    file << f << "\t" << homo(f, w, t).transpose() << std::endl;
+  }
+  file.close();
   return 0;
 }
