@@ -20,31 +20,34 @@
 #include "../src/post/Output.h"
 #include "../src/post/check/Continuity.h"
 
-
 using namespace mss;
 
-IncidentPlaneSH* in;
-Boundary<AP, 14>* b0;
-Boundary<AP, 14>* b1;
+class res {
+ public:
+  res(IncidentPlaneSH* in, Boundary<AP, 14>* b0, Boundary<AP, 14>* b1)
+      : in(in), b0(b0), b1(b1) {}
 
-StateAP rst(const CS* cs) {
-  switch (b1->Contains(cs)) {
-  case 1:
-    return b1->Effect(cs);
-  case -1:
-    return in->Effect(cs) + b0->Effect(cs);
+  StateAP Resultant(const CS* cs) const {
+    switch (b1->Contains(cs)) {
+      case 1:
+        return b1->Effect(cs);
+      case -1:
+        return in->Effect(cs) + b0->Effect(cs);
+    }
+    return b1->Effect(cs, true);
   }
-  return b1->Effect(cs, true);
-}
+
+ private:
+  IncidentPlaneSH* in;
+  Boundary<AP, 14>* b0;
+  Boundary<AP, 14>* b1;
+};
 
 class Mismatch {
-public:
+ public:
   Mismatch(double omega, const Eigen::VectorXcd& w, const Eigen::VectorXcd& t,
            const Material& m0)
-    : omega_(omega),
-      w_(w),
-      t_(t),
-      m0_(m0) {}
+      : omega_(omega), w_(w), t_(t), m0_(m0) {}
   double operator()(const Eigen::Vector4d& r) const {
     Matrix matrix(m0_ * r, omega_);
     Boundary<AP, 4> b{0, {}, &matrix, INPUT};
@@ -53,7 +56,7 @@ public:
 
   Material material(const Eigen::Vector4d& r) const { return m0_ * r; }
 
-private:
+ private:
   double omega_;
   Eigen::VectorXcd w_, t_;
   const Material m0_;
@@ -91,7 +94,7 @@ int main() {
   // 3. Homogenization.
   Mismatch f(s.Frequency(), w, t, {{11400, 11400}, 0, {84e9, 84e9}});
   std::ofstream file("iterations.dat");
-  Eigen::VectorXd p = NelderMead(f, Eigen::Vector4d::Ones(), &file);
+  Eigen::VectorXd p = BasinHopping(10, 10, f, Eigen::Vector4d::Ones(), &file);
   file.close();
   std::cout << mss_msg({"Effective properties: "}) << p.transpose()
             << std::endl;
@@ -99,20 +102,23 @@ int main() {
   // 4. Solve and output the wave field of effective homogeneous scatterer.
   Material steel(7670, 116e9, 84.3e9);
   mss::Matrix m{steel, s.Frequency()}, ff{f.material(p), s.Frequency()};
-  in = new IncidentPlaneSH(m);
-  b0 = new Boundary<AP, 14>(50 * m.KT(), {{-2, 2}, {2, -2}}, &m, RECTANGULAR,
-                            true);
-  b1 = new Boundary<AP, 14>(50 * m.KT(), {{-2, 2}, {2, -2}}, &ff);
+
+  IncidentPlaneSH* in = new IncidentPlaneSH(m);
+  Boundary<AP, 14>* b0 = new Boundary<AP, 14>(50 * m.KT(), {{-2, 2}, {2, -2}},
+                                              &m, RECTANGULAR, true);
+  Boundary<AP, 14>* b1 =
+      new Boundary<AP, 14>(50 * m.KT(), {{-2, 2}, {2, -2}}, &ff);
 
   Eigen::VectorXcd bv =
-    b1->DispToEffect() * (b0->MatrixH() + b0->MatrixG() * b1->DtN())
-    .lu()
-    .solve(in->EffectDv(b0->Node()));
+      b1->DispToEffect() * (b0->MatrixH() + b0->MatrixG() * b1->DtN())
+                               .lu()
+                               .solve(in->EffectDv(b0->Node()));
   b1->SetBv(bv);
   for (long i = 0; i < bv.size(); i++)
     if (i % 2) bv(i) *= -1;
   b0->SetBv(bv);
 
+  res* rst = new res(in, b0, b1);
   post::Area<AP> a2(rst, {-6, 6}, {6, -6}, 1200, 1200, "bem");
   a2.Write();
 

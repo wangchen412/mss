@@ -2,14 +2,14 @@ clear all
 close all
 clc
 
-n = 6;
+n = 8;
 
-[C, S, O] = add_fibers(0.06, 400, 40);
+[C, S, O] = add_fibers(0.06, 400, 50);
 [inner, outer] = edge_nodes(C, S, 0.06);
 X = [inner; outer];
 y = [ones(size(inner,1),1);zeros(size(outer,1),1)];
 X = map_feature(X(:,1), X(:,2), n);
-options = optimset('Algorithm','trust-region','GradObj', 'on', 'MaxIter', 100000);
+options = optimset('Algorithm','trust-region','GradObj', 'on', 'MaxIter', 500000);
 [theta, J, exit_flag] = fminunc(@(t)(cost_function(t, X, y)), zeros(size(X, 2), 1), options);
 
 plot_fibers(C, S, O)
