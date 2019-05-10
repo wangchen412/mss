@@ -28,10 +28,10 @@ using namespace mss;
 // xx: the lower left fiber in RVE is the nxth fiber from left.
 // yy: the lower left fiber in RVE is the nyth fiber from bottom.
 
-Eigen::VectorXd multi_homo(double ka, int nx, int ny, int cx, int cy, int xx,
-                           int yy, int ax, int ay, const Eigen::VectorXd& x0,
-                           int n_iter = 0, int n_hop = 1, double d = 0.2) {
-  double omega = ka * 16576.24319112025;
+Eigen::VectorXd multi_homo(double omega, int nx, int ny, int cx, int cy,
+                           int xx, int yy, int ax, int ay,
+                           const Eigen::VectorXd& x0, int n_iter = 0,
+                           int n_hop = 1, double d = 0.2) {
   const Material steel(7670, 116e9, 84.3e9), lead(11400, 36e9, 8.43e9);
   const Material norm_mat({11400, 11400}, 0, {84e9, 84e9});
 
@@ -75,7 +75,7 @@ Eigen::VectorXd multi_homo(double ka, int nx, int ny, int cx, int cy, int xx,
     }
 
   Mismatch f(omega, w, t, norm_mat, w_rve, h_rve, node_dens);
-  std::ofstream file("iterations_" + std::to_string(ka) + ".dat");
+  std::ofstream file("iterations_" + std::to_string(omega / pi2) + ".dat");
   Eigen::VectorXd rst = BasinHopping(n_iter, n_hop, f, x0, &file);
   file.close();
 
@@ -105,16 +105,16 @@ int main(int argc, char** argv) {
 
   std::ofstream file(fn);
 
-  double d = 0.2;
-
-  int N = 18;
   Eigen::VectorXd x0(4);
   x0.setOnes();
 
+  int N = 20;
+  double f0(4878.317);
+  double df((5423.195 - f0) / N);
+
   for (int i = 0; i < N; i++) {
-    double ka = 1 + 0.05 * i;
-    x0 = multi_homo(ka, nx, ny, cx, cy, xx, yy, ax, ay, x0);
-    file << ka << ": " << x0.transpose() << std::endl;
+    x0 = multi_homo((f0 + i * df) * pi2, nx, ny, cx, cy, xx, yy, ax, ay, x0);
+    file << i << ": " << x0.transpose() << std::endl;
   }
   file.close();
 
