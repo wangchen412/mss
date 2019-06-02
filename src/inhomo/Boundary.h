@@ -38,9 +38,20 @@ class Boundary {
         matrix_(matrix),
         ext_(external) {
     switch (shape) {
+      case INCL_RECT:
+        for (size_t i = 0; i < positions.size() / 4; i++)
+          add_quad(std::vector<PosiVect>(positions.begin() + i * 4,
+                                         positions.begin() + i * 4 + 4));
+        r_cc_ = (positions[0] - positions[2]).Length() / 2;
+        center_ = CS((positions[0] + positions[2]) / 2);
+
+        height_ = (positions_[0] - positions_[1]).Length();
+        width_ = (positions_[2] - positions_[1]).Length();
+        angle_ = (positions_[2] - positions_[1]).Angle(width_);
+        break;
       case RECTANGULAR:
-        assert(positions.size() == 2);
-        add_rect(positions[0], positions[1]);
+        for (size_t i = 0; i < positions.size() / 2; i++)
+          add_rect(positions[i * 2], positions[i * 2 + 1]);
         r_cc_ = (positions[0] - positions[1]).Length() / 2;
         center_ = CS((positions[0] + positions[1]) / 2);
         break;
@@ -106,6 +117,7 @@ class Boundary {
   MatrixXcd ModeMatT(const CSCPtrs& objCSs) const;
   MatrixXcd ModeMatT(const InhomoCPtrs<T>& objs) const;
 
+  const VectorXcd& Bv() const { return bv_; }
   void SetBv(const VectorXcd& bv) { bv_ = bv; }
   T Effect(const CS* objCS, bool overlap = false) const;
   int Contains(const CS* objCS) const;
@@ -134,12 +146,18 @@ class Boundary {
   VectorXcd bv_;
   double epsilon_{1e-4};
 
+  // Counterclockwise
+  void add_quad(const std::vector<PosiVect>& ps);
   // top-left -> bottom-right
   void add_rect(const PosiVect& p1, const PosiVect& p2);
   void add_line(const PosiVect& p1, const PosiVect& p2);
   void add_circle(const PosiVect& p, double r);
   void add_input_node();
   void compute_HG();
+
+  double height_;
+  double width_;
+  double angle_;
 };
 
 // ---------------------------------------------------------------------------
@@ -326,6 +344,16 @@ template <typename T, int N>
 int Boundary<T, N>::Contains(const CS* objCS) const {
   PosiVect p = objCS->PositionGLB();
   switch (shape_) {
+    case INCL_RECT: {
+      CS local(positions_[1], angle_);
+      PosiVect p = objCS->PositionIn(&local);
+      if (p.x > epsilon_ && p.x < width_ - epsilon_ && p.y > epsilon_ &&
+          p.y < height_ - epsilon_)
+        return 1;
+      else if (p.x < -epsilon_ || p.x > width_ + epsilon_ ||
+               p.y > height_ + epsilon_ || p.y < -epsilon_)
+        return -1;
+    }
     case RECTANGULAR:
       if (p.x > positions_[0].x + epsilon_ &&
           p.x < positions_[1].x - epsilon_ &&
@@ -350,6 +378,14 @@ template <typename T, int N>
 void Boundary<T, N>::ReverseEdge() {
   for (size_t i = edge_.size() - 1; i > edge_.size() / 2 - 1; i--)
     std::reverse(edge_[i].begin(), edge_[i].end());
+}
+
+template <typename T, int N>
+void Boundary<T, N>::add_quad(const std::vector<PosiVect>& ps) {
+  add_line(ps[0], ps[1]);
+  add_line(ps[1], ps[2]);
+  add_line(ps[2], ps[3]);
+  add_line(ps[3], ps[0]);
 }
 template <typename T, int N>
 void Boundary<T, N>::add_rect(const PosiVect& p1, const PosiVect& p2) {
