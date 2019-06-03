@@ -109,7 +109,7 @@ double read(int n, VectorXcd& w, VectorXcd& t) {
   if (i != 400) std::cout << "error: " << i << std::endl;
   return f;
 }
-Eigen::VectorXd homo(double omega, const VectorXcd& w, const VectorXcd& t) {
+Eigen::VectorXd homo(double omega, const MatrixXcd& w, const MatrixXcd& t) {
   const Material norm_mat({11400, 11400}, 0, {84e9, 84e9});
   Eigen::VectorXd x0(4);
   x0.setOnes();
@@ -129,15 +129,12 @@ int main() {
     s >> freq[i];
   }
   for (int i = 0; i < 80; i++) {
-    VectorXcd w(400), t(400);
-    w.setZero();
-    t.setZero();
-
+    MatrixXcd w(400, 45), t(400, 45);
     for (int j = 0; j < 45; j++) {
       VectorXcd ww(400), tt(400);
       bv(freq[i] * pi2, pi / 4 / 45 * j, ww, tt);
-      w += ww;
-      t += tt;
+      w.col(j) = ww;
+      t.col(j) = tt;
     }
 
     out_file << freq[i] << "\t" << homo(freq[i], w, t).transpose()
