@@ -21,8 +21,6 @@
 
 using namespace mss;
 
-const double theta(0);  // Incident angle
-
 class FiberRes {
  public:
   FiberRes(const Fiber<AP>& fiber) : fiber(fiber) {}
@@ -38,9 +36,8 @@ class FiberRes {
   const Fiber<AP>& fiber;
 };
 
-void bv(double freq, VectorXcd& w, VectorXcd& t) {
+void bv(double omega, double theta, VectorXcd& w, VectorXcd& t) {
   const Material steel(7670, 116e9, 84.3e9), lead(11400, 36e9, 8.43e9);
-  double omega = freq * pi2;
 
   Matrix matrix(steel, omega);
   auto fc = new FiberConfig<AP>("1", 14, 200, 0.06, lead, &matrix);
@@ -112,12 +109,13 @@ double read(int n, VectorXcd& w, VectorXcd& t) {
   if (i != 400) std::cout << "error: " << i << std::endl;
   return f;
 }
-Eigen::VectorXd homo(double freq, const VectorXcd& w, const VectorXcd& t) {
+Eigen::VectorXd homo(double omega, const VectorXcd& w, const VectorXcd& t) {
   const Material norm_mat({11400, 11400}, 0, {84e9, 84e9});
   Eigen::VectorXd x0(4);
   x0.setOnes();
-  Mismatch f(freq * pi2, w, t, norm_mat, 0.2, 0.2, 500);
-  return BasinHopping(2, 2, f, x0);
+  Mismatch f(omega, w, t, norm_mat, 0.2, 0.2, 500);
+  // return BasinHopping(2, 2, f, x0);
+  return NelderMead(f, x0, &std::cout);
 }
 
 int main() {
@@ -132,7 +130,16 @@ int main() {
   }
   for (int i = 0; i < 80; i++) {
     VectorXcd w(400), t(400);
-    bv(freq[i], w, t);
+    w.setZero();
+    t.setZero();
+
+    for (int j = 0; j < 45; j++) {
+      VectorXcd ww(400), tt(400);
+      bv(freq[i] * pi2, pi / 4 / 45 * j, ww, tt);
+      w += ww;
+      t += tt;
+    }
+
     out_file << freq[i] << "\t" << homo(freq[i], w, t).transpose()
              << std::endl;
   }
