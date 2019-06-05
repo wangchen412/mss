@@ -114,8 +114,7 @@ Eigen::VectorXd homo(double omega, const MatrixXcd& w, const MatrixXcd& t) {
   Eigen::VectorXd x0(4);
   x0.setOnes();
   Mismatch f(omega, w, t, norm_mat, 0.2, 0.2, 500);
-  // return BasinHopping(2, 2, f, x0);
-  return NelderMead(f, x0, &std::cout);
+  return BasinHopping(2, 2, f, x0);
 }
 
 int main() {
@@ -137,7 +136,7 @@ int main() {
       t.col(j) = tt;
     }
 
-    out_file << freq[i] << "\t" << homo(freq[i], w, t).transpose()
+    out_file << freq[i] << "\t" << homo(freq[i] * pi2, w, t).transpose()
              << std::endl;
   }
   out_file.close();
