@@ -123,9 +123,9 @@ int main() {
   }
 
   MultiBEM<AP, 10> s(16576.24319112025, eff_mat, steel, ps);
-  post::Circle<AP>(&s, {0, 0}, 0.5155, 1000).Write();
-  post::Circle<AP>(&s, {0, 0}, 2.5773, 1000).Write();
-  post::Circle<AP>(&s, {0, 0}, 4.6392, 1000).Write();
+  post::Circle<AP>(&s, {0, 0}, 0.5155, 1000, "1").Write();
+  post::Circle<AP>(&s, {0, 0}, 2.5773, 1000, "2").Write();
+  post::Circle<AP>(&s, {0, 0}, 4.6392, 1000, "3").Write();
 
   return 0;
 }
