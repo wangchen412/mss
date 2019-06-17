@@ -99,7 +99,8 @@ class MultiBEM {
 };
 
 int main() {
-  Material steel(7670, 116e9, 84.3e9), lead(11400, 36e9, 8.43e9);
+  Material steel(7670, 116e9, 84.3e9);
+  Material eff_mat(0.803696 * 11400, 1, 0.609922 * 84.3e9);
 
   Eigen::MatrixXd ps1(2, 4);
   double R = 1, a = 19 * 0.2 + 0.08, b = 9 * 0.2 + 0.08, d = 0.04;
@@ -121,8 +122,10 @@ int main() {
     ps[i + 8].y = ps3(1, i);
   }
 
-  MultiBEM<AP, 10> s(1657.624 * 2, steel, lead, ps);
-  post::Area<AP>(&s, {-6, 6}, {6, -6}, 300, 300, "bem").Write();
+  MultiBEM<AP, 10> s(16576.24319112025, eff_mat, steel, ps);
+  post::Circle<AP>(&s, {0, 0}, 0.5155, 1000, "1").Write();
+  post::Circle<AP>(&s, {0, 0}, 2.5773, 1000, "2").Write();
+  post::Circle<AP>(&s, {0, 0}, 4.6392, 1000, "3").Write();
 
   return 0;
 }
