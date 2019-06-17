@@ -33,7 +33,7 @@ Eigen::VectorXd multi_homo(double omega, int nx, int ny, int cx, int cy,
                            const Eigen::VectorXd& x0, int n_iter = 0,
                            int n_hop = 1, double d = 0.2) {
   const Material steel(7670, 116e9, 84.3e9), lead(11400, 36e9, 8.43e9);
-  const Material norm_mat({0, 11400}, 1, {0, 84e9});
+  const Material norm_mat({11400, 11400}, 1, {84e9, 84e9});
 
   Matrix m(steel, omega);
   IncidentPlaneSH in(m);
@@ -105,14 +105,14 @@ int main(int argc, char** argv) {
 
   std::ofstream file(fn);
 
-  Eigen::VectorXd x0(2);
+  Eigen::VectorXd x0(4);
   x0.setOnes();
 
   int N = 20;
   double f0(4878.317);
   double df((5423.195 - f0) / N);
 
-  for (int i = 10; i < N + 1; i++) {
+  for (int i = 20; i < N + 1; i++) {
     x0 = multi_homo((f0 + i * df) * pi2, nx, ny, cx, cy, xx, yy, ax, ay, x0);
     file << i << ": " << x0.transpose() << std::endl;
   }
