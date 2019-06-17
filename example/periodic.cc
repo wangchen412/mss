@@ -46,7 +46,7 @@ void bv(double omega, double theta, VectorXcd& w, VectorXcd& t) {
   auto ac = new AssemblyConfig<AP>("1", fibers, 0.2, 0.2, 80000, &matrix);
   ac->Boundary().ReverseEdge();
 
-  std::cout << ac->Edge(0).size() << std::endl;
+  // std::cout << ac->Edge(0).size() << std::endl;
 
   MatrixXcd z1(2 * (ac->Edge(0).size() + ac->Edge(1).size()), ac->NumCoeff());
   MatrixXcd z2(2 * (ac->Edge(2).size() + ac->Edge(3).size()), ac->NumCoeff());
@@ -60,7 +60,7 @@ void bv(double omega, double theta, VectorXcd& w, VectorXcd& t) {
     z2.row(i) /= p;
   }
   dcomp ee = MinDet(z2, z1, theta);
-  std::cout << "Ka (pi): " << ee << std::endl;
+  // std::cout << "Ka (pi): " << ee << std::endl;
 
   VectorXcd xx =
       NewtonEigen(z2 - PhaseShift(exp(ii * ee * pi), theta, z1.rows()) * z1);
@@ -110,35 +110,56 @@ double read(int n, VectorXcd& w, VectorXcd& t) {
   return f;
 }
 Eigen::VectorXd homo(double omega, const MatrixXcd& w, const MatrixXcd& t) {
-  const Material norm_mat({11400, 11400}, 0, {84e9, 84e9});
-  Eigen::VectorXd x0(4);
-  x0.setOnes();
+  // const Material norm_mat(11400, 0, 84e9);
+  const Material norm_mat({11400, 0}, 0, {84e9, 0});
+  Eigen::VectorXd x0(2);
+  // x0.setOnes();
+  x0 << 0.6, 0.3;
   Mismatch f(omega, w, t, norm_mat, 0.2, 0.2, 500);
-  return BasinHopping(2, 2, f, x0);
+  // return BasinHopping(0, 1, f, x0);
+  return NelderMead(f, x0, &std::cout);
 }
 
-int main() {
-  std::ifstream freq_file("freq.txt");
-  std::ofstream out_file("mss_pbc.txt");
-  std::vector<double> freq(80);
-  std::string tmp;
-  for (int i = 0; i < 80; i++) {
-    std::getline(freq_file, tmp);
-    std::stringstream s(tmp);
-    s >> freq[i];
-  }
-  for (int i = 0; i < 80; i++) {
-    MatrixXcd w(400, 45), t(400, 45);
-    for (int j = 0; j < 45; j++) {
-      VectorXcd ww(400), tt(400);
-      bv(freq[i] * pi2, pi / 4 / 45 * j, ww, tt);
-      w.col(j) = ww;
-      t.col(j) = tt;
-    }
+// int main() {
+//   std::ifstream freq_file("freq.txt");
+//   std::ofstream out_file("mss_pbc.txt");
+//   std::vector<double> freq(80);
+//   std::string tmp;
+//   for (int i = 0; i < 80; i++) {
+//     std::getline(freq_file, tmp);
+//     std::stringstream s(tmp);
+//     s >> freq[i];
+//   }
+//   for (int i = 0; i < 80; i++) {
+//     MatrixXcd w(400, 45), t(400, 45);
+//     for (int j = 0; j < 45; j++) {
+//       VectorXcd ww(400), tt(400);
+//       bv(freq[i] * pi2, pi / 4 / 45 * j, ww, tt);
+//       w.col(j) = ww;
+//       t.col(j) = tt;
+//     }
 
-    out_file << freq[i] << "\t" << homo(freq[i] * pi2, w, t).transpose()
-             << std::endl;
+//     out_file << freq[i] << "\t" << homo(freq[i] * pi2, w, t).transpose()
+//              << std::endl;
+//   }
+//   out_file.close();
+//   return 0;
+// }
+
+int main() {
+  double omega = 16576.24319112025;
+
+  int N = 3;
+
+  MatrixXcd w(400, N), t(400, N);
+  for (int j = 0; j < N; j++) {
+    VectorXcd ww(400), tt(400);
+    bv(omega, pi / 4 / N * j, ww, tt);
+    w.col(j) = ww;
+    t.col(j) = tt;
   }
-  out_file.close();
+
+  std::cout << homo(omega, w, t).transpose() << std::endl;
+
   return 0;
 }

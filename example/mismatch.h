@@ -41,13 +41,15 @@ class Mismatch {
         t_(t),
         m0_(m0) {}
 
-  double operator()(const Eigen::Vector4d& r) const {
-    Matrix matrix(m0_ * r, omega_);
+  double operator()(const Eigen::VectorXd& r) const {
+    Matrix matrix(m0_.mul_real(r), omega_);
     Boundary<AP, 4> b{density_, {{0, height_}, {width_, 0}}, &matrix};
     return (b.MatrixH() * w_ - b.MatrixG() * t_).norm();
   }
 
-  Material material(const Eigen::Vector4d& r) const { return m0_ * r; }
+  Material material(const Eigen::VectorXd& r) const {
+    return m0_.mul_real(r);
+  }
 
  private:
   double omega_, width_, height_, density_;
