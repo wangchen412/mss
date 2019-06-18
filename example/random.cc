@@ -49,12 +49,14 @@ class Mismatch {
            const Material& m0)
       : omega_(omega), w_(w), t_(t), m0_(m0) {}
   double operator()(const Eigen::Vector4d& r) const {
-    Matrix matrix(m0_ * r, omega_);
+    Matrix matrix(m0_.mul_comp(r), omega_);
     Boundary<AP, 4> b{0, {}, &matrix, INPUT};
     return (b.MatrixH() * w_ - b.MatrixG() * t_).norm();
   }
 
-  Material material(const Eigen::Vector4d& r) const { return m0_ * r; }
+  Material material(const Eigen::Vector4d& r) const {
+    return m0_.mul_comp(r);
+  }
 
  private:
   double omega_;
@@ -73,23 +75,38 @@ int main() {
   o.Write();
 
   // 2. Compute boundary values around the RVE.
-  Boundary<AP, 4> b(0, {}, s.Matrix(), INPUT);
-  Eigen::VectorXcd w(b.NumNode()), t(b.NumNode());
-  std::vector<StateAP> v(b.Node().size());
+  //   Boundary<AP, 4> b(0, {}, s.Matrix(), INPUT);
+  //   Eigen::VectorXcd w(b.NumNode()), t(b.NumNode());
+  //   std::vector<StateAP> v(b.Node().size());
+  // #ifdef NDEBUG
+  // #pragma omp parallel for
+  // #endif
+  //   for (size_t i = 0; i < b.NumNode(); i++) {
+  //     v[i] = s.Resultant(b.Node(i));
+  //     w(i) = v[i].Bv()(0);
+  //     t(i) = v[i].Bv()(1);
+  //   }
+  //   std::ofstream bv_out("bv.dat");
+  //   for (size_t i = 0; i < b.NumNode(); i++)
+  //     bv_out << setMaxPrecision << v[i].Basis()->PositionGLB() << "\t"
+  //            << v[i].Basis()->AngleGLB() << "\t" << w(i) << "\t" << t(i)
+  //            << std::endl;
+  //   bv_out.close();
+
+  Boundary<AP, 4> box(500, {{-0.3, 0.3}, {0.3, -0.3}}, s.Matrix());
+  Eigen::VectorXcd w(box.NumNode()), t(box.NumNode());
+  std::vector<StateAP> v(box.Node().size());
+
+  std::cout << box.Node().size() << std::endl;
+
 #ifdef NDEBUG
 #pragma omp parallel for
 #endif
-  for (size_t i = 0; i < b.NumNode(); i++) {
-    v[i] = s.Resultant(b.Node(i));
-    w(i) = v[i].Bv()(0);
-    t(i) = v[i].Bv()(1);
+  for (size_t k = 0; k < box.NumNode(); k++) {
+    v[k] = s.Resultant(box.Node(k));
+    w(k) = v[k].Bv()(0);
+    t(k) = v[k].Bv()(1);
   }
-  std::ofstream bv_out("bv.dat");
-  for (size_t i = 0; i < b.NumNode(); i++)
-    bv_out << setMaxPrecision << v[i].Basis()->PositionGLB() << "\t"
-           << v[i].Basis()->AngleGLB() << "\t" << w(i) << "\t" << t(i)
-           << std::endl;
-  bv_out.close();
 
   // 3. Homogenization.
   Mismatch f(s.Frequency(), w, t, {{11400, 11400}, 0, {84e9, 84e9}});
