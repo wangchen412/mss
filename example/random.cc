@@ -71,8 +71,12 @@ int main() {
   post::CC_Solution<AP> cc{&s};
   std::cout << mss_msg({"Maximum mismatch: ", std::to_string(cc.Max())})
             << std::endl;
-  post::Output<AP> o{&s};
-  o.Write();
+  // post::Output<AP> o{&s};
+  // o.Write();
+
+  std::ofstream coeff_file("coeff.txt");
+  for (auto& i : s.inhomo()) coeff_file << i->ScatterCoeff();
+  coeff_file.close();
 
   // 2. Compute boundary values around the RVE.
   //   Boundary<AP, 4> b(0, {}, s.Matrix(), INPUT);
@@ -135,9 +139,9 @@ int main() {
     if (i % 2) bv(i) *= -1;
   b0->SetBv(bv);
 
-  res* rst = new res(in, b0, b1);
-  post::Area<AP> a2(rst, {-6, 6}, {6, -6}, 1200, 1200, "bem");
-  a2.Write();
+  // res* rst = new res(in, b0, b1);
+  // post::Area<AP> a2(rst, {-6, 6}, {6, -6}, 1200, 1200, "bem");
+  // a2.Write();
 
   delete in;
   delete b0;
