@@ -50,7 +50,7 @@ class Mismatch {
       : omega_(omega), w_(w), t_(t), m0_(m0) {}
   double operator()(const Eigen::Vector4d& r) const {
     Matrix matrix(m0_.mul_comp(r), omega_);
-    Boundary<AP, 4> b{0, {}, &matrix, INPUT};
+    Boundary<AP, 4> b(500, {{-0.3, 0.3}, {0.3, -0.3}}, &matrix);
     return (b.MatrixH() * w_ - b.MatrixG() * t_).norm();
   }
 
@@ -75,7 +75,8 @@ int main() {
   // o.Write();
 
   std::ofstream coeff_file("coeff.txt");
-  for (auto& i : s.inhomo()) coeff_file << i->ScatterCoeff();
+  for (auto& i : s.inhomo())
+    coeff_file << setMaxPrecision << i->ScatterCoeff() << std::endl;
   coeff_file.close();
 
   // 2. Compute boundary values around the RVE.
