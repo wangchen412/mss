@@ -140,6 +140,7 @@ class AssemblyConfig {
 
   const InhomoCPtrs<T>& inhomo() const { return inhomoC_; }
   const Inhomo<T>* inhomo(size_t sn) const { return inhomoC_[sn]; }
+  void dist_solution(const VectorXcd& solution);
 
  protected:
   const std::string ID_;
@@ -173,7 +174,6 @@ class AssemblyConfig {
   MatrixXcd inter_identity_mat() const;
   void com_z_mat();
   const Inhomo<T>* nearest(const CS* objCS) const;
-  void dist_solution(const VectorXcd& solution);
 };
 
 // ---------------------------------------------------------------------------

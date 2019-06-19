@@ -67,17 +67,21 @@ class Mismatch {
 int main() {
   // 1. Solve and output the wave field of multiple scattering.
   Solution<AP> s{input::Solution("input.txt")};
-  s.Solve();
+  // s.Solve();
+  std::ifstream coeff_in("coeff.txt");
+  s.ReadCoeff(coeff_in);
+  coeff_in.close();
+
   post::CC_Solution<AP> cc{&s};
   std::cout << mss_msg({"Maximum mismatch: ", std::to_string(cc.Max())})
             << std::endl;
   // post::Output<AP> o{&s};
   // o.Write();
 
-  std::ofstream coeff_file("coeff.txt");
-  for (auto& i : s.inhomo())
-    coeff_file << setMaxPrecision << i->ScatterCoeff() << std::endl;
-  coeff_file.close();
+  // std::ofstream coeff_file("coeff.txt");
+  // for (auto& i : s.inhomo())
+  //   coeff_file << setMaxPrecision << i->ScatterCoeff() << std::endl;
+  // coeff_file.close();
 
   // 2. Compute boundary values around the RVE.
   //   Boundary<AP, 4> b(0, {}, s.Matrix(), INPUT);

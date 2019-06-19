@@ -157,13 +157,18 @@ void CC_Fiber<T>::add_state() {
 template <typename T>
 void CC_Solution<T>::add_cc(const Solution<T>* solution, size_t np,
                             double gap, double tol) {
-  for (auto& i : solution->inhomo()) {
-    switch (i->Type()) {
+  check_.resize(solution->NumInhomo());
+#ifdef NDEBUG
+#pragma omp parallel for
+#endif
+  for (size_t i = 0; i < solution->NumInhomo(); i++) {
+    switch (solution->inhomo(i)->Type()) {
       case FIBER:
-        check_.push_back(new CC_Fiber<T>(
-            solution, dynamic_cast<const Fiber<T>*>(i), np, gap, tol));
-        if (check_.back()->NC()) nc_.push_back(check_.back());
-        max_ = check_.back()->Max() > max_ ? check_.back()->Max() : max_;
+        check_[i] = new CC_Fiber<T>(
+            solution, dynamic_cast<const Fiber<T>*>(solution->inhomo(i)), np,
+            gap, tol);
+        if (check_[i]->NC()) nc_.push_back(check_.back());
+        max_ = check_[i]->Max() > max_ ? check_[i]->Max() : max_;
         break;
 
       default:

@@ -61,9 +61,16 @@ class Solution {
   const InciCPtrs<T>& Incident() const { return incident_; }
   const InhomoCPtrs<T>& inhomo() const { return Config().inhomo(); }
   const Inhomo<T>* inhomo(size_t sn) const;
+  size_t NumInhomo() const { return inhomo().size(); }
   const std::string& InputFN() const { return input_file_; }
   const Matrix* Matrix() const { return &matrix_; }
   double Frequency() const { return matrix_.Frequency(); }
+  void ReadCoeff(std::istream& is) {
+    Eigen::VectorXcd tmp(config_->NumCoeff());
+    for (long i = 0; i < tmp.size(); i++) is >> tmp(i);
+    config_->dist_solution(tmp);
+    solved_ = true;
+  }
 
  protected:
   bool solved_{false};
