@@ -66,10 +66,10 @@ int main() {
   coeff_in.close();
 
   std::ofstream file("boxes.dat");
-  for (int m = 0; m < 19; m++) {
-    for (int i = 0; i < 3; i++)
-      for (int j = 0; j < 3; j++)
-        file << box_homo(0.1 + 0.05 * m, j * 2 - 2, i * 2 - 2, s) << "\t";
+  for (int m = 0; m <= 20; m++) {
+    for (int i = -2; i <= 2; i += 2)
+      for (int j = -2; j <= 2; j += 2)
+        file << box_homo(0.5 + 0.05 * m, j, i, s).transpose() << "\t";
     file << std::endl;
   }
   file.close();
