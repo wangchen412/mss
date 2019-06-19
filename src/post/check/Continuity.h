@@ -167,7 +167,7 @@ void CC_Solution<T>::add_cc(const Solution<T>* solution, size_t np,
         check_[i] = new CC_Fiber<T>(
             solution, dynamic_cast<const Fiber<T>*>(solution->inhomo(i)), np,
             gap, tol);
-        if (check_[i]->NC()) nc_.push_back(check_.back());
+        // if (check_[i]->NC()) nc_.push_back(check_.back());
         max_ = check_[i]->Max() > max_ ? check_[i]->Max() : max_;
         break;
 

@@ -4,7 +4,7 @@ clc
 
 n = 8;
 
-[C, S, O] = add_fibers(0.06, 1024, 50);
+[C, S, O] = add_fibers(0.06, 1600, 50);
 [inner, outer] = edge_nodes(C, S, 0.06);
 X = [inner; outer];
 y = [ones(size(inner,1),1);zeros(size(outer,1),1)];

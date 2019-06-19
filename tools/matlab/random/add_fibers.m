@@ -2,10 +2,10 @@ function [C, S, O] = add_fibers(r, n, m)
 
   rr = 1.3;
 
-  x1 = -3.2;
-  y1 = 3.2;
-  x2 = 3.2;
-  y2 = -3.2;
+  x1 = -4;
+  y1 = 4;
+  x2 = 4;
+  y2 = -4;
 
   lx = x2 - x1;
   ly = y1 - y2;

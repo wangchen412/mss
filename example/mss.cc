@@ -36,6 +36,11 @@ int main(int argc, char* argv[]) {
   std::cout << mss_msg({"Maximum mismatch: ", std::to_string(cc.Max())})
             << std::endl;
 
+  std::ofstream coeff_file("coeff.txt");
+  for (auto& i : s.inhomo())
+    coeff_file << setMaxPrecision << i->ScatterCoeff() << std::endl;
+  coeff_file.close();
+
   post::Output<AP> o{&s};
   o.Write();
 
