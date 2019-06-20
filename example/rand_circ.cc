@@ -30,7 +30,7 @@ class Mismatch {
 
   double operator()(const Eigen::Vector4d& r) const {
     Matrix matrix(m0_.mul_comp(r), omega_);
-    Boundary<AP, 4> b(500, {{0, 0}, {0, r_}}, &matrix, CIRCULAR);
+    Boundary<AP, 4> b(100, {{0, 0}, {r_, 0}}, &matrix, CIRCULAR);
     return (b.MatrixH() * w_ - b.MatrixG() * t_).norm();
   }
 
@@ -40,8 +40,9 @@ class Mismatch {
   const Material m0_;
 };
 
-Eigen::Vector4d circ_homo(double r, const Solution<AP>& s) {
-  Boundary<AP, 4> b(500, {{0, 0}, {0, r}}, s.Matrix(), CIRCULAR);
+Eigen::Vector4d circ_homo(double r, double x, double y, const Solution<AP>& s,
+                          const Eigen::Vector4d& x0) {
+  Boundary<AP, 4> b(100, {{x, y}, {x + r, y}}, s.Matrix(), CIRCULAR);
   Eigen::VectorXcd w(b.NumNode()), t(b.NumNode());
   std::vector<StateAP> v(b.Node().size());
 
@@ -55,7 +56,7 @@ Eigen::Vector4d circ_homo(double r, const Solution<AP>& s) {
   }
 
   Mismatch f(r, s.Frequency(), w, t, {{11400, 11400}, 0, {84e9, 84e9}});
-  return BasinHopping(2, 2, f, Eigen::Vector4d::Ones());
+  return BasinHopping(0, 0, f, x0);
 }
 
 int main() {
@@ -64,9 +65,18 @@ int main() {
   s.ReadCoeff(coeff_in);
   coeff_in.close();
 
-  std::ofstream file("circ_homo.dat");
-  for (int i = 0; i < 41; i++)
-    file << circ_homo(0.1 + 0.005 * i, s) << std::endl;
+  Eigen::Vector4d x0;
+  x0 << 0.8, 0, 0.6, 0;
+  std::ofstream file("circ.dat");
+  for (int m = 0; m <= 35; m++) {
+    for (int i = -2; i <= 2; i += 2)
+      for (int j = -2; j <= 2; j += 2) {
+        file << circ_homo(0.3 + 0.02 * m, j, i, s, x0).transpose() << "\t";
+        file.flush();
+        std::cout << i << "  " << j << std::endl;
+      }
+    file << std::endl;
+  }
   file.close();
 
   return 0;

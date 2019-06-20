@@ -40,8 +40,8 @@ class Mismatch {
   const Material m0_;
 };
 
-Eigen::Vector4d box_homo(double r, double x, double y,
-                         const Solution<AP>& s, const Eigen::Vector4d& x0) {
+Eigen::Vector4d box_homo(double r, double x, double y, const Solution<AP>& s,
+                         const Eigen::Vector4d& x0) {
   Boundary<AP, 4> b(100, {{x - r, y + r}, {x + r, y - r}}, s.Matrix());
   Eigen::VectorXcd w(b.NumNode()), t(b.NumNode());
   std::vector<StateAP> v(b.Node().size());
@@ -71,9 +71,9 @@ int main() {
   for (int m = 0; m <= 35; m++) {
     for (int i = -2; i <= 2; i += 2)
       for (int j = -2; j <= 2; j += 2) {
-        file <<  box_homo(0.3 + 0.02 * m, j, i, s, x0).transpose() << "\t";
-	file.flush();
-	std::cout << i << "  " << j << std::endl;
+        file << box_homo(0.3 + 0.02 * m, j, i, s, x0).transpose() << "\t";
+        file.flush();
+        std::cout << i << "  " << j << std::endl;
       }
     file << std::endl;
   }
