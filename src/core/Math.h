@@ -267,10 +267,13 @@ Eigen::VectorXd BasinHopping(size_t num_iter, size_t num_hop, const Func& f,
   x = NelderMead(f, x0, os, e, max_iter, &y, &conv);
 
   if (!conv)
-    for (size_t i = 0; i < num_hop * 50; i++) {
-      Eigen::VectorXd s0 = s * 0.1;
+    for (size_t i = 0; i < 400; i++) {
+      std::cout << "Not converged, try: " << i << std::endl;
+      Eigen::VectorXd s0 = s;
       x = NelderMead(f, perturb(x0, s0), os, e, max_iter, &y, &conv);
-      if (conv) break;
+      if (conv)
+	if((x-x0).array().abs().maxCoeff() < 0.4)
+	  break;
     }
 
   if (!conv) {

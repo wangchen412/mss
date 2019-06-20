@@ -30,7 +30,7 @@ class Mismatch {
 
   double operator()(const Eigen::Vector4d& r) const {
     Matrix matrix(m0_.mul_comp(r), omega_);
-    Boundary<AP, 4> b(500, {{-r_, r_}, {r_, -r_}}, &matrix);
+    Boundary<AP, 4> b(100, {{-r_, r_}, {r_, -r_}}, &matrix);
     return (b.MatrixH() * w_ - b.MatrixG() * t_).norm();
   }
 
@@ -41,8 +41,8 @@ class Mismatch {
 };
 
 Eigen::Vector4d box_homo(double r, double x, double y,
-                         const Solution<AP>& s) {
-  Boundary<AP, 4> b(500, {{x - r, y + r}, {x + r, y - r}}, s.Matrix());
+                         const Solution<AP>& s, const Eigen::Vector4d& x0) {
+  Boundary<AP, 4> b(100, {{x - r, y + r}, {x + r, y - r}}, s.Matrix());
   Eigen::VectorXcd w(b.NumNode()), t(b.NumNode());
   std::vector<StateAP> v(b.Node().size());
 
@@ -56,7 +56,7 @@ Eigen::Vector4d box_homo(double r, double x, double y,
   }
 
   Mismatch f(r, s.Frequency(), w, t, {{11400, 11400}, 0, {84e9, 84e9}});
-  return BasinHopping(0, 1, f, Eigen::Vector4d::Ones());
+  return BasinHopping(0, 0, f, x0);
 }
 
 int main() {
@@ -65,11 +65,16 @@ int main() {
   s.ReadCoeff(coeff_in);
   coeff_in.close();
 
+  Eigen::Vector4d x0;
+  x0 << 0.8, 0, 0.6, 0;
   std::ofstream file("boxes.dat");
-  for (int m = 0; m <= 20; m++) {
+  for (int m = 0; m <= 35; m++) {
     for (int i = -2; i <= 2; i += 2)
-      for (int j = -2; j <= 2; j += 2)
-        file << box_homo(0.5 + 0.05 * m, j, i, s).transpose() << "\t";
+      for (int j = -2; j <= 2; j += 2) {
+        file <<  box_homo(0.3 + 0.02 * m, j, i, s, x0).transpose() << "\t";
+	file.flush();
+	std::cout << i << "  " << j << std::endl;
+      }
     file << std::endl;
   }
   file.close();
