@@ -28,11 +28,12 @@ int main(int argc, char** argv) {
   Material norm{{11400, 11400}, 1, {84e9, 84e9}};
   Eigen::Vector4d eff{atof(argv[2]), atof(argv[3]), atof(argv[4]),
                       atof(argv[5])};
-  Material eff_mat{norm * eff};
+  Material eff_mat{norm.mul_comp(eff)};
   BEM_Solution<AP, 10> s(omega, eff_mat);
-  post::Line<AP>(&s, {-6, 0}, {6, 0}, 1200, "h_0").Write();
-  post::Line<AP>(&s, {-6, 4}, {6, 4}, 1200, "h_4").Write();
-  post::Line<AP>(&s, {0, 6}, {0, -6}, 1200, "v_0").Write();
-  post::Line<AP>(&s, {4, 6}, {4, -6}, 1200, "v_4").Write();
+  // post::Line<AP>(&s, {-6, 0}, {6, 0}, 1200, "h_0").Write();
+  // post::Line<AP>(&s, {-6, 4}, {6, 4}, 1200, "h_4").Write();
+  // post::Line<AP>(&s, {0, 6}, {0, -6}, 1200, "v_0").Write();
+  // post::Line<AP>(&s, {4, 6}, {4, -6}, 1200, "v_4").Write();
+  post::Area<AP>(&s, {-6, 6}, {6, -6}, 1200, 1200, "BEM").Write();
   return 0;
 }
