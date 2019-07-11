@@ -272,8 +272,7 @@ Eigen::VectorXd BasinHopping(size_t num_iter, size_t num_hop, const Func& f,
       Eigen::VectorXd s0 = s;
       x = NelderMead(f, perturb(x0, s0), os, e, max_iter, &y, &conv);
       if (conv)
-	if((x-x0).array().abs().maxCoeff() < 0.4)
-	  break;
+        if ((x - x0).array().abs().maxCoeff() < 0.4) break;
     }
 
   if (!conv) {
@@ -567,13 +566,24 @@ VectorXcd InverseIteration(const MatrixXcd& A, const MatrixXcd& B,
   return v2;
 }
 
-MatrixXcd PhaseShift(const dcomp& x, double angle, long m) {
+MatrixXcd PhaseShift(const dcomp& ka, double angle, long m) {
   MatrixXcd rst(m, m);
   rst.setZero();
   double c = cos(angle), s = sin(angle);
   for (long i = 0; i < m / 2; i++) {
-    rst(i, i) = pow(x, c);
-    rst(i + m / 2, i + m / 2) = pow(x, s);
+    rst(i, i) = exp(ii * ka * c);
+    rst(i + m / 2, i + m / 2) = exp(ii * ka * s);
+  }
+  return rst;
+}
+
+MatrixXcd PhaseShiftDiff(const dcomp& ka, double angle, long m) {
+  MatrixXcd rst(m, m);
+  rst.setZero();
+  double c = cos(angle), s = sin(angle);
+  for (long i = 0; i < m / 2; i++) {
+    rst(i, i) = ii * c * exp(ii * ka * c);
+    rst(i + m / 2, i + m / 2) = ii * s * exp(ii * ka * s);
   }
   return rst;
 }
@@ -591,16 +601,15 @@ double MinDet(const MatrixXcd& A, const MatrixXcd& B, double angle,
   for (int i = 0; i < num_det; ++i)
     det(i) = std::abs(
         (u.adjoint() * A -
-         u.adjoint() *
-             PhaseShift(exp(ii * i / num_det * pi), angle, B.rows()) * B)
+         u.adjoint() * PhaseShift(pi * i / num_det, angle, B.rows()) * B)
             .determinant());
   long index;
   det.minCoeff(&index);
   return double(index) / double(num_det);
 }
 
-VectorXcd NewtonEigen(const MatrixXcd& A, size_t max_iter = 1e2,
-                      double tol = 1e-10) {
+VectorXcd NewtonEigen(const MatrixXcd& A, const MatrixXcd& Ap,
+                      size_t max_iter = 1e2, double tol = 1e-10) {
   // VectorXcd v1 = VectorXcd::Random(A.cols());
   VectorXcd v1(A.cols());
   v1.setOnes();
@@ -609,7 +618,7 @@ VectorXcd NewtonEigen(const MatrixXcd& A, size_t max_iter = 1e2,
 
   size_t i = 0;
   while (i++ < max_iter) {
-    v2 = A.jacobiSvd(40).solve(A.transpose() * v1);
+    v2 = A.jacobiSvd(40).solve(Ap * v1);
     v2 /= v2.norm();
     dcomp theta = v1.dot(v2);
     if ((v2 - theta * v1).norm() < tol * std::abs(theta)) {

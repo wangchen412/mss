@@ -62,16 +62,17 @@ void bv(double omega, double theta, VectorXcd& w, VectorXcd& t) {
   dcomp ee = MinDet(z2, z1, theta);
   // std::cout << "Ka (pi): " << ee << std::endl;
 
-  VectorXcd xx =
-      NewtonEigen(z2 - PhaseShift(exp(ii * ee * pi), theta, z1.rows()) * z1);
+  MatrixXcd z = z2 - PhaseShift(ee * pi, theta, z1.rows()) * z1;
+  MatrixXcd zp = z2 - PhaseShiftDiff(ee * pi, theta, z1.rows()) * z1;
+
+  VectorXcd xx = NewtonEigen(z, zp);
 
   Fiber<AP> f(fc);
   f.SetCoeff(xx);
 
-  // FiberRes fr(f);
-  // post::Area<AP>(&fr, {-0.1, 0.1}, {0.1, -0.1}, 400, 400,
-  //                std::to_string(xx.dot(yy).real()))
-  //     .Write();
+  FiberRes fr(f);
+  // post::Area<AP>(&fr, {-0.1, 0.1}, {0.1, -0.1}, 400, 400).Write();
+  post::Line<AP>(&fr, {-0.1, 0}, {0.1, 0}, 776).Write();
 
   Boundary<AP, 4> box(w.rows() / 0.8, {{-0.1, 0.1}, {0.1, -0.1}}, &matrix);
   std::vector<StateAP> v(box.Node().size());
@@ -111,10 +112,10 @@ double read(int n, VectorXcd& w, VectorXcd& t) {
 }
 Eigen::VectorXd homo(double omega, const MatrixXcd& w, const MatrixXcd& t) {
   // const Material norm_mat(11400, 0, 84e9);
-  const Material norm_mat({11400, 0}, 0, {84e9, 0});
-  Eigen::VectorXd x0(2);
-  // x0.setOnes();
-  x0 << 0.6, 0.3;
+  const Material norm_mat({11400, 11400}, 1, {84e9, 84e9});
+  Eigen::VectorXd x0(4);
+  x0.setOnes();
+
   Mismatch f(omega, w, t, norm_mat, 0.2, 0.2, 500);
   // return BasinHopping(0, 1, f, x0);
   return NelderMead(f, x0, &std::cout);
@@ -147,19 +148,25 @@ Eigen::VectorXd homo(double omega, const MatrixXcd& w, const MatrixXcd& t) {
 // }
 
 int main() {
-  double omega = 16576.24319112025;
+  // double omega = 16576.24319112025;
+  double omega = 3501.519976 * pi2;
 
-  int N = 3;
+  // double omega = 3475.044118 * pi2;
 
-  MatrixXcd w(400, N), t(400, N);
-  for (int j = 0; j < N; j++) {
-    VectorXcd ww(400), tt(400);
-    bv(omega, pi / 4 / N * j, ww, tt);
-    w.col(j) = ww;
-    t.col(j) = tt;
-  }
+  VectorXcd ww(400), tt(400);
+  bv(omega, pi/6, ww, tt);
 
-  std::cout << homo(omega, w, t).transpose() << std::endl;
+  // int N = 3;
+
+  // MatrixXcd w(400, N), t(400, N);
+  // for (int j = 0; j < N; j++) {
+  //   VectorXcd ww(400), tt(400);
+  //   bv(omega, pi / 4 / N * j, ww, tt);
+  //   w.col(j) = ww;
+  //   t.col(j) = tt;
+  // }
+
+  // std::cout << homo(omega, w, t).transpose() << std::endl;
 
   return 0;
 }
