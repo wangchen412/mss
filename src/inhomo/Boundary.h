@@ -98,6 +98,14 @@ class Boundary {
   MatrixXcd MatrixG();
   MatrixXcd DtN();
 
+  // TEMP Should be in in-plane problem.
+  MatrixXcd MatrixHL();
+  MatrixXcd MatrixGL();
+  MatrixXcd MatrixHT();
+  MatrixXcd MatrixGT();
+  MatrixXcd MatrixH_IP();
+  MatrixXcd MatrixG_IP();
+
   template <int NN>
   MatrixXcd CombinedMatrix(Boundary<T, NN>& other);
 
@@ -140,7 +148,9 @@ class Boundary {
   CS center_;    // Center of the circumscribed circle.
 
   MatrixXcd H_, G_, DtN_;  // Influence matrices.
+  MatrixXcd HL_, GL_, HT_, GT_;
   bool HG_computed_{false}, DtN_computed_{false};
+  bool HGL_computed_{false}, HGT_computed_{false};
 
   bool ext_;
   VectorXcd bv_;
@@ -154,6 +164,8 @@ class Boundary {
   void add_circle(const PosiVect& p, double r);
   void add_input_node();
   void compute_HG();
+  void compute_HG_L();
+  void compute_HG_T();
 
   double height_;
   double width_;
@@ -175,6 +187,47 @@ MatrixXcd Boundary<T, N>::MatrixG() {
   compute_HG();
   return G_;
 }
+template <typename T, int N>
+MatrixXcd Boundary<T, N>::MatrixHL() {
+  if (HGL_computed_) return HL_;
+  compute_HG_L();
+  return HL_;
+}
+template <typename T, int N>
+MatrixXcd Boundary<T, N>::MatrixGL() {
+  if (HGL_computed_) return GL_;
+  compute_HG_L();
+  return GL_;
+}
+template <typename T, int N>
+MatrixXcd Boundary<T, N>::MatrixHT() {
+  if (HGT_computed_) return HT_;
+  compute_HG_T();
+  return HT_;
+}
+template <typename T, int N>
+MatrixXcd Boundary<T, N>::MatrixGT() {
+  if (HGT_computed_) return GT_;
+  compute_HG_T();
+  return GT_;
+}
+template <typename T, int N>
+MatrixXcd Boundary<T, N>::MatrixH_IP() {
+  MatrixXcd rst(P_ * 2, P_ * 2);
+  MatrixXcd zero(P_, P_);
+  zero.setZero();
+  rst << MatrixHL(), zero, MatrixHT(), zero;
+  return rst;
+}
+template <typename T, int N>
+MatrixXcd Boundary<T, N>::MatrixG_IP() {
+  MatrixXcd rst(P_ * 2, P_ * 2);
+  MatrixXcd zero(P_, P_);
+  zero.setZero();
+  rst << MatrixGL(), zero, MatrixGT(), zero;
+  return rst;
+}
+
 template <typename T, int N>
 MatrixXcd Boundary<T, N>::DtN() {
   if (DtN_computed_) return DtN_;
@@ -209,6 +262,40 @@ void Boundary<T, N>::compute_HG() {
       if (i == j) H_(i, j) += 0.5;
     }
   HG_computed_ = true;
+}
+template <typename T, int N>
+void Boundary<T, N>::compute_HG_L() {
+  HL_.resize(P_, P_);
+  GL_.resize(P_, P_);
+
+#ifdef NDEBUG
+#pragma omp parallel for
+#endif
+  for (size_t i = 0; i < P_; i++)
+    for (size_t j = 0; j < P_; j++) {
+      MatrixNcd<T> m = panel_[j]->InfMat_L(node_[i]);
+      HL_(i, j) = -m(0, 0);
+      GL_(i, j) = m(0, 1);
+      if (i == j) HL_(i, j) += 0.5;
+    }
+  HGL_computed_ = true;
+}
+template <typename T, int N>
+void Boundary<T, N>::compute_HG_T() {
+  HT_.resize(P_, P_);
+  GT_.resize(P_, P_);
+
+#ifdef NDEBUG
+#pragma omp parallel for
+#endif
+  for (size_t i = 0; i < P_; i++)
+    for (size_t j = 0; j < P_; j++) {
+      MatrixNcd<T> m = panel_[j]->InfMat_T(node_[i]);
+      HT_(i, j) = -m(0, 0);
+      GT_(i, j) = m(0, 1);
+      if (i == j) HT_(i, j) += 0.5;
+    }
+  HGT_computed_ = true;
 }
 template <typename T, int N>
 template <int NN>

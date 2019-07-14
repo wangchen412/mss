@@ -78,6 +78,16 @@ class Material {
     return Material({rho_.real() * r(0), rho_.imag() * r(1)}, lambda_,
                     {mu_.real() * r(2), mu_.imag() * r(3)});
   }
+  Material mul_comp_6(const Eigen::VectorXd& r) const {
+    return Material({rho_.real() * r(0), rho_.imag() * r(1)},
+                    {lambda_.real() * r(2), lambda_.imag() * r(3)},
+                    {mu_.real() * r(4), mu_.imag() * r(5)});
+  }
+  Material mul_real_3(const Eigen::VectorXd& r) const {
+    return Material({rho_.real() * r(0), rho_.imag()},
+                    {lambda_.real() * r(1), lambda_.imag()},
+                    {mu_.real() * r(2), mu_.imag()});
+  }
 
  private:
   dcomp rho_, lambda_, mu_;

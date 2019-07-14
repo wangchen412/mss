@@ -38,6 +38,8 @@ class Panel {
 
   Eigen::Matrix<dcomp, T::NumV, T::NumBv> InfStateMatT(const CS* objCS) const;
   MatrixNcd<T> InfMatT(const CS* objCS) const;
+  MatrixNcd<T> InfMat_L(const CS* objCS) const;
+  MatrixNcd<T> InfMat_T(const CS* objCS) const;
 
  private:
   // The center CS of the panel, with the out-going normal
@@ -80,6 +82,24 @@ MatrixNcd<T> Panel<T, N>::InfMatT(const CS* objCS) const {
   rst.setZero();
   for (int i = 0; i < N; i++)
     rst += GreenT<T>(point_[i], objCS, matrix_) * l_.weight(i);
+  return rst * hl_;
+}
+
+// TEMP In-plane problem test.
+template <typename T, int N>
+MatrixNcd<T> Panel<T, N>::InfMat_L(const CS* objCS) const {
+  MatrixNcd<T> rst;
+  rst.setZero();
+  for (int i = 0; i < N; i++)
+    rst += Green(point_[i], objCS, matrix_->KL_comp()) * l_.weight(i);
+  return rst * hl_;
+}
+template <typename T, int N>
+MatrixNcd<T> Panel<T, N>::InfMat_T(const CS* objCS) const {
+  MatrixNcd<T> rst;
+  rst.setZero();
+  for (int i = 0; i < N; i++)
+    rst += Green(point_[i], objCS, matrix_->KT_comp()) * l_.weight(i);
   return rst * hl_;
 }
 

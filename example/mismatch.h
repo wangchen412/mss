@@ -57,6 +57,39 @@ class Mismatch {
   const Material m0_;
 };
 
+class Mismatch_IP {
+ public:
+  Mismatch_IP(double omega, const Eigen::MatrixXcd& wl,
+              const Eigen::MatrixXcd& tl, const Eigen::MatrixXcd& wt,
+              const Eigen::MatrixXcd& tt, const Material& m0,
+              double width = 0.6, double height = 0.6, double density = 500)
+      : omega_(omega),
+        width_(width),
+        height_(height),
+        density_(density),
+        m0_(m0) {
+    w_.resize(wl.rows() + wt.rows(), wl.cols());
+    t_.resize(tl.rows() + tt.rows(), tl.cols());
+    w_ << wl, wt;
+    t_ << tl, tt;
+  }
+
+  double operator()(const Eigen::VectorXd& r) const {
+    Matrix matrix(m0_.mul_comp_6(r), omega_);
+    Boundary<AP, 4> b{density_, {{0, height_}, {width_, 0}}, &matrix};
+    return (b.MatrixH_IP() * w_ - b.MatrixG_IP() * t_).norm();
+  }
+
+  Material material(const Eigen::VectorXd& r) const {
+    return m0_.mul_comp(r);
+  }
+
+ private:
+  double omega_, width_, height_, density_;
+  Eigen::MatrixXcd w_, t_;
+  const Material m0_;
+};
+
 void read_bv(const std::string& fn, Eigen::VectorXcd& w,
              Eigen::VectorXcd& t) {
   std::ifstream file(fn);

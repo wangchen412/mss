@@ -205,6 +205,33 @@ Matrix2cd GreenT<AP>(const CS* localCS, const CS* objCS,
   return rst;
 }
 
+Matrix2cd Green(const CS* localCS, const CS* objCS, const dcomp& k) {
+  Matrix2cd rst;
+
+  CS X = objCS->inGLB(), Y = localCS->inGLB();
+  // distance
+  double r = (X.Position() - Y.Position()).Length();
+  // n_j(y), n_l(x)
+  double nxy = cos(Y.Angle()), nyy = sin(Y.Angle());
+  double nxx = cos(X.Angle()), nyx = sin(X.Angle());
+  // r_{,j} n_j(y)
+  double rny = (Y.Position().x - X.Position().x) / r * nxy +
+               (Y.Position().y - X.Position().y) / r * nyy;
+  // r_{,j} n_j(x)
+  double rnx = (X.Position().x - Y.Position().x) / r * nxx +
+               (X.Position().y - Y.Position().y) / r * nyx;
+
+  dcomp H = Hn(0, k * r), Hd = -k * Hn(1, k * r), H2r = Hn(2, k * r);
+
+  rst(0, 0) = -ii / 4 * Hd * rny;
+  rst(0, 1) = ii / 4 * H;
+  rst(1, 0) = ii / 4 / r * Hd * (nxx * nxy + nyx * nyy) -
+              ii / 4 * k * k * H2r * rnx * rny;
+  rst(1, 1) = ii / 4 * Hd * rnx;
+
+  return rst;
+}
+
 template <typename T>
 Eigen::Matrix<dcomp, T::NumV, T::NumBv> GreenStateT(const CS* localCS,
                                                     const CS* objCS,
