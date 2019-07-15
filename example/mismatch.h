@@ -75,7 +75,7 @@ class Mismatch_IP {
   }
 
   double operator()(const Eigen::VectorXd& r) const {
-    Matrix matrix(m0_.mul_comp_6(r), omega_);
+    Matrix matrix(m0_.mul_real_3(r), omega_);
     Boundary<AP, 4> b{density_, {{0, height_}, {width_, 0}}, &matrix};
     return (b.MatrixH_IP() * w_ - b.MatrixG_IP() * t_).norm();
   }

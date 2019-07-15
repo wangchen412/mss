@@ -37,11 +37,12 @@ int main() {
     ss >> tt(i);
   }
 
-  Mismatch_IP f(10000, wl, tl, wt, tt,
-                {{11400, 11400}, {116e9, 116e9}, {84e9, 84e9}}, 0.2, 0.2);
+  Mismatch_IP f(10000, wl, tl, wt, tt, {{11400, 0}, {116e9, 0}, {84e9, 0}},
+                0.2, 0.2);
 
-  Eigen::VectorXd x0(6);
-  x0 << 1, 0.1, 1, 0.1, 1, 0.1;
+  Eigen::VectorXd x0(3);
+  // x0 << 1, 0.1, 1, 0.1, 1, 0.1;
+  x0 << 0.5, 0.5, 0.5;
   NelderMead(f, x0, &std::cout);
 
   return 0;
