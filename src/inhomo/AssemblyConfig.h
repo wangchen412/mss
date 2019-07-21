@@ -276,7 +276,7 @@ MatrixXcd AssemblyConfig<T>::PlaneEBMat(const CSCPtrs& objCSs) const {
 
   size_t N = node_in_.size() * T::NumDv;
   // size_t P = N;  // The number of plane waves may be less.
-  size_t P = 40;  // TODO
+  size_t P = 100;  // TODO
   MatrixXcd fit_m(N, P);
   for (size_t i = 0; i < N; i++)
     for (size_t j = 0; j < P; j++)
