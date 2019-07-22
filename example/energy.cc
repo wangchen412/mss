@@ -67,6 +67,7 @@ class solution {
       return matrix_mat_;
   }
   double Frequency() const { return matrix_.Frequency(); }
+  const Matrix* matrix() const { return &matrix_; }
 
  private:
   Material matrix_mat_{7670, 116e9, 84.3e9};
@@ -93,7 +94,6 @@ class plane {
     }
     auto AA = A.jacobiSvd(Eigen::ComputeThinU | Eigen::ComputeThinV);
     c = AA.solve(b);
-    std::cout << c << std::endl;
   }
 
   dcomp Displacement(const PosiVect& p) const {
@@ -101,7 +101,6 @@ class plane {
     A << p.x, p.y, 1;
     return A.dot(c);
   }
-
   StateAP Resultant(const CS* cs) const {
     PosiVect p = cs->PositionGLB();
     return StateAP(Displacement(p), dcomp(0), dcomp(0));
@@ -116,7 +115,6 @@ class plane {
     ww /= N;
     return area.KineticEnergyDensity() / (ww / 2 * omega * omega);
   }
-
   double mu() {
     return area.StrainEnergyDensity() /
            (pow(std::abs(c(0)), 2) + pow(std::abs(c(1)), 2)) * 2;
@@ -130,8 +128,59 @@ class plane {
   Material matrix_mat_{7670, 116e9, 84.3e9};
 };
 
+class box {
+ public:
+  template <typename S>
+  box(const S* sol, const post::Area<AP>& area)
+      : omega(sol->Frequency()), area(area) {
+    bb = new Boundary<AP>(500, {{-0.1, 0.1}, {0.1, -0.1}}, sol->matrix());
+    MatrixXcd A(bb->Node().size(), 3);
+    VectorXcd b(bb->Node().size());
+
+    for (size_t i = 0; i < bb->Node().size(); i++) {
+      PosiVect p = bb->Node(i)->PositionGLB();
+      A(i, 0) = p.x;
+      A(i, 1) = p.y;
+      A(i, 2) = 1;
+      b(i) = sol->Resultant(bb->Node(i)).Displacement().x;
+    }
+    c = A.jacobiSvd(Eigen::ComputeThinU | Eigen::ComputeThinV).solve(b);
+  }
+
+  dcomp Displacement(const PosiVect& p) const {
+    Eigen::VectorXcd A(3);
+    A << p.x, p.y, 1;
+    return A.dot(c);
+  }
+  StateAP Resultant(const CS* cs) const {
+    PosiVect p = cs->PositionGLB();
+    return StateAP(Displacement(p), dcomp(0), dcomp(0));
+  }
+  double Frequency() const { return 0; }
+  Material material(const CS*) const { return matrix_mat_; }
+
+  double rho() {
+    double ww = 0;
+    for (size_t i = 0; i < area.Points().size(); i++)
+      ww += pow(std::abs(Displacement(area.Point(i)->PositionGLB())), 2);
+    ww /= area.Points().size();
+    return area.KineticEnergyDensity() / (ww / 2 * omega * omega);
+  }
+  double mu() {
+    return area.StrainEnergyDensity() /
+           (pow(std::abs(c(0)), 2) + pow(std::abs(c(1)), 2)) * 2;
+  }
+
+ private:
+  double omega;
+  const post::Area<AP>& area;
+  Boundary<AP>* bb;
+  Eigen::VectorXcd c;
+  Material matrix_mat_{7670, 116e9, 84.3e9};
+};
+
 int main() {
-  std::ofstream file("energy_pbc.txt");
+  std::ofstream file("energy_box.txt");
 
   int N = 20;
   double fmax = 4800;
@@ -143,8 +192,8 @@ int main() {
     double omega = (fmin + df * i) * pi2;
     solution s(omega, 0);
     post::Area<AP> area(&s, {-0.1, 0.1}, {0.1, -0.1}, 300, 300, "eigen");
-    plane p(omega, area);
-    file << fmin + df * i << "\t" << p.rho() << "\t" << p.mu() << std::endl;
+    box bb(&s, area);
+    file << fmin + df * i << "\t" << bb.rho() << "\t" << bb.mu() << std::endl;
   }
 
   file.close();
