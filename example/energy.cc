@@ -134,11 +134,11 @@ class expo {
   VectorXcd c;
   Material matrix_mat_{7670, 116e9, 84.3e9};
 };
-
 class plane {
  public:
-  plane(double omega, const post::Area<AP>& area)
-      : omega(omega), area(area), N(area.Points().size()) {
+  template <typename S>
+  plane(const S* sol, const post::Area<AP>& area)
+      : omega(sol->Frequency()), area(area), N(area.Points().size()) {
     Eigen::MatrixXcd A(N, 3);
     Eigen::VectorXcd b(N);
     for (long i = 0; i < N; i++) {
@@ -149,6 +149,15 @@ class plane {
       b(i) = area.Point(i)->State().Displacement().x;
     }
     c = A.jacobiSvd(Eigen::ComputeThinU | Eigen::ComputeThinV).solve(b);
+
+    bb = new Boundary<AP>(1500, {{-0.1, 0.1}, {0.1, -0.1}}, sol->matrix());
+    w.resize(bb->NumNode());
+    t.resize(bb->NumNode());
+    for (size_t i = 0; i < bb->NumNode(); i++) {
+      StateAP s = sol->Resultant(bb->Node(i));
+      w(i) = s.Displacement().x;
+      t(i) = s.Stress().x;
+    }
   }
 
   dcomp Displacement(const PosiVect& p) const {
@@ -171,18 +180,26 @@ class plane {
     return area.KineticEnergyDensity() / (ww / 2 * omega * omega);
   }
   double mu() {
-    return area.StrainEnergyDensity() /
+    VectorXcd w2(bb->NumNode());
+    for (size_t i = 0; i < bb->NumNode(); i++)
+      w2(i) = Resultant(bb->Node(i)).Displacement().x;
+
+    VectorXcd dw = w2 - w;
+    double wt = dw.dot(t).real() / t.rows() * 20;
+
+    return (area.StrainEnergyDensity() + wt) /
            (pow(std::abs(c(0)), 2) + pow(std::abs(c(1)), 2)) * 2;
   }
 
  private:
   double omega;
   const post::Area<AP>& area;
+  Boundary<AP>* bb;
+  VectorXcd w, t;
   long N;
-  Eigen::VectorXcd c;
+  VectorXcd c;
   Material matrix_mat_{7670, 116e9, 84.3e9};
 };
-
 class box {
  public:
   template <typename S>
@@ -235,7 +252,7 @@ class box {
 };
 
 int main() {
-  std::ofstream file("energy_box.txt");
+  std::ofstream file("energy_expo.txt");
 
   int N = 20;
   double fmax = 4800;
@@ -245,10 +262,11 @@ int main() {
   for (int i = 0; i < 20; i++) {
     std::cout << i << std::endl;
     double omega = (fmin + df * i) * pi2;
-    solution s(omega, pi/6);
-    post::Area<AP> area(&s, {-0.1, 0.1}, {0.1, -0.1}, 300, 300, "eigen");
-    expo ex(omega, area);
-    file << fmin + df * i << "\t" << ex.rho() << "\t" << ex.mu() << std::endl;
+    solution s(omega, 0);
+    post::Area<AP> area(&s, {-0.1, 0.1}, {0.1, -0.1}, 100, 100, "eigen");
+    // plane a(&s, area);
+    expo a(omega, area);
+    file << fmin + df * i << "\t" << a.rho() << "\t" << a.mu() << std::endl;
   }
 
   file.close();
