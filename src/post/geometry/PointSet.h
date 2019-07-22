@@ -36,12 +36,25 @@ class PointSet : public Geometry<T> {
   }
 
   const PtCPtrs<T>& Points() const { return point_; }
+  const Point<T>* Point(size_t i) const { return point_[i]; }
   std::ostream& Print(std::ostream& os) const override;
   virtual std::ostream& PrintParam(std::ostream& os) const = 0;
 
   virtual std::string Shape() const = 0;
 
   std::ostream& PrintHd(std::ostream& os) const;
+
+  double StrainEnergyDensity() const {
+    double rst = 0;
+    for (auto& i : point_) rst += i->StrainEnergy();
+    return rst / point_.size();
+  }
+
+  double KineticEnergyDensity() const {
+    double rst = 0;
+    for (auto& i : point_) rst += i->KineticEnergy();
+    return rst / point_.size();
+  }
 
  protected:
   PtCPtrs<T> point_;

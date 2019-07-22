@@ -42,7 +42,11 @@ class Point : public Geometry<T> {
       : Geometry<T>("Point_" + id),
         localCS_(position, angle),
         in_(nullptr),
-        state_(solution->Resultant(&localCS_)) {}
+        state_(solution->Resultant(&localCS_)) {
+    strain_energy_ = state_.StrainEnergy(solution->material(&localCS_).Mu());
+    kinetic_energy_ = state_.KineticEnergy(
+        solution->Frequency(), solution->material(&localCS_).MassDensity());
+  }
 
   virtual ~Point() {}
 
@@ -57,11 +61,17 @@ class Point : public Geometry<T> {
 
   std::ostream& Print(std::ostream& os) const override;
 
+  double StrainEnergy() const { return strain_energy_; }
+  double KineticEnergy() const { return kinetic_energy_; }
+
+  PosiVect PositionGLB() const { return localCS_.PositionGLB(); }
+
  private:
   const CS localCS_;
   const Inhomo<T>* in_;  // The pointer to the inhomogeneity in which
                          // the point is, if the point is in one.
   const T state_;
+  double strain_energy_{0}, kinetic_energy_{0};
 };
 
 template <typename T>

@@ -109,6 +109,10 @@ class State {
   const T2& Stress() const { return stress_; }
   const CS* Basis() const { return basis_; }
 
+  // TODO Antiplane only.
+  double StrainEnergy(double mu) const;
+  double KineticEnergy(double omega, double rho) const;
+
   double AngleGLB() const;
   State in(const CS* otherBasis) const;
 
@@ -217,6 +221,14 @@ VectorXcd StateIP::V() const {
 template <>
 VectorXcd StateAP::V() const {
   return Eigen::Vector3cd(displacement_.x, stress_.x, stress_.y);
+}
+template <>
+double StateAP::StrainEnergy(double mu) const {
+  return (pow(std::abs(stress_.x), 2) + pow(std::abs(stress_.y), 2)) / mu / 2;
+}
+template <>
+double StateAP::KineticEnergy(double omega, double rho) const {
+  return pow(std::abs(omega * displacement_.x), 2) / 2 * rho;
 }
 
 }  // namespace mss
