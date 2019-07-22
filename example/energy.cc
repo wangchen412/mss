@@ -165,6 +165,14 @@ class plane {
     A << p.x, p.y, 1;
     return A.dot(c);
   }
+  dcomp Traction(const PosiVect& p) const {
+    if (std::abs(p.x + 0.1) < 1e-8) return -c(0) * matrix_mat_.Mu();
+    if (std::abs(p.x - 0.1) < 1e-8) return c(0) * matrix_mat_.Mu();
+    if (std::abs(p.y + 0.1) < 1e-8) return -c(1) * matrix_mat_.Mu();
+    if (std::abs(p.y - 0.1) < 1e-8) return c(1) * matrix_mat_.Mu();
+    std::cout << "not included." << std::endl;
+    return 0;
+  }
   StateAP Resultant(const CS* cs) const {
     PosiVect p = cs->PositionGLB();
     return StateAP(Displacement(p), dcomp(0), dcomp(0));
@@ -184,8 +192,15 @@ class plane {
     for (size_t i = 0; i < bb->NumNode(); i++)
       w2(i) = Resultant(bb->Node(i)).Displacement().x;
 
+    VectorXcd t2(bb->NumNode());
+    for (size_t i = 0; i < bb->NumNode(); i++)
+      t2(i) = Traction(bb->Node(i)->PositionGLB());
+
     VectorXcd dw = w2 - w;
-    double wt = dw.dot(t).real() / t.rows() * 20;
+    VectorXcd dt = t2 - t;
+    double wt = dw.dot(t).real() / t.rows() + w.dot(dt).real() / t.rows() +
+                dw.dot(dt).real() / t.rows();
+    wt *= 20;
 
     return (area.StrainEnergyDensity() + wt) /
            (pow(std::abs(c(0)), 2) + pow(std::abs(c(1)), 2)) * 2;
@@ -252,7 +267,7 @@ class box {
 };
 
 int main() {
-  std::ofstream file("energy_expo.txt");
+  std::ofstream file("energy_plane.txt");
 
   int N = 20;
   double fmax = 4800;
@@ -264,8 +279,7 @@ int main() {
     double omega = (fmin + df * i) * pi2;
     solution s(omega, 0);
     post::Area<AP> area(&s, {-0.1, 0.1}, {0.1, -0.1}, 100, 100, "eigen");
-    // plane a(&s, area);
-    expo a(omega, area);
+    plane a(&s, area);
     file << fmin + df * i << "\t" << a.rho() << "\t" << a.mu() << std::endl;
   }
 
