@@ -79,6 +79,62 @@ class solution {
   Fiber<AP>* f;
 };
 
+class expo {
+ public:
+  expo(double omega, const post::Area<AP>& area)
+      : omega(omega), area(area), N(area.Points().size()) {
+    MatrixXcd A(N, 3);
+    VectorXcd b(N);
+    for (long i = 0; i < N; i++) {
+      PosiVect p = area.Point(i)->PositionGLB();
+      A(i, 0) = p.x;
+      A(i, 1) = p.y;
+      A(i, 2) = 1;
+      b(i) = log(area.Point(i)->State().Displacement().x);
+    }
+    c = A.jacobiSvd(Eigen::ComputeThinU | Eigen::ComputeThinV).solve(b);
+  }
+
+  dcomp Displacement(const PosiVect& p) const {
+    Eigen::VectorXcd A(3);
+    A << p.x, p.y, 1;
+    return exp(A.dot(c));
+  }
+
+  StateAP Resultant(const CS* cs) const {
+    PosiVect p = cs->PositionGLB();
+    return StateAP(Displacement(p), dcomp(0), dcomp(0));
+  }
+  double Frequency() const { return 0; }
+  Material material(const CS*) const { return matrix_mat_; }
+
+  double rho() {
+    double ww = 0;
+    for (long i = 0; i < N; i++)
+      ww += pow(std::abs(Displacement(area.Point(i)->PositionGLB())), 2);
+    ww /= N;
+    return area.KineticEnergyDensity() / (ww / 2 * omega * omega);
+  }
+
+  double mu() {
+    double ww = 0;
+    for (long i = 0; i < N; i++)
+      ww += pow(std::abs(Displacement(area.Point(i)->PositionGLB())), 2);
+    ww /= N;
+    ww *= pow(std::abs(c(0)), 2) + pow(std::abs(c(1)), 2);
+    ww /= 2;
+
+    return area.StrainEnergyDensity() / ww;
+  }
+
+ private:
+  double omega;
+  const post::Area<AP>& area;
+  long N;
+  VectorXcd c;
+  Material matrix_mat_{7670, 116e9, 84.3e9};
+};
+
 class plane {
  public:
   plane(double omega, const post::Area<AP>& area)
@@ -92,8 +148,7 @@ class plane {
       A(i, 2) = 1;
       b(i) = area.Point(i)->State().Displacement().x;
     }
-    auto AA = A.jacobiSvd(Eigen::ComputeThinU | Eigen::ComputeThinV);
-    c = AA.solve(b);
+    c = A.jacobiSvd(Eigen::ComputeThinU | Eigen::ComputeThinV).solve(b);
   }
 
   dcomp Displacement(const PosiVect& p) const {
@@ -190,13 +245,23 @@ int main() {
   for (int i = 0; i < 20; i++) {
     std::cout << i << std::endl;
     double omega = (fmin + df * i) * pi2;
-    solution s(omega, 0);
+    solution s(omega, pi/6);
     post::Area<AP> area(&s, {-0.1, 0.1}, {0.1, -0.1}, 300, 300, "eigen");
-    box bb(&s, area);
-    file << fmin + df * i << "\t" << bb.rho() << "\t" << bb.mu() << std::endl;
+    expo ex(omega, area);
+    file << fmin + df * i << "\t" << ex.rho() << "\t" << ex.mu() << std::endl;
   }
 
   file.close();
 
   return 0;
 }
+
+// int main() {
+//   double omega = 16576.24319112025;
+//   solution s(omega, pi / 5);
+//   post::Area<AP> area(&s, {-0.1, 0.1}, {0.1, -0.1}, 300, 300, "eigen");
+//   area.Write();
+//   expo ex(omega, area);
+//   post::Area<AP>(&ex, {-0.1, 0.1}, {0.1, -0.1}, 300, 300, "expo").Write();
+//   return 0;
+// }
