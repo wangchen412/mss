@@ -126,7 +126,7 @@ class homo {
 
 Eigen::Vector2d homo_ang(double omega, double angle) {
   solution s(omega, angle);
-  post::Area<AP> area(&s, {-0.1, 0.1}, {0.1, -0.1}, 100, 100, "eigen");
+  post::Area<AP> area(&s, {-0.1, 0.1}, {0.1, -0.1}, 300, 300, "eigen");
   homo p(&s, area);
   return Eigen::Vector2d(p.rho(), p.mu());
 }
@@ -140,12 +140,12 @@ Eigen::Vector2d homo_iso(double omega, int N = 45) {
 int main() {
   std::ofstream file("energy_pbc.txt");
 
-  int N = 20;
-  double fmax = 4800;
+  int N = 100;
+  double fmax = 4878;
   double fmin = 500;
   double df = (fmax - fmin) / N;
 
-  for (int i = 0; i < N; i++) {
+  for (int i = 0; i <= N; i++) {
     std::cout << i << std::endl;
     double omega = (fmin + df * i) * pi2;
     file << fmin + df * i << "\t" << homo_iso(omega).transpose() << std::endl;
