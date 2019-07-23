@@ -47,6 +47,8 @@ class solution {
     }
     double ee = MinDet(z2, z1, theta);
     k = ee * pi / 0.2;
+    kx = k * cos(theta);
+    ky = k * sin(theta);
 
     MatrixXcd z = z2 - PhaseShift(ee * pi, theta, z1.rows()) * z1;
     MatrixXcd zp = z2 - PhaseShiftDiff(ee * pi, theta, z1.rows()) * z1;
@@ -70,7 +72,7 @@ class solution {
   }
   double Frequency() const { return matrix_.Frequency(); }
 
-  double k;
+  double k, kx, ky;
 
  private:
   Material matrix_mat_{7670, 116e9, 84.3e9};
@@ -117,11 +119,26 @@ class plane {
   Material material(const CS*) const { return matrix_mat_; }
 
   double rho() {
-    double ww = 0;
-    for (long i = 0; i < N; i++)
-      ww += pow(std::abs(Displacement(area.Point(i)->PositionGLB())), 2);
-    ww /= N;
-    return area.KineticEnergyDensity() / (ww / 2 * omega * omega);
+    dcomp A = 0;
+    for (auto& i : area.Points()) {
+      double x = i->PositionGLB().x;
+      double y = i->PositionGLB().y;
+      A += sol->Resultant(i->LocalCS()).Displacement().x *
+           exp(-ii * sol->kx * x - ii * sol->ky * y);
+    }
+    A /= N;
+
+    // double ww = 0;
+    // for (auto& i : area.Points()) {
+    //   double x = i->PositionGLB().x;
+    //   double y = i->PositionGLB().y;
+    //   dcomp w = A * exp(ii * sol->kx * x + ii * sol->ky * y);
+    //   ww += pow(std::abs(w), 2);
+    // }
+    // ww /= N;
+
+    return area.KineticEnergyDensity() * 2 / pow(std::abs(A) * omega, 2);
+    // return area.KineticEnergyDensity() / (ww / 2 * omega * omega);
   }
 
   double mu() { return pow(omega / sol->k, 2) * rho(); }
@@ -143,16 +160,20 @@ int main() {
   double fmin = 500;
   double df = (fmax - fmin) / N;
 
-  for (int i = 0; i < 20; i++) {
+  for (int i = 0; i < N; i++) {
     std::cout << i << std::endl;
     double omega = (fmin + df * i) * pi2;
-    solution s(omega, 0);
-    post::Area<AP> area(&s, {-0.1, 0.1}, {0.1, -0.1}, 300, 300, "eigen");
+    solution s(omega, pi / 4);
+    post::Area<AP> area(&s, {-0.1, 0.1}, {0.1, -0.1}, 200, 200, "eigen");
     plane p(&s, area);
     file << fmin + df * i << "\t" << p.rho() << "\t" << p.mu() << std::endl;
   }
-
   file.close();
+
+  // solution ss(4792.8 * pi2, pi / 4);
+  // post::Area<AP> aa(&ss, {-0.1, 0.1}, {0.1, -0.1}, 300, 300, "eigen");
+  // plane p(&ss, aa);
+  // std::cout << 4792.8 * pi2 << "\t" << p.rho() << "\t" << p.mu() << std::endl;
 
   return 0;
 }
