@@ -609,7 +609,7 @@ double MinDet(const MatrixXcd& A, const MatrixXcd& B, double angle,
 }
 
 VectorXcd NewtonEigen(const MatrixXcd& A, const MatrixXcd& Ap,
-                      size_t max_iter = 1e3, double tol = 1e-10) {
+                      size_t max_iter = 1e4, double tol = 1e-10) {
   // VectorXcd v1 = VectorXcd::Random(A.cols());
   VectorXcd v1(A.cols());
   v1.setOnes();
