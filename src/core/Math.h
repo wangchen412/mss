@@ -589,7 +589,7 @@ MatrixXcd PhaseShiftDiff(const dcomp& ka, double angle, long m) {
 }
 
 double MinDet(const MatrixXcd& A, const MatrixXcd& B, double angle,
-              int num_det = 1000) {
+              int num_det = 5000) {
   // Return KL for minimum |A - SB| of Av = S Bv
 
   Eigen::JacobiSVD<MatrixXcd> svd = B.jacobiSvd(40);
@@ -609,7 +609,7 @@ double MinDet(const MatrixXcd& A, const MatrixXcd& B, double angle,
 }
 
 VectorXcd NewtonEigen(const MatrixXcd& A, const MatrixXcd& Ap,
-                      size_t max_iter = 1e2, double tol = 1e-10) {
+                      size_t max_iter = 1e4, double tol = 1e-10) {
   // VectorXcd v1 = VectorXcd::Random(A.cols());
   VectorXcd v1(A.cols());
   v1.setOnes();
