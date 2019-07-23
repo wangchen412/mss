@@ -45,7 +45,9 @@ class solution {
       z1.row(i) /= p;
       z2.row(i) /= p;
     }
-    dcomp ee = MinDet(z2, z1, theta);
+    double ee = MinDet(z2, z1, theta);
+    k = ee * pi / 0.2;
+
     MatrixXcd z = z2 - PhaseShift(ee * pi, theta, z1.rows()) * z1;
     MatrixXcd zp = z2 - PhaseShiftDiff(ee * pi, theta, z1.rows()) * z1;
     VectorXcd xx = NewtonEigen(z, zp);
@@ -68,6 +70,8 @@ class solution {
   }
   double Frequency() const { return matrix_.Frequency(); }
 
+  double k;
+
  private:
   Material matrix_mat_{7670, 116e9, 84.3e9};
   Material inhomo_mat_{11400, 36e9, 8.43e9};
@@ -80,8 +84,11 @@ class solution {
 
 class plane {
  public:
-  plane(double omega, const post::Area<AP>& area)
-      : omega(omega), area(area), N(area.Points().size()) {
+  plane(const solution* sol, const post::Area<AP>& area)
+      : sol(sol),
+        omega(sol->Frequency()),
+        area(area),
+        N(area.Points().size()) {
     Eigen::MatrixXcd A(N, 3);
     Eigen::VectorXcd b(N);
     for (long i = 0; i < N; i++) {
@@ -117,12 +124,10 @@ class plane {
     return area.KineticEnergyDensity() / (ww / 2 * omega * omega);
   }
 
-  double mu() {
-    return area.StrainEnergyDensity() /
-           (pow(std::abs(c(0)), 2) + pow(std::abs(c(1)), 2)) * 2;
-  }
+  double mu() { return pow(omega / sol->k, 2) * rho(); }
 
  private:
+  const solution* sol;
   double omega;
   const post::Area<AP>& area;
   long N;
@@ -143,7 +148,7 @@ int main() {
     double omega = (fmin + df * i) * pi2;
     solution s(omega, 0);
     post::Area<AP> area(&s, {-0.1, 0.1}, {0.1, -0.1}, 300, 300, "eigen");
-    plane p(omega, area);
+    plane p(&s, area);
     file << fmin + df * i << "\t" << p.rho() << "\t" << p.mu() << std::endl;
   }
 
