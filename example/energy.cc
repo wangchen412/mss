@@ -83,32 +83,23 @@ class solution {
   AssemblyConfig<AP>* ac;
   Fiber<AP>* f;
 };
-
-class plane {
+class homo {
  public:
-  plane(const solution* sol, const post::Area<AP>& area)
-      : sol(sol),
-        omega(sol->Frequency()),
+  homo(const solution* sol, const post::Area<AP>& area)
+      : omega(sol->Frequency()),
         area(area),
-        N(area.Points().size()) {
-    Eigen::MatrixXcd A(N, 3);
-    Eigen::VectorXcd b(N);
-    for (long i = 0; i < N; i++) {
-      PosiVect p = area.Point(i)->PositionGLB();
-      A(i, 0) = p.x;
-      A(i, 1) = p.y;
-      A(i, 2) = 1;
-      b(i) = area.Point(i)->State().Displacement().x;
-    }
-    auto AA = A.jacobiSvd(Eigen::ComputeThinU | Eigen::ComputeThinV);
-    c = AA.solve(b);
-    std::cout << c << std::endl;
+        N(area.Points().size()),
+        k(sol->k),
+        kx(sol->kx),
+        ky(sol->ky) {
+    for (auto& i : area.Points())
+      A += sol->Resultant(i->LocalCS()).Displacement().x *
+           exp(-ii * kx * i->PositionGLB().x - ii * ky * i->PositionGLB().y);
+    A /= N;
   }
 
   dcomp Displacement(const PosiVect& p) const {
-    Eigen::VectorXcd A(3);
-    A << p.x, p.y, 1;
-    return A.dot(c);
+    return A * exp(ii * kx * p.x + ii * ky * p.y);
   }
 
   StateAP Resultant(const CS* cs) const {
@@ -119,38 +110,32 @@ class plane {
   Material material(const CS*) const { return matrix_mat_; }
 
   double rho() {
-    dcomp A = 0;
-    for (auto& i : area.Points()) {
-      double x = i->PositionGLB().x;
-      double y = i->PositionGLB().y;
-      A += sol->Resultant(i->LocalCS()).Displacement().x *
-           exp(-ii * sol->kx * x - ii * sol->ky * y);
-    }
-    A /= N;
-
-    // double ww = 0;
-    // for (auto& i : area.Points()) {
-    //   double x = i->PositionGLB().x;
-    //   double y = i->PositionGLB().y;
-    //   dcomp w = A * exp(ii * sol->kx * x + ii * sol->ky * y);
-    //   ww += pow(std::abs(w), 2);
-    // }
-    // ww /= N;
-
     return area.KineticEnergyDensity() * 2 / pow(std::abs(A) * omega, 2);
-    // return area.KineticEnergyDensity() / (ww / 2 * omega * omega);
   }
 
-  double mu() { return pow(omega / sol->k, 2) * rho(); }
+  double mu() { return pow(omega / k, 2) * rho(); }
 
  private:
-  const solution* sol;
   double omega;
   const post::Area<AP>& area;
   long N;
-  Eigen::VectorXcd c;
+  dcomp A{0};
+  double k, kx, ky;
   Material matrix_mat_{7670, 116e9, 84.3e9};
 };
+
+Eigen::Vector2d homo_ang(double omega, double angle) {
+  solution s(omega, angle);
+  post::Area<AP> area(&s, {-0.1, 0.1}, {0.1, -0.1}, 100, 100, "eigen");
+  homo p(&s, area);
+  return Eigen::Vector2d(p.rho(), p.mu());
+}
+
+Eigen::Vector2d homo_iso(double omega, int N = 45) {
+  Eigen::MatrixXd rst(2, N);
+  for (long i = 0; i < N; i++) rst.col(i) = homo_ang(omega, pi / 4 / N * i);
+  return Eigen::Vector2d(rst.row(0).mean(), rst.row(1).mean());
+}
 
 int main() {
   std::ofstream file("energy_pbc.txt");
@@ -163,17 +148,15 @@ int main() {
   for (int i = 0; i < N; i++) {
     std::cout << i << std::endl;
     double omega = (fmin + df * i) * pi2;
-    solution s(omega, pi / 4);
-    post::Area<AP> area(&s, {-0.1, 0.1}, {0.1, -0.1}, 200, 200, "eigen");
-    plane p(&s, area);
-    file << fmin + df * i << "\t" << p.rho() << "\t" << p.mu() << std::endl;
+    file << fmin + df * i << "\t" << homo_iso(omega).transpose() << std::endl;
   }
   file.close();
 
   // solution ss(4792.8 * pi2, pi / 4);
   // post::Area<AP> aa(&ss, {-0.1, 0.1}, {0.1, -0.1}, 300, 300, "eigen");
   // plane p(&ss, aa);
-  // std::cout << 4792.8 * pi2 << "\t" << p.rho() << "\t" << p.mu() << std::endl;
+  // std::cout << 4792.8 * pi2 << "\t" << p.rho() << "\t" << p.mu() <<
+  // std::endl;
 
   return 0;
 }
