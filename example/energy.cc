@@ -211,11 +211,65 @@ class homo_plane {
   Material matrix_mat_{7670, 116e9, 84.3e9};
 };
 
+class homo_para {
+ public:
+  template <typename S>
+  homo_para(const S* sol, const post::Area<AP>& area)
+      : omega(sol->Frequency()),
+        k(sol->k),
+        area(area),
+        N(area.Points().size()) {
+    Eigen::MatrixXcd A(N, 6);
+    Eigen::VectorXcd b(N);
+    for (long i = 0; i < N; i++) {
+      PosiVect p = area.Point(i)->PositionGLB();
+      A(i, 0) = p.x * p.x;
+      A(i, 1) = p.x * p.y;
+      A(i, 2) = p.y * p.y;
+      A(i, 3) = p.x;
+      A(i, 4) = p.y;
+      A(i, 5) = 1;
+      b(i) = area.Point(i)->State().Displacement().x;
+    }
+    c = A.jacobiSvd(Eigen::ComputeThinU | Eigen::ComputeThinV).solve(b);
+  }
+
+  dcomp Displacement(const PosiVect& p) const {
+    Eigen::VectorXcd A(6);
+    A << p.x * p.x, p.x * p.y, p.y * p.y, p.x, p.y, 1;
+    return A.dot(c);
+  }
+
+  StateAP Resultant(const CS* cs) const {
+    PosiVect p = cs->PositionGLB();
+    return StateAP(Displacement(p), dcomp(0), dcomp(0));
+  }
+  double Frequency() const { return 0; }
+  Material material(const CS*) const { return matrix_mat_; }
+
+  double rho() {
+    double ww = 0;
+    for (auto& i : area.Points())
+      ww += pow(std::abs(Displacement(i->PositionGLB())), 2);
+    ww /= N;
+    return area.KineticEnergyDensity() / (ww / 2 * omega * omega);
+  }
+
+  double mu() { return pow(omega / k, 2) * rho(); }
+
+ private:
+  double omega, k;
+  const post::Area<AP>& area;
+  long N;
+  Eigen::VectorXcd c;
+  Material matrix_mat_{7670, 116e9, 84.3e9};
+};
+
 template <typename T>
 Eigen::Vector2d homo_ang(double omega, double angle) {
   T s(omega, angle);
   post::Area<AP> area(&s, {-0.1, 0.1}, {0.1, -0.1}, 200, 200, "eigen");
-  homo_plane p(&s, area);
+  homo_para p(&s, area);
   return Eigen::Vector2d(p.rho(), p.mu());
 }
 
@@ -228,7 +282,7 @@ Eigen::Vector2d homo_iso(double omega, int N = 45) {
 }
 
 int main() {
-  std::ofstream file("energy_plane.txt");
+  std::ofstream file("energy_para.txt");
 
   int N = 20;
   double fmax = 500;
