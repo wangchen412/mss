@@ -159,11 +159,63 @@ class homo {
   double k, kx, ky;
 };
 
+class homo_plane {
+ public:
+  template <typename S>
+  homo_plane(const S* sol, const post::Area<AP>& area)
+      : omega(sol->Frequency()),
+        k(sol->k),
+        area(area),
+        N(area.Points().size()) {
+    Eigen::MatrixXcd A(N, 3);
+    Eigen::VectorXcd b(N);
+    for (long i = 0; i < N; i++) {
+      PosiVect p = area.Point(i)->PositionGLB();
+      A(i, 0) = p.x;
+      A(i, 1) = p.y;
+      A(i, 2) = 1;
+      b(i) = area.Point(i)->State().Displacement().x;
+    }
+    auto AA = A.jacobiSvd(Eigen::ComputeThinU | Eigen::ComputeThinV);
+    c = AA.solve(b);
+  }
+
+  dcomp Displacement(const PosiVect& p) const {
+    Eigen::VectorXcd A(3);
+    A << p.x, p.y, 1;
+    return A.dot(c);
+  }
+
+  StateAP Resultant(const CS* cs) const {
+    PosiVect p = cs->PositionGLB();
+    return StateAP(Displacement(p), dcomp(0), dcomp(0));
+  }
+  double Frequency() const { return 0; }
+  Material material(const CS*) const { return matrix_mat_; }
+
+  double rho() {
+    double ww = 0;
+    for (auto& i : area.Points())
+      ww += pow(std::abs(Displacement(i->PositionGLB())), 2);
+    ww /= N;
+    return area.KineticEnergyDensity() / (ww / 2 * omega * omega);
+  }
+
+  double mu() { return pow(omega / k, 2) * rho(); }
+
+ private:
+  double omega, k;
+  const post::Area<AP>& area;
+  long N;
+  Eigen::VectorXcd c;
+  Material matrix_mat_{7670, 116e9, 84.3e9};
+};
+
 template <typename T>
 Eigen::Vector2d homo_ang(double omega, double angle) {
   T s(omega, angle);
-  post::Area<AP> area(&s, {-0.1, 0.1}, {0.1, -0.1}, 100, 100, "eigen");
-  homo p(&s, area);
+  post::Area<AP> area(&s, {-0.1, 0.1}, {0.1, -0.1}, 200, 200, "eigen");
+  homo_plane p(&s, area);
   return Eigen::Vector2d(p.rho(), p.mu());
 }
 
@@ -176,26 +228,20 @@ Eigen::Vector2d homo_iso(double omega, int N = 45) {
 }
 
 int main() {
-  std::ofstream file("energy_test.txt");
+  std::ofstream file("energy_plane.txt");
 
-  int N = 1;
-  double fmax = 4878;
+  int N = 20;
+  double fmax = 500;
   double fmin = 4800;
   double df = (fmax - fmin) / N;
 
   for (int i = 0; i < N; i++) {
     std::cout << i << std::endl;
     double omega = (fmin + df * i) * pi2;
-    file << fmin + df * i << "\t" << homo_iso<ms>(omega, 1).transpose()
+    file << fmin + df * i << "\t" << homo_iso<ms>(omega).transpose()
          << std::endl;
   }
   file.close();
-
-  // solution ss(4792.8 * pi2, pi / 4);
-  // post::Area<AP> aa(&ss, {-0.1, 0.1}, {0.1, -0.1}, 300, 300, "eigen");
-  // plane p(&ss, aa);
-  // std::cout << 4792.8 * pi2 << "\t" << p.rho() << "\t" << p.mu() <<
-  // std::endl;
 
   return 0;
 }
