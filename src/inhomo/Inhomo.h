@@ -119,6 +119,9 @@ class Inhomo {
   double AngleGLB() const { return localCS_.AngleGLB(); }
   const InhomoType& Type() const { return type_; }
 
+  // The material on this point.
+  virtual Material material(const CS* objCS) const = 0;
+
  protected:
   const CS localCS_;
   InhomoType type_;

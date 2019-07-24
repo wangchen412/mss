@@ -48,6 +48,7 @@ class Fiber : public Inhomo<T> {
   size_t NumDv() const override { return config_->NumDv(); }
   size_t NumCoeff() const override { return config_->NumCoeff(); }
   double Radius() const { return config_->Radius(); }
+  Material material(const CS*) const override { return config_->Material(); }
 
   void SetCoeff(const VectorXcd& solution) override;
 

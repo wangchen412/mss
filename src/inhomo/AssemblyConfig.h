@@ -76,6 +76,12 @@ class AssemblyConfig {
   size_t NumBv_in() const { return num_bv_in_; }
   size_t NumDv_in() const { return num_dv_in_; }
 
+  Material material(const CS* objCS) {
+    for (auto& i : inhomoC_)
+      if (i->Contains(objCS)) return i->material(objCS);
+    return matrix_->Material();
+  }
+  Material MatrixMaterial() const { return matrix_->Material(); }
   double KL_m() const { return matrix_->KL(); }
   double KT_m() const { return matrix_->KT(); }
   double Height() const { return height_; }

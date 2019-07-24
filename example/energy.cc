@@ -24,9 +24,9 @@
 
 using namespace mss;
 
-class solution {
+class periodic {
  public:
-  solution(double omega, double theta) : matrix_(matrix_mat_, omega) {
+  periodic(double omega, double theta) : matrix_(matrix_mat_, omega) {
     fc = new FiberConfig<AP>("1", 14, 200, 0.06, inhomo_mat_, &matrix_);
     fibers.push_back(new Fiber<AP>(fc, {0.1, 0.1}));
     ac = new AssemblyConfig<AP>("1", fibers, 0.2, 0.2, 80000, &matrix_);
@@ -83,9 +83,51 @@ class solution {
   AssemblyConfig<AP>* ac;
   Fiber<AP>* f;
 };
+class ms {
+ public:
+  ms(double omega, double angle) {
+    input::Solution in("input.txt");
+    in.update_frequency(omega);
+    in.update_incident_angle(angle);
+    s = new Solution<AP>(in);
+    s->Solve();
+
+    int P = 100;
+    post::AreaAP area(s, {-0.5, 0.5}, {0.5, -0.5}, P, P);
+    MatrixXcd A(P * P, 3);
+    VectorXcd b(P * P);
+    for (long i = 0; i < P * P; i++) {
+      PosiVect p = area.Point(i)->PositionGLB();
+      A(i, 0) = p.x;
+      A(i, 1) = p.y;
+      A(i, 2) = 1;
+      b(i) = log(area.Point(i)->State().Displacement().x);
+    }
+    VectorXcd c =
+        A.jacobiSvd(Eigen::ComputeThinU | Eigen::ComputeThinV).solve(b);
+    kx = (c(0) / ii).real();
+    ky = (c(1) / ii).real();
+    k = sqrt(kx * kx + ky * ky);
+    std::cout << "kx from fitting: " << c(0) << std::endl;
+    std::cout << "ky from fitting: " << c(1) << std::endl;
+    std::cout << "k from fitting: " << k << std::endl;
+    std::cout << "Amplitude from fitting: " << exp(c(2)) << std::endl;
+  }
+
+  Material material(const CS* cs) const { return s->material(cs); }
+  StateAP Resultant(const CS* cs) const { return s->Resultant(cs); }
+  double Frequency() const { return s->Frequency(); }
+
+  double k, kx, ky;
+
+ private:
+  Solution<AP>* s;
+};
+
 class homo {
  public:
-  homo(const solution* sol, const post::Area<AP>& area)
+  template <typename S>
+  homo(const S* sol, const post::Area<AP>& area)
       : omega(sol->Frequency()),
         area(area),
         N(area.Points().size()),
@@ -96,18 +138,12 @@ class homo {
       A += sol->Resultant(i->LocalCS()).Displacement().x *
            exp(-ii * kx * i->PositionGLB().x - ii * ky * i->PositionGLB().y);
     A /= N;
+    std::cout << "Amp from averaging: " << A << std::endl;
   }
 
   dcomp Displacement(const PosiVect& p) const {
     return A * exp(ii * kx * p.x + ii * ky * p.y);
   }
-
-  StateAP Resultant(const CS* cs) const {
-    PosiVect p = cs->PositionGLB();
-    return StateAP(Displacement(p), dcomp(0), dcomp(0));
-  }
-  double Frequency() const { return 0; }
-  Material material(const CS*) const { return matrix_mat_; }
 
   double rho() {
     return area.KineticEnergyDensity() * 2 / pow(std::abs(A) * omega, 2);
@@ -121,34 +157,37 @@ class homo {
   long N;
   dcomp A{0};
   double k, kx, ky;
-  Material matrix_mat_{7670, 116e9, 84.3e9};
 };
 
+template <typename T>
 Eigen::Vector2d homo_ang(double omega, double angle) {
-  solution s(omega, angle);
-  post::Area<AP> area(&s, {-0.1, 0.1}, {0.1, -0.1}, 300, 300, "eigen");
+  T s(omega, angle);
+  post::Area<AP> area(&s, {-0.1, 0.1}, {0.1, -0.1}, 100, 100, "eigen");
   homo p(&s, area);
   return Eigen::Vector2d(p.rho(), p.mu());
 }
 
+template <typename T>
 Eigen::Vector2d homo_iso(double omega, int N = 45) {
   Eigen::MatrixXd rst(2, N);
-  for (long i = 0; i < N; i++) rst.col(i) = homo_ang(omega, pi / 4 / N * i);
+  for (long i = 0; i < N; i++)
+    rst.col(i) = homo_ang<T>(omega, pi / 4 / N * i);
   return Eigen::Vector2d(rst.row(0).mean(), rst.row(1).mean());
 }
 
 int main() {
-  std::ofstream file("energy_pbc.txt");
+  std::ofstream file("energy_test.txt");
 
-  int N = 100;
+  int N = 1;
   double fmax = 4878;
-  double fmin = 500;
+  double fmin = 4800;
   double df = (fmax - fmin) / N;
 
-  for (int i = 0; i <= N; i++) {
+  for (int i = 0; i < N; i++) {
     std::cout << i << std::endl;
     double omega = (fmin + df * i) * pi2;
-    file << fmin + df * i << "\t" << homo_iso(omega).transpose() << std::endl;
+    file << fmin + df * i << "\t" << homo_iso<ms>(omega, 1).transpose()
+         << std::endl;
   }
   file.close();
 

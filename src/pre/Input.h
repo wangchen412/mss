@@ -49,6 +49,7 @@ class Solution {
     return fiber_config_;
   }
   const std::vector<IncidentPlane>& incident() const { return incident_; }
+  void update_incident_angle(double angle);
   const std::vector<AssemblyConfig>& assembly_config() const {
     return assembly_config_;
   }
@@ -214,6 +215,9 @@ inline void Solution::update_frequency(double omega) {
   for (auto& i : fiber_config_)
     i.P = std::max(size_t(matrix().kt * i.radius * matrix().delta), P_MIN);
   // TODO Assembly point density not updated.
+}
+inline void Solution::update_incident_angle(double angle) {
+  incident_[0].angle = angle;
 }
 inline void Solution::link() {
   for (auto& i : material_) {

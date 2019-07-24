@@ -77,6 +77,11 @@ class Assembly : public Inhomo<T> {
   double Height() const { return config_->Height(); }
   const InhomoCPtrs<T>& inhomo() const { return inhomoC_; }
   const Inhomo<T>* inhomo(size_t sn) const { return inhomoC_[sn]; }
+  Material material(const CS* objCS) const override {
+    for (auto& i : inhomoC_)
+      if (i->Contains(objCS)) return material(objCS);
+    return config_->MatrixMaterial();
+  }
 
   VectorXcd DSolve(const InciCPtrs<T>& incident) const;
 

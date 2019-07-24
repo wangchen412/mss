@@ -54,6 +54,10 @@ class Solution {
 
   const Solution& Solve();
   const Inhomo<T>* InWhich(const CS* objCS) const;
+  Material material(const CS* objCS) const {
+    return config_->material(objCS);
+  }
+
   T Resultant(const CS* objCS, const Inhomo<T>* inhomo) const;
   T Resultant(const CS* objCS) const;
 
