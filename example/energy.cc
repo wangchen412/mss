@@ -282,11 +282,11 @@ Eigen::Vector2d homo_iso(double omega, int N = 45) {
 }
 
 int main() {
-  std::ofstream file("energy_para.txt");
+  std::ofstream file("energy_plane.txt");
 
-  int N = 20;
+  int N = 100;
   double fmax = 500;
-  double fmin = 4800;
+  double fmin = 4878;
   double df = (fmax - fmin) / N;
 
   for (int i = 0; i < N; i++) {
