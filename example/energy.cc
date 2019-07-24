@@ -292,7 +292,7 @@ int main() {
   for (int i = 0; i < N; i++) {
     std::cout << i << std::endl;
     double omega = (fmin + df * i) * pi2;
-    file << fmin + df * i << "\t" << homo_iso<ms>(omega).transpose()
+    file << fmin + df * i << "\t" << homo_iso<periodic>(omega).transpose()
          << std::endl;
   }
   file.close();
