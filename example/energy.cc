@@ -269,7 +269,7 @@ template <typename T>
 Eigen::Vector2d homo_ang(double omega, double angle) {
   T s(omega, angle);
   post::Area<AP> area(&s, {-0.1, 0.1}, {0.1, -0.1}, 200, 200, "eigen");
-  homo_para p(&s, area);
+  homo_plane p(&s, area);
   return Eigen::Vector2d(p.rho(), p.mu());
 }
 
@@ -289,7 +289,7 @@ int main() {
   double fmin = 4878;
   double df = (fmax - fmin) / N;
 
-  for (int i = 0; i < N; i++) {
+  for (int i = 0; i < N + 1; i++) {
     std::cout << i << std::endl;
     double omega = (fmin + df * i) * pi2;
     file << fmin + df * i << "\t" << homo_iso<periodic>(omega).transpose()
