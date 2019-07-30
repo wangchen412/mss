@@ -26,8 +26,9 @@ using namespace mss;
 
 class periodic {
  public:
-  periodic(double omega, double theta) : matrix_(matrix_mat_, omega) {
-    fc = new FiberConfig<AP>("1", 14, 200, 0.06, inhomo_mat_, &matrix_);
+  periodic(double omega, double theta, double radius = 0.06)
+      : matrix_(matrix_mat_, omega) {
+    fc = new FiberConfig<AP>("1", 8, 50000, radius, inhomo_mat_, &matrix_);
     fibers.push_back(new Fiber<AP>(fc, {0.1, 0.1}));
     ac = new AssemblyConfig<AP>("1", fibers, 0.2, 0.2, 80000, &matrix_);
     ac->Boundary().ReverseEdge();
@@ -266,36 +267,53 @@ class homo_para {
 };
 
 template <typename T>
-Eigen::Vector2d homo_ang(double omega, double angle) {
-  T s(omega, angle);
-  post::Area<AP> area(&s, {-0.1, 0.1}, {0.1, -0.1}, 200, 200, "eigen");
-  homo_para p(&s, area);
+Eigen::Vector2d homo_ang(double omega, double angle, double radius = 0.06) {
+  T s(omega, angle, radius);
+  post::Area<AP> area(&s, {-0.1, 0.1}, {0.1, -0.1}, 100, 100, "eigen");
+  homo p(&s, area);
   return Eigen::Vector2d(p.rho(), p.mu());
 }
 
 template <typename T>
-Eigen::Vector2d homo_iso(double omega, int N = 45) {
+Eigen::Vector2d homo_iso(double omega, double radius = 0.06, int N = 45) {
   Eigen::MatrixXd rst(2, N);
   for (long i = 0; i < N; i++)
-    rst.col(i) = homo_ang<T>(omega, pi / 4 / N * i);
+    rst.col(i) = homo_ang<T>(omega, pi / 4, radius);
   return Eigen::Vector2d(rst.row(0).mean(), rst.row(1).mean());
 }
 
-int main() {
-  std::ofstream file("energy_plane.txt");
+// int main() {
+//   std::ofstream file("energy_plane.txt");
 
-  int N = 100;
-  double fmax = 500;
-  double fmin = 4878;
-  double df = (fmax - fmin) / N;
+//   int N = 100;
+//   double fmax = 500;
+//   double fmin = 4878;
+//   double df = (fmax - fmin) / N;
+
+//   for (int i = 0; i < N; i++) {
+//     std::cout << i << std::endl;
+//     double omega = (fmin + df * i) * pi2;
+//     file << fmin + df * i << "\t" << homo_iso<periodic>(omega).transpose()
+//          << std::endl;
+//   }
+//   file.close();
+
+//   return 0;
+// }
+
+int main() {
+  std::ofstream file("energy_static.txt");
+  int N = 18;
+  double r0 = 0.02;
+  double r1 = 0.09;
+
 
   for (int i = 0; i < N; i++) {
     std::cout << i << std::endl;
-    double omega = (fmin + df * i) * pi2;
-    file << fmin + df * i << "\t" << homo_iso<periodic>(omega).transpose()
+    double r = r1 - i * 0.005;
+    file << r / 0.2 << "\t" << homo_iso<periodic>(2000 * pi2, r, 45)(1) / 84.3e9
          << std::endl;
   }
-  file.close();
 
   return 0;
 }
