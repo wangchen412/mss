@@ -89,6 +89,10 @@ class MultiBEM {
     return in_->Effect(cs) + b_[0]->Effect(cs);
   }
 
+  double Frequency() const { return omega_; }
+  Material material(const CS*) const { return matrix_.Material(); }
+  const Matrix* matrix() const { return &matrix_; }
+
  private:
   double omega_;
   Matrix matrix_, inhomo_;
@@ -98,8 +102,51 @@ class MultiBEM {
   Incident<T>* in_;
 };
 
+class FiberRes {
+ public:
+  FiberRes(const Fiber<AP>& fiber) : fiber(fiber) {}
+
+  StateAP Resultant(const CS* cs) const {
+    if (fiber.Contains(cs))
+      return fiber.Inner(cs);
+    else
+      return fiber.Scatter(cs) + fiber.Pseudo(cs);
+  }
+
+  double Frequency() const { return 1; }
+  Material material(const CS* a) const { return fiber.material(a); }
+
+ private:
+  const Fiber<AP>& fiber;
+};
+
+void Recover(const VectorXcd& bv) {
+  const Material steel(7670, 116e9, 84.3e9), lead(11400, 36e9, 8.43e9);
+  double omega = 16576.24319112025;
+  Matrix matrix(steel, omega);
+  auto fc = new FiberConfig<AP>("1", 14, 200, 0.06, lead, &matrix);
+  InhomoPtrs<AP> fibers;
+  fibers.push_back(new Fiber<AP>(fc, {0.1, 0.1}));
+  auto ac = new AssemblyConfig<AP>("1", fibers, 0.2, 0.2, 500, &matrix);
+
+  // std::cout << ac->Boundary().NumNode() << std::endl;
+  // std::ofstream file("ac.txt");
+  // for (auto& i : ac->Boundary().Node()) file << i->PositionGLB() <<
+  // std::endl; file.close();
+
+  VectorXcd coeff = ac->ResBvMat(ac->Node()).jacobiSvd(40).solve(bv);
+  // std::cout << coeff << std::endl;
+
+  Fiber<AP> f(fc);
+  f.SetCoeff(coeff);
+  FiberRes fr(f);
+  post::Area<AP>(&fr, {-0.1, 0.1}, {0.1, -0.1}, 500, 500, "rec").Write();
+  post::Circle<AP>(&fr, {0, 0}, 0.0601, 1000, "rec").Write();
+  post::Line<AP>(&fr, {-0.1, 0}, {0.1, 0}, 1000, "rec").Write();
+}
+
 int main() {
-  Material steel(7670, 116e9, 84.3e9);
+  const Material steel(7670, 116e9, 84.3e9), lead(11400, 36e9, 8.43e9);
   Material eff_mat(0.803696 * 11400, 1, 0.609922 * 84.3e9);
 
   Eigen::MatrixXd ps1(2, 4);
@@ -122,10 +169,29 @@ int main() {
     ps[i + 8].y = ps3(1, i);
   }
 
-  MultiBEM<AP, 10> s(16576.24319112025, eff_mat, steel, ps);
-  post::Circle<AP>(&s, {0, 0}, 0.5155, 1000, "1").Write();
-  post::Circle<AP>(&s, {0, 0}, 2.5773, 1000, "2").Write();
-  post::Circle<AP>(&s, {0, 0}, 4.6392, 1000, "3").Write();
+  double omega = 16576.24319112025;
+
+  MultiBEM<AP, 10> s(omega, eff_mat, steel, ps);
+  post::Area<AP>(&s, {-0.94, -1.74}, {-0.74, -1.94}, 500, 500, "bem").Write();
+  post::Circle<AP>(&s, {-0.84, -1.84}, 0.0601, 1000, "bem").Write();
+  post::Line<AP>(&s, {-0.94, -1.84}, {-0.74, -1.84}, 1000, "bem").Write();
+
+  // post::Circle<AP>(&s, {0, 0}, 0.5155, 1000, "1").Write();
+  // post::Circle<AP>(&s, {0, 0}, 2.5773, 1000, "2").Write();
+  // post::Circle<AP>(&s, {0, 0}, 4.6392, 1000, "3").Write();
+
+  Boundary<AP, 4> box(500.00001, {{-0.94, -1.74}, {-0.74, -1.94}},
+                      s.matrix());
+
+  // std::ofstream file("box.txt");
+  // for (auto& i : box.Node()) file << i->PositionGLB() << std::endl;
+  // file.close();
+
+  VectorXcd bv(800);
+  for (int i = 0; i < 400; i++)
+    bv.segment<2>(i * 2) = s.Resultant(box.Node(i)).Bv();
+
+  Recover(bv);
 
   return 0;
 }
